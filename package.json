@@ -4,10 +4,10 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vinxi dev",
+    "dev": "bunx vinxi dev",
     "dev:backend": "cd backend && npm run dev",
     "dev:all": "concurrently -n frontend,backend -c cyan,yellow \"npm run dev\" \"npm run dev:backend\"",
-    "build": "vinxi build",
+    "build": "bunx vinxi build",
     "start": "node .output/server/index.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."

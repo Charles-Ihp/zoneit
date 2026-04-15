@@ -4,5 +4,15 @@ export interface UserResponse {
   email: string;
   name: string;
   picture: string | null;
+  age: number | null;
+  weightKg: number | null;
+  heightCm: number | null;
   createdAt: string;
+}
+
+export interface UpdateProfileBody {
+  name?: string;
+  age?: number | null;
+  weightKg?: number | null;
+  heightCm?: number | null;
 }

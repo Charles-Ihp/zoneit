@@ -48,10 +48,10 @@ const phaseColors: Record<string, { bg: string; border: string; accent: string; 
 };
 
 const phaseIcons: Record<string, string> = {
-  warmup: "🔥",
-  main: "💪",
-  addon: "🔧",
-  cooldown: "🧊",
+  warmup: "",
+  main: "",
+  addon: "",
+  cooldown: "",
 };
 
 export function SessionView({
@@ -178,7 +178,7 @@ export function SessionView({
         <p className="mt-1.5 text-sm text-background/60">{session.subtitle}</p>
         <div className="mt-3 inline-flex items-center gap-1.5 rounded bg-primary px-3 py-1">
           <span className="text-xs font-bold text-primary-foreground">
-            ⏱ {session.totalDuration} min total
+            {session.totalDuration} min total
           </span>
         </div>
         {!isActive && (
@@ -187,7 +187,7 @@ export function SessionView({
               onClick={startSession}
               className="rounded bg-primary px-6 py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]"
             >
-              ▶ Start Session
+              Start Session
             </button>
           </div>
         )}
@@ -218,7 +218,7 @@ export function SessionView({
                 onClick={togglePause}
                 className="rounded border border-background/20 px-3 py-1.5 font-heading text-xs font-bold text-background/70 transition-colors hover:border-background/40 hover:text-background"
               >
-                {paused ? "▶ Resume" : "⏸ Pause"}
+                {paused ? "Resume" : "Pause"}
               </button>
               <button
                 onClick={() => setShowFinish(true)}
@@ -286,18 +286,18 @@ export function SessionView({
             <div className="flex gap-2">
               {onBack && (
                 <button onClick={onBack} className="rounded border border-border px-4 py-2.5 font-heading text-sm font-semibold text-foreground transition-colors hover:bg-secondary">
-                  ← Adjust
+                  Adjust
                 </button>
               )}
               {onRegenerate && (
                 <button onClick={onRegenerate} className="rounded border border-border px-4 py-2.5 font-heading text-sm font-semibold text-foreground transition-colors hover:bg-secondary">
-                  🎲 Regenerate
+                  Regenerate
                 </button>
               )}
             </div>
             {onSave && (
               <button onClick={onSave} className="rounded bg-primary px-5 py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 sm:ml-auto">
-                💾 {saveLabel}
+                {saveLabel}
               </button>
             )}
           </div>
@@ -344,7 +344,7 @@ export function SessionView({
               onClick={(e) => e.stopPropagation()}
             >
               <p className="font-heading text-2xl font-extrabold text-primary">
-                {allDone ? "🎉 All done!" : "Finish session?"}
+                {allDone ? "All done!" : "Finish session?"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {formatTime(elapsed)} · {doneIds.size}/{exerciseCount} exercises
@@ -389,7 +389,7 @@ export function SessionView({
             className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded border border-primary bg-card px-5 py-3 shadow-lg"
           >
             <span className="font-heading text-sm font-bold text-primary">
-              ✓ Session logged — {formatTime(elapsed)}
+              Session logged — {formatTime(elapsed)}
             </span>
           </motion.div>
         )}
@@ -424,7 +424,6 @@ function BlockSection({ block, index, isActive, paused, doneIds, runningId, exer
       <div className="mx-auto max-w-2xl px-4 py-5 sm:px-6">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg">{icon}</span>
             <div>
               <span className={`rounded px-2 py-0.5 font-heading text-[10px] font-bold tracking-widest ${colors.accent}`}>
                 {colors.label}
@@ -489,7 +488,7 @@ function ExerciseCard({ exercise, duration, animDelay, isActive, paused, isDone,
           <h4 className={`font-heading text-sm font-bold ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
             {exercise.name}
           </h4>
-          {isDone && <span className="shrink-0 font-heading text-xs font-bold text-primary">✓</span>}
+          {isDone && <span className="shrink-0 h-4 w-4 rounded-full bg-primary/20 border border-primary" />}
         </div>
         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{exercise.description}</p>
         {exercise.focus.length > 0 && (
@@ -510,13 +509,13 @@ function ExerciseCard({ exercise, duration, animDelay, isActive, paused, isDone,
                 isRunning ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20" : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
               }`}
             >
-              {isRunning ? "⏸ Pause" : "▶ Start"}
+              {isRunning ? "Pause" : "Start"}
             </button>
             <button
               onClick={onMarkDone}
               className="rounded border border-primary/30 bg-primary/10 px-3 py-1 font-heading text-xs font-bold text-primary transition-colors hover:bg-primary/20"
             >
-              ✓ Done
+              Done
             </button>
           </div>
         )}

@@ -6,6 +6,7 @@ interface AuthState {
   loading: boolean;
   login: () => void;
   logout: () => void;
+  setUser: (user: UserResponse) => void;
 }
 
 /**
@@ -58,5 +59,5 @@ export function useAuth(): AuthState {
     setUser(null);
   }, []);
 
-  return { user, loading, login, logout };
+  return { user, loading, login, logout, setUser };
 }

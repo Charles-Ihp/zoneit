@@ -7,7 +7,17 @@ export interface UserResponse {
   email: string;
   name: string;
   picture: string | null;
+  age: number | null;
+  weightKg: number | null;
+  heightCm: number | null;
   createdAt: string;
+}
+
+export interface UpdateProfileBody {
+  name?: string;
+  age?: number | null;
+  weightKg?: number | null;
+  heightCm?: number | null;
 }
 
 export interface WorkoutResponse {
@@ -108,6 +118,11 @@ export const api = {
 
   users: {
     me: () => request<UserResponse>("/api/users/me"),
+    updateProfile: (body: UpdateProfileBody) =>
+      request<UserResponse>("/api/users/me", {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      }),
   },
 
   workouts: {

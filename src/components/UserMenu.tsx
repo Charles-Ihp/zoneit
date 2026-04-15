@@ -65,14 +65,21 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
               onClick={() => setOpen(false)}
               className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-secondary"
             >
-              <span>🧗</span> My Sessions
+              My Sessions
             </Link>
             <Link
               to="/stats"
               onClick={() => setOpen(false)}
               className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-secondary"
             >
-              <span>📊</span> Stats
+              Stats
+            </Link>
+            <Link
+              to="/profile"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-secondary"
+            >
+              Profile
             </Link>
             <button
               onClick={() => {
@@ -81,7 +88,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
               }}
               className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary"
             >
-              <span>↩</span> Sign out
+              Sign out
             </button>
           </motion.div>
         )}

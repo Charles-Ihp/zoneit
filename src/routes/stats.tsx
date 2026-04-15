@@ -137,7 +137,7 @@ export function StatsPage() {
               to="/"
               className="font-heading text-sm font-bold text-muted-foreground hover:text-foreground"
             >
-              ← Zone It
+              Zone It
             </Link>
             <span className="font-heading text-base font-extrabold tracking-tight text-foreground">
               Stats
@@ -253,7 +253,7 @@ export function StatsPage() {
                   <div className="rounded border border-border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
                     No sessions in this range yet.{" "}
                     <Link to="/" className="text-primary hover:underline">
-                      Generate and start one →
+                      Generate and start one
                     </Link>
                   </div>
                 ) : (

@@ -23,6 +23,21 @@
 						"type": "string",
 						"nullable": true
 					},
+					"age": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"weightKg": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"heightCm": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
 					"createdAt": {
 						"type": "string"
 					}
@@ -32,8 +47,35 @@
 					"email",
 					"name",
 					"picture",
+					"age",
+					"weightKg",
+					"heightCm",
 					"createdAt"
 				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateProfileBody": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"age": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"weightKg": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"heightCm": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					}
+				},
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -457,6 +499,41 @@
 					}
 				],
 				"parameters": []
+			},
+			"patch": {
+				"operationId": "UpdateMe",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update the authenticated user's profile.",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateProfileBody"
+							}
+						}
+					}
+				}
 			}
 		},
 		"/api/workouts": {

@@ -99,7 +99,7 @@ function Index() {
     saveState === "saving"
       ? "Saving…"
       : saveState === "saved"
-        ? "✓ Saved"
+        ? "Saved"
         : saveState === "error"
           ? "Retry Save"
           : "Save Session";

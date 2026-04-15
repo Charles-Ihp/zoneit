@@ -47,7 +47,7 @@ function WorkoutsList() {
             to="/"
             className="font-heading text-lg font-extrabold text-foreground hover:text-primary"
           >
-            ← Send It
+            My Sessions
           </Link>
           {!authLoading && user && <UserMenu user={user} onLogout={logout} />}
         </div>
@@ -63,7 +63,6 @@ function WorkoutsList() {
           <div className="mt-16 text-center text-sm text-muted-foreground">Loading…</div>
         ) : !user ? (
           <div className="mt-16 flex flex-col items-center gap-4 text-center">
-            <span className="text-4xl">🔒</span>
             <p className="text-sm text-muted-foreground">Sign in to see your saved sessions.</p>
             <button
               onClick={login}
@@ -74,7 +73,6 @@ function WorkoutsList() {
           </div>
         ) : workouts.length === 0 ? (
           <div className="mt-16 flex flex-col items-center gap-4 text-center">
-            <span className="text-4xl">🧗</span>
             <p className="text-sm text-muted-foreground">No saved sessions yet.</p>
             <Link
               to="/"

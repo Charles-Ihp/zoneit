@@ -7,6 +7,36 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
+			"UserResponse": {
+				"description": "User profile returned by the API",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"picture": {
+						"type": "string",
+						"nullable": true
+					},
+					"createdAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"email",
+					"name",
+					"picture",
+					"createdAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Record_string.unknown_": {
 				"properties": {},
 				"additionalProperties": {},
@@ -80,36 +110,6 @@
 				},
 				"required": [
 					"name"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UserResponse": {
-				"description": "User profile returned by the API",
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"email": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					},
-					"picture": {
-						"type": "string",
-						"nullable": true
-					},
-					"createdAt": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"id",
-					"email",
-					"name",
-					"picture",
-					"createdAt"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -340,6 +340,33 @@
 		"contact": {}
 	},
 	"paths": {
+		"/api/users/me": {
+			"get": {
+				"operationId": "GetMe",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Returns the authenticated user's profile.",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": []
+			}
+		},
 		"/api/workouts": {
 			"get": {
 				"operationId": "ListWorkouts",
@@ -510,33 +537,6 @@
 						}
 					}
 				]
-			}
-		},
-		"/api/users/me": {
-			"get": {
-				"operationId": "GetMe",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/UserResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Returns the authenticated user's profile.",
-				"tags": [
-					"Users"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": []
 			}
 		},
 		"/api/sessions/generate": {

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import type { SessionInput, Level, Equipment, Goal, GymType, Fatigue } from "@/lib/types";
 
 interface SessionFormProps {
@@ -66,22 +65,22 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* Level */}
       <FormSection title="Climbing Level" step={1}>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {levelOptions.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setLevel(opt.value)}
-              className={`rounded-xl border-2 p-4 text-left transition-all ${
+              className={`rounded border-2 p-3 text-left transition-all sm:p-4 ${
                 level === opt.value
-                  ? "border-primary bg-primary/10 shadow-md"
-                  : "border-border bg-card hover:border-primary/30"
+                  ? "border-primary bg-primary/8 shadow-sm"
+                  : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
               }`}
             >
-              <span className="font-heading text-sm font-semibold">{opt.label}</span>
-              <span className="mt-1 block text-xs text-muted-foreground">{opt.desc}</span>
+              <span className="block font-heading text-sm font-bold">{opt.label}</span>
+              <span className="mt-0.5 block text-[11px] text-muted-foreground">{opt.desc}</span>
             </button>
           ))}
         </div>
@@ -89,19 +88,19 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
 
       {/* Goal */}
       <FormSection title="Session Goal" step={2}>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
           {goalOptions.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setGoal(opt.value)}
-              className={`flex items-center gap-3 rounded-xl border-2 p-4 transition-all ${
+              className={`flex items-center gap-2.5 rounded border-2 px-3 py-3 transition-all sm:gap-3 sm:p-4 ${
                 goal === opt.value
-                  ? "border-primary bg-primary/10 shadow-md"
-                  : "border-border bg-card hover:border-primary/30"
+                  ? "border-primary bg-primary/8 shadow-sm"
+                  : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
               }`}
             >
-              <span className="text-2xl">{opt.icon}</span>
-              <span className="font-heading text-sm font-semibold">{opt.label}</span>
+              <span className="shrink-0 text-xl">{opt.icon}</span>
+              <span className="font-heading text-sm font-bold">{opt.label}</span>
             </button>
           ))}
         </div>
@@ -109,35 +108,35 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
 
       {/* Time */}
       <FormSection title="Session Length" step={3}>
-        <div className="flex gap-3">
+        <div className="grid grid-cols-4 gap-2 sm:gap-3">
           {timeOptions.map((t) => (
             <button
               key={t}
               onClick={() => setSessionLength(t)}
-              className={`flex-1 rounded-xl border-2 px-4 py-3 font-heading text-sm font-semibold transition-all ${
+              className={`rounded border-2 py-3 font-heading text-sm font-bold transition-all ${
                 sessionLength === t
-                  ? "border-primary bg-primary/10 shadow-md"
-                  : "border-border bg-card hover:border-primary/30"
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
               }`}
             >
-              {t} min
+              {t}m
             </button>
           ))}
         </div>
       </FormSection>
 
       {/* Gym & Fatigue row */}
-      <div className="grid gap-10 md:grid-cols-2">
+      <div className="grid gap-8 sm:grid-cols-2">
         <FormSection title="Gym Type" step={4}>
           <div className="flex flex-wrap gap-2">
             {gymOptions.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setGymType(opt.value)}
-                className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all ${
+                className={`rounded border-2 px-3 py-2 text-sm font-medium transition-all ${
                   gymType === opt.value
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-card hover:border-primary/30"
+                    ? "border-primary bg-primary/8 font-semibold"
+                    : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
                 }`}
               >
                 {opt.label}
@@ -147,19 +146,19 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
         </FormSection>
 
         <FormSection title="Energy Level" step={5}>
-          <div className="flex gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {fatigueOptions.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setFatigue(opt.value)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${
+                className={`flex flex-col items-center gap-1 rounded border-2 py-3 text-sm font-medium transition-all ${
                   fatigue === opt.value
-                    ? "border-primary bg-primary/10 shadow-md"
-                    : "border-border bg-card hover:border-primary/30"
+                    ? "border-primary bg-primary/8 font-semibold shadow-sm"
+                    : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
                 }`}
               >
-                <span>{opt.emoji}</span>
-                <span>{opt.label}</span>
+                <span className="text-lg">{opt.emoji}</span>
+                <span className="text-xs">{opt.label}</span>
               </button>
             ))}
           </div>
@@ -167,17 +166,17 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
       </div>
 
       {/* Injuries & Equipment */}
-      <div className="grid gap-10 md:grid-cols-2">
+      <div className="grid gap-8 sm:grid-cols-2">
         <FormSection title="Injuries / Restrictions" step={6} optional>
           <div className="flex flex-wrap gap-2">
             {injuryOptions.map((val) => (
               <button
                 key={val}
                 onClick={() => toggleInjury(val)}
-                className={`rounded-lg border-2 px-3 py-1.5 text-sm capitalize transition-all ${
+                className={`rounded border-2 px-3 py-1.5 text-sm capitalize transition-all ${
                   injuries.includes(val)
-                    ? "border-accent bg-accent/15 text-accent-foreground"
-                    : "border-border bg-card hover:border-accent/30"
+                    ? "border-destructive bg-destructive/8 font-semibold text-destructive"
+                    : "border-border bg-card hover:border-destructive/30 hover:bg-secondary"
                 }`}
               >
                 {val}
@@ -192,10 +191,10 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
               <button
                 key={opt.value}
                 onClick={() => toggleEquipment(opt.value)}
-                className={`rounded-lg border-2 px-3 py-1.5 text-sm transition-all ${
+                className={`rounded border-2 px-3 py-1.5 text-sm transition-all ${
                   equipment.includes(opt.value)
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-card hover:border-primary/30"
+                    ? "border-primary bg-primary/8 font-semibold"
+                    : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
                 }`}
               >
                 {opt.label}
@@ -206,19 +205,15 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
       </div>
 
       {/* Generate */}
-      <motion.div
-        className="flex justify-center pt-4"
-        whileHover={{ scale: loading ? 1 : 1.02 }}
-        whileTap={{ scale: loading ? 1 : 0.98 }}
-      >
+      <div className="pt-2">
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="rounded-2xl bg-primary px-12 py-4 font-heading text-lg font-bold text-primary-foreground shadow-lg transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded bg-primary py-4 font-heading text-base font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? "Generating…" : "Generate Session"}
+          {loading ? "Generating…" : "Generate Session →"}
         </button>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -235,19 +230,17 @@ function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: step * 0.05, duration: 0.3 }}
-    >
-      <div className="mb-3 flex items-baseline gap-3">
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 font-heading text-xs font-bold text-primary">
+    <div>
+      <div className="mb-2.5 flex items-center gap-2.5">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-foreground font-heading text-[10px] font-bold text-background">
           {step}
         </span>
-        <h3 className="font-heading text-base font-semibold text-foreground">{title}</h3>
-        {optional && <span className="text-xs text-muted-foreground">optional</span>}
+        <h3 className="font-heading text-sm font-bold uppercase tracking-wide text-foreground">
+          {title}
+        </h3>
+        {optional && <span className="text-xs text-muted-foreground">(optional)</span>}
       </div>
       {children}
-    </motion.div>
+    </div>
   );
 }

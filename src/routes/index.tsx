@@ -106,43 +106,50 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero / Header */}
-      <header className="relative overflow-hidden border-b border-border bg-card">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--color-primary)/8%,transparent_60%)]" />
-        {/* Auth control */}
-        <div className="absolute right-4 top-4 z-10">
-          {!authLoading &&
-            (user ? (
-              <UserMenu user={user} onLogout={logout} />
-            ) : (
-              <button
-                onClick={login}
-                className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow transition-all hover:bg-primary/90"
-              >
-                Sign in with Google
-              </button>
-            ))}
-        </div>
-        <div className="relative mx-auto max-w-4xl px-6 py-12 text-center md:py-16">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <span className="inline-block rounded-full bg-primary/10 px-4 py-1 font-heading text-xs font-bold uppercase tracking-widest text-primary">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-2">
+            <span className="font-heading text-lg font-extrabold tracking-tight text-foreground">
+              Zone It
+            </span>
+            <span className="hidden rounded bg-primary/10 px-2 py-0.5 font-heading text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
               Session Generator
             </span>
-            <h1 className="mt-4 font-heading text-5xl font-extrabold tracking-tight text-foreground md:text-6xl">
-              Zone It
+          </div>
+          <div>
+            {!authLoading &&
+              (user ? (
+                <UserMenu user={user} onLogout={logout} />
+              ) : (
+                <button
+                  onClick={login}
+                  className="rounded bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
+                >
+                  Sign in
+                </button>
+              ))}
+          </div>
+        </div>
+      </header>
+
+      {/* Hero */}
+      {!session && (
+        <div className="border-b border-border bg-foreground px-4 py-8 text-center sm:py-12">
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <h1 className="font-heading text-4xl font-extrabold tracking-tight text-background sm:text-5xl">
+              Build your climb.
             </h1>
-            <p className="mx-auto mt-3 max-w-lg text-base text-muted-foreground">
-              {session
-                ? "Your personalized session is ready. Follow the plan, climb smart."
-                : "Tell us about your session. We'll build a plan you can actually follow at the gym."}
+            <p className="mx-auto mt-3 max-w-md text-sm text-background/60">
+              Tell us about today. We'll generate a session plan you can actually follow at the gym.
             </p>
           </motion.div>
         </div>
-      </header>
+      )}
 
       {/* Content */}
       <main className="relative">
@@ -150,11 +157,11 @@ function Index() {
           {session ? (
             <motion.div
               key="session"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="pb-16"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="pb-20"
             >
               <SessionView
                 session={session}
@@ -167,11 +174,11 @@ function Index() {
           ) : (
             <motion.div
               key="form"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              className="mx-auto max-w-3xl px-6 py-10"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="mx-auto max-w-2xl px-4 py-8 sm:px-6"
             >
               <SessionForm onGenerate={handleGenerate} loading={generating} />
             </motion.div>
@@ -194,17 +201,14 @@ function Index() {
             onClick={() => setShowSaveDialog(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.97, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={{ scale: 0.97, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-2xl"
+              className="w-full max-w-sm rounded border border-border bg-card p-6 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="mb-1 text-3xl">💾</div>
-              <h2 className="mt-3 font-heading text-xl font-bold text-foreground">
-                Name this session
-              </h2>
+              <h2 className="font-heading text-lg font-bold text-foreground">Name this session</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Give it a name so you can find it later.
               </p>
@@ -214,19 +218,19 @@ function Index() {
                 onChange={(e) => setSaveName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleConfirmSave()}
                 placeholder="e.g. Tuesday overhang session"
-                className="mt-4 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="mt-4 w-full rounded border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 autoFocus
               />
               <button
                 onClick={handleConfirmSave}
                 disabled={!saveName.trim()}
-                className="mt-4 w-full rounded-xl bg-primary py-3 font-heading text-sm font-bold text-primary-foreground shadow transition-all hover:bg-primary/90 disabled:opacity-50"
+                className="mt-3 w-full rounded bg-primary py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40"
               >
                 Save Session
               </button>
               <button
                 onClick={() => setShowSaveDialog(false)}
-                className="mt-3 w-full rounded-xl border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
+                className="mt-2 w-full rounded border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
               >
                 Cancel
               </button>
@@ -247,29 +251,26 @@ function Index() {
             onClick={() => setShowLoginPrompt(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.97, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={{ scale: 0.97, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-2xl"
+              className="w-full max-w-sm rounded border border-border bg-card p-6 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="mb-1 text-3xl">💾</div>
-              <h2 className="mt-3 font-heading text-xl font-bold text-foreground">
-                Save your session
-              </h2>
+              <h2 className="font-heading text-lg font-bold text-foreground">Save your session</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Sign in with Google to save this workout and access it any time.
               </p>
               <button
                 onClick={login}
-                className="mt-6 w-full rounded-xl bg-primary py-3 font-heading text-sm font-bold text-primary-foreground shadow transition-all hover:bg-primary/90"
+                className="mt-5 w-full rounded bg-primary py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90"
               >
                 Sign in with Google
               </button>
               <button
                 onClick={() => setShowLoginPrompt(false)}
-                className="mt-3 w-full rounded-xl border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
+                className="mt-2 w-full rounded border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
               >
                 Maybe later
               </button>

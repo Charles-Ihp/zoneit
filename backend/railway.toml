@@ -3,7 +3,7 @@ buildCommand = "npm install && npm run build && npx prisma generate"
 
 [deploy]
 startCommand = "npx prisma migrate deploy && npx prisma db seed && node dist/server.js"
-healthcheckPath = "/api/users/me"
+healthcheckPath = "/health"
 restartPolicyType = "ON_FAILURE"
 
 [[services]]

@@ -32,6 +32,12 @@ app.use(
 app.use(express.json());
 app.use(passport.initialize());
 
+// ─── Health check ───────────────────────────────────────────────────────────
+
+app.get("/health", (_req: Request, res: Response) => {
+  res.json({ status: "ok" });
+});
+
 // ─── Google OAuth ────────────────────────────────────────────────────────────
 
 app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));

@@ -58,7 +58,7 @@ RegisterRoutes(app);
 
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const swaggerDocument = (await import("../public/swagger.json")).default as object;
+  const swaggerDocument = require("../public/swagger.json") as object;
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 } catch {
   // swagger.json not generated yet — run `npm run tsoa` first

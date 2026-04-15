@@ -12,7 +12,7 @@
     "prisma:studio": "npx prisma studio"
   },
   "prisma": {
-    "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
+    "seed": "bun prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

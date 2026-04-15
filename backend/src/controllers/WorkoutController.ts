@@ -13,6 +13,7 @@ import {
   SuccessResponse,
 } from "tsoa";
 import type { Request as ExpressRequest } from "express";
+import { Prisma } from "@prisma/client";
 import type { User, Workout } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import type { WorkoutResponse, CreateWorkoutBody, UpdateWorkoutBody } from "../models/Workout";
@@ -48,8 +49,8 @@ export class WorkoutController extends Controller {
       data: {
         name: body.name,
         userId: user.id,
-        sessionInput: body.sessionInput,
-        generatedSession: body.generatedSession,
+        sessionInput: body.sessionInput as Prisma.InputJsonValue,
+        generatedSession: body.generatedSession as Prisma.InputJsonValue,
       },
     });
     this.setStatus(201);

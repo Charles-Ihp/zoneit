@@ -34,8 +34,8 @@ backend/.env.local
 .wrangler/
 .dev.vars
 
-# Prisma generated
-backend/prisma/migrations/
+# Prisma - keep migrations tracked, ignore generated client
+backend/src/generated/
 
 # Railway
 .railway/

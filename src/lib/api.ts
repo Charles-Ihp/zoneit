@@ -29,6 +29,28 @@ export interface UpdateWorkoutBody {
   name: string;
 }
 
+export interface SessionLogResponse {
+  id: string;
+  workoutId: string | null;
+  sessionTitle: string;
+  sessionSubtitle: string | null;
+  startedAt: string;
+  durationSeconds: number;
+  exerciseCount: number;
+  notes: string;
+  createdAt: string;
+}
+
+export interface CreateSessionLogBody {
+  workoutId?: string;
+  sessionTitle: string;
+  sessionSubtitle?: string;
+  startedAt: string;
+  durationSeconds: number;
+  exerciseCount: number;
+  notes?: string;
+}
+
 // ─── Client ───────────────────────────────────────────────────────────────────
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3001";
@@ -102,5 +124,18 @@ export const api = {
         body: JSON.stringify(body),
       }),
     delete: (id: string) => request<void>(`/api/workouts/${id}`, { method: "DELETE" }),
+  },
+
+  sessionLogs: {
+    list: (since?: string) =>
+      request<SessionLogResponse[]>(
+        `/api/session-logs${since ? `?since=${encodeURIComponent(since)}` : ""}`,
+      ),
+    create: (body: CreateSessionLogBody) =>
+      request<SessionLogResponse>("/api/session-logs", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    delete: (id: string) => request<void>(`/api/session-logs/${id}`, { method: "DELETE" }),
   },
 };

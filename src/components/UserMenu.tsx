@@ -67,6 +67,13 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
             >
               <span>🧗</span> My Sessions
             </Link>
+            <Link
+              to="/stats"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-secondary"
+            >
+              <span>📊</span> Stats
+            </Link>
             <button
               onClick={() => {
                 setOpen(false);

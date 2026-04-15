@@ -109,12 +109,9 @@ function Index() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <span className="font-heading text-lg font-extrabold tracking-tight text-foreground">
               Zone It
-            </span>
-            <span className="hidden rounded bg-primary/10 px-2 py-0.5 font-heading text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
-              Session Generator
             </span>
           </div>
           <div>

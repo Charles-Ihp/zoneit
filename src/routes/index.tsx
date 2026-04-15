@@ -47,6 +47,20 @@ function Index() {
       login();
       return;
     }
+    const savedCode = localStorage.getItem("promo_code");
+    if (savedCode) {
+      // Silently re-verify the stored code — works on any device as long as the code is still valid
+      try {
+        const { valid } = await api.auth.verifyCode(savedCode);
+        if (valid) {
+          login();
+          return;
+        }
+      } catch {
+        /* fall through to show gate */
+      }
+      localStorage.removeItem("promo_code");
+    }
     setShowCodeGate(true);
     setAccessCode("");
     setCodeError("");
@@ -58,6 +72,7 @@ function Index() {
     try {
       const { valid } = await api.auth.verifyCode(accessCode);
       if (valid) {
+        localStorage.setItem("promo_code", accessCode);
         setShowCodeGate(false);
         login();
       } else setCodeError("Invalid access code. Please try again.");

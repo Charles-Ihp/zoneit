@@ -4,21 +4,16 @@ import { api, TOKEN_KEY, type UserResponse } from "@/lib/api";
 interface AuthState {
   user: UserResponse | null;
   loading: boolean;
+  testingMode: boolean;
   login: () => void;
   logout: () => void;
   setUser: (user: UserResponse) => void;
 }
 
-/**
- * Manages authentication state backed by a JWT in localStorage.
- *
- * On mount:
- * - Reads `?token=` from the URL (OAuth redirect), stores it, and removes it from the URL.
- * - Calls GET /api/users/me with the stored token to hydrate the user object.
- */
 export function useAuth(): AuthState {
   const [user, setUser] = useState<UserResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [testingMode, setTestingMode] = useState(false);
 
   useEffect(() => {
     // Pick up token from OAuth redirect (?token=...)
@@ -34,6 +29,12 @@ export function useAuth(): AuthState {
       window.history.replaceState({}, "", newUrl);
     }
 
+    // Fetch auth config (testing mode flag)
+    api.auth
+      .config()
+      .then(({ testingMode }) => setTestingMode(testingMode))
+      .catch(() => {});
+
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
       setLoading(false);
@@ -44,7 +45,6 @@ export function useAuth(): AuthState {
       .me()
       .then(setUser)
       .catch(() => {
-        // Token invalid / expired — clear it
         localStorage.removeItem(TOKEN_KEY);
       })
       .finally(() => setLoading(false));
@@ -59,5 +59,5 @@ export function useAuth(): AuthState {
     setUser(null);
   }, []);
 
-  return { user, loading, login, logout, setUser };
+  return { user, loading, testingMode, login, logout, setUser };
 }

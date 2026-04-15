@@ -1034,6 +1034,36 @@ async function main() {
     });
   }
   console.log(`Seeded ${exercises.length} exercises.`);
+
+  console.log("Seeding app config…");
+  const configs: { key: string; value: string }[] = [{ key: "testingMode", value: "true" }];
+  for (const cfg of configs) {
+    await prisma.appConfig.upsert({
+      where: { key: cfg.key },
+      update: {},
+      create: cfg,
+    });
+  }
+  console.log("App config seeded.");
+
+  console.log("Seeding promo codes…");
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no O/0/I/1 for readability
+  function genCode(): string {
+    let c = "";
+    for (let i = 0; i < 6; i++) c += chars[Math.floor(Math.random() * chars.length)];
+    return c;
+  }
+  const existing = await prisma.promoCode.count();
+  if (existing === 0) {
+    const codes = Array.from({ length: 10 }, genCode);
+    await prisma.promoCode.createMany({ data: codes.map((code) => ({ code })) });
+    console.log("Generated promo codes:");
+    codes.forEach((c) => console.log(" ", c));
+  } else {
+    console.log(`Skipped — ${existing} codes already exist.`);
+    const all = await prisma.promoCode.findMany({ select: { code: true, usedAt: true } });
+    all.forEach((c) => console.log(` ${c.code}  ${c.usedAt ? "(used)" : "(unused)"}`));
+  }
 }
 
 main()

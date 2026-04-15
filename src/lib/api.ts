@@ -106,6 +106,12 @@ export const api = {
   auth: {
     /** URL to redirect the browser to for Google OAuth login */
     googleLoginUrl: () => `${API_BASE}/api/auth/google`,
+    config: () => request<{ testingMode: boolean }>("/api/auth/config"),
+    verifyCode: (code: string) =>
+      request<{ valid: boolean }>("/api/auth/verify-code", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      }),
   },
 
   sessions: {

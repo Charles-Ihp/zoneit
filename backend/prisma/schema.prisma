@@ -80,3 +80,20 @@ model SessionLog {
   @@index([userId])
   @@index([userId, startedAt])
 }
+
+/// App-wide configuration stored in the database.
+/// Key-value pairs; known keys: testingMode (bool).
+model AppConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+/// Promo codes for gating sign-in during testing mode.
+model PromoCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  usedAt    DateTime?
+  usedBy    String?
+  createdAt DateTime @default(now())
+}

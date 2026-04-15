@@ -1,3 +1,11 @@
-// Build and dev are handled via app.config.ts with `vinxi dev` / `vinxi build`.
-// This file is kept for IDE tooling compatibility only.
-export { default } from "./app.config";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import tsConfigPaths from "vite-tsconfig-paths";
+
+export default defineConfig({
+  plugins: [react(), tailwindcss(), tsConfigPaths()],
+  build: {
+    outDir: "dist",
+  },
+});

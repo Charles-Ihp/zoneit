@@ -41,15 +41,23 @@ function WorkoutsList() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <Link
-            to="/"
-            className="font-heading text-lg font-extrabold text-foreground hover:text-primary"
-          >
-            My Sessions
-          </Link>
-          {!authLoading && user && <UserMenu user={user} onLogout={logout} />}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              className="font-heading text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Zone It
+            </Link>
+            <span className="text-border">/</span>
+            <span className="font-heading text-lg font-extrabold tracking-tight text-foreground">
+              My Sessions
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {!authLoading && user && <UserMenu user={user} onLogout={logout} />}
+          </div>
         </div>
       </header>
 

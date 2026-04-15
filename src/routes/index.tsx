@@ -111,10 +111,10 @@ function Index() {
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-4">
             <span className="font-heading text-lg font-extrabold tracking-tight text-foreground">
-              Zone It
+              🪨 Zone It
             </span>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
             {!authLoading &&
               (user ? (
                 <UserMenu user={user} onLogout={logout} />

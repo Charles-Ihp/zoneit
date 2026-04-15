@@ -1,0 +1,6 @@
+{
+  "watch": ["src"],
+  "ext": "ts",
+  "ignore": ["src/generated/*"],
+  "exec": "bun run src/server.ts"
+}

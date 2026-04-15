@@ -1,0 +1,581 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"UserResponse": {
+				"description": "User profile returned by the API",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"picture": {
+						"type": "string",
+						"nullable": true
+					},
+					"createdAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"email",
+					"name",
+					"picture",
+					"createdAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Record_string.unknown_": {
+				"properties": {},
+				"additionalProperties": {},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
+			},
+			"WorkoutResponse": {
+				"description": "Saved workout returned by the API",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"sessionInput": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					},
+					"generatedSession": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"sessionInput",
+					"generatedSession",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateWorkoutBody": {
+				"description": "Body for saving a generated workout",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Display name for this workout session"
+					},
+					"sessionInput": {
+						"$ref": "#/components/schemas/Record_string.unknown_",
+						"description": "The inputs used to generate the session (level, goal, etc.)"
+					},
+					"generatedSession": {
+						"$ref": "#/components/schemas/Record_string.unknown_",
+						"description": "The full generated session object"
+					}
+				},
+				"required": [
+					"name",
+					"sessionInput",
+					"generatedSession"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateWorkoutBody": {
+				"description": "Body for renaming a saved workout",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "New display name"
+					}
+				},
+				"required": [
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ExerciseItem": {
+				"description": "Exercise subset returned inside a generated session",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"category": {
+						"type": "string"
+					},
+					"focus": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"intensity": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"description",
+					"category",
+					"focus",
+					"intensity"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SessionBlock": {
+				"properties": {
+					"phase": {
+						"type": "string",
+						"enum": [
+							"warmup",
+							"main",
+							"addon",
+							"cooldown"
+						]
+					},
+					"phaseLabel": {
+						"type": "string"
+					},
+					"exercises": {
+						"items": {
+							"properties": {
+								"duration": {
+									"type": "number",
+									"format": "double"
+								},
+								"exercise": {
+									"$ref": "#/components/schemas/ExerciseItem"
+								}
+							},
+							"required": [
+								"duration",
+								"exercise"
+							],
+							"type": "object"
+						},
+						"type": "array"
+					},
+					"totalDuration": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"phase",
+					"phaseLabel",
+					"exercises",
+					"totalDuration"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"GeneratedSession": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"subtitle": {
+						"type": "string"
+					},
+					"totalDuration": {
+						"type": "number",
+						"format": "double"
+					},
+					"blocks": {
+						"items": {
+							"$ref": "#/components/schemas/SessionBlock"
+						},
+						"type": "array"
+					},
+					"tips": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"title",
+					"subtitle",
+					"totalDuration",
+					"blocks",
+					"tips"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Level": {
+				"type": "string",
+				"enum": [
+					"beginner",
+					"intermediate",
+					"advanced"
+				]
+			},
+			"Goal": {
+				"type": "string",
+				"enum": [
+					"technique",
+					"projecting",
+					"power",
+					"endurance",
+					"volume",
+					"recovery"
+				]
+			},
+			"GymType": {
+				"type": "string",
+				"enum": [
+					"slab",
+					"comp",
+					"spray",
+					"moonboard",
+					"mixed"
+				]
+			},
+			"Fatigue": {
+				"type": "string",
+				"enum": [
+					"fresh",
+					"normal",
+					"tired"
+				]
+			},
+			"Equipment": {
+				"type": "string",
+				"enum": [
+					"hangboard",
+					"campus-board",
+					"resistance-bands",
+					"pull-up-bar",
+					"none"
+				]
+			},
+			"SessionInput": {
+				"description": "Body sent to POST /api/sessions/generate",
+				"properties": {
+					"level": {
+						"$ref": "#/components/schemas/Level"
+					},
+					"goal": {
+						"$ref": "#/components/schemas/Goal"
+					},
+					"sessionLength": {
+						"type": "number",
+						"format": "double"
+					},
+					"gymType": {
+						"$ref": "#/components/schemas/GymType"
+					},
+					"fatigue": {
+						"$ref": "#/components/schemas/Fatigue"
+					},
+					"injuries": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"equipment": {
+						"items": {
+							"$ref": "#/components/schemas/Equipment"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"level",
+					"goal",
+					"sessionLength",
+					"gymType",
+					"fatigue",
+					"injuries",
+					"equipment"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT"
+			}
+		}
+	},
+	"info": {
+		"title": "ZoneIt API",
+		"version": "1.0.0",
+		"description": "Bouldering workout planner API",
+		"contact": {}
+	},
+	"paths": {
+		"/api/users/me": {
+			"get": {
+				"operationId": "GetMe",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Returns the authenticated user's profile.",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/api/workouts": {
+			"get": {
+				"operationId": "ListWorkouts",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/WorkoutResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "List all saved workouts for the authenticated user, newest first.",
+				"tags": [
+					"Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": []
+			},
+			"post": {
+				"operationId": "CreateWorkout",
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/WorkoutResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Save a new generated workout session.",
+				"tags": [
+					"Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateWorkoutBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/workouts/{id}": {
+			"get": {
+				"operationId": "GetWorkout",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/WorkoutResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get a single saved workout by ID (must belong to the authenticated user).",
+				"tags": [
+					"Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "UpdateWorkout",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/WorkoutResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Rename a saved workout.",
+				"tags": [
+					"Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateWorkoutBody"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteWorkout",
+				"responses": {
+					"204": {
+						"description": "No Content"
+					}
+				},
+				"description": "Delete a saved workout.",
+				"tags": [
+					"Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/sessions/generate": {
+			"post": {
+				"operationId": "Generate",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GeneratedSession"
+								}
+							}
+						}
+					}
+				},
+				"description": "Generate a personalised climbing session based on the provided inputs.\r\nNo authentication required.",
+				"tags": [
+					"Sessions"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SessionInput"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}

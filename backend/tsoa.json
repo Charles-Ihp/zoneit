@@ -1,0 +1,23 @@
+{
+  "entryFile": "src/app.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/controllers/**/*.ts"],
+  "spec": {
+    "outputDirectory": "public",
+    "specVersion": 3,
+    "name": "ZoneIt API",
+    "description": "Bouldering workout planner API",
+    "version": "1.0.0",
+    "securityDefinitions": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "routes": {
+    "routesDir": "src/generated",
+    "authenticationModule": "./src/authentication"
+  }
+}

@@ -50,14 +50,15 @@ function buildBlock(
   selected: Exercise[],
   targetDuration: number,
 ): SessionBlock {
-  let remaining = targetDuration;
-  const items = selected
-    .map((ex) => {
-      const dur = Math.min(Math.round((ex.durationMin + ex.durationMax) / 2), remaining);
-      remaining = Math.max(0, remaining - dur);
-      return { exercise: toItem(ex), duration: dur };
-    })
-    .filter((i) => i.duration > 0);
+  if (selected.length === 0) {
+    return { phase, phaseLabel, exercises: [], totalDuration: 0 };
+  }
+  const base = Math.floor(targetDuration / selected.length);
+  const remainder = targetDuration - base * selected.length;
+  const items = selected.map((ex, i) => ({
+    exercise: toItem(ex),
+    duration: base + (i < remainder ? 1 : 0),
+  }));
   return {
     phase,
     phaseLabel,

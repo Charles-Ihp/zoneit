@@ -45,14 +45,11 @@ export class SessionLogController extends Controller {
     @Query() since?: string,
   ): Promise<SessionLogResponse[]> {
     const user = (request as ExpressRequest & { user: User }).user;
-    const where: Parameters<typeof prisma.sessionLog.findMany>[0]["where"] = {
-      userId: user.id,
-    };
-    if (since) {
-      where.startedAt = { gte: new Date(since) };
-    }
     const logs = await prisma.sessionLog.findMany({
-      where,
+      where: {
+        userId: user.id,
+        ...(since ? { startedAt: { gte: new Date(since) } } : {}),
+      },
       orderBy: { startedAt: "desc" },
     });
     return logs.map(toResponse);

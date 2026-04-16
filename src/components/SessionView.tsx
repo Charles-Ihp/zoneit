@@ -40,13 +40,6 @@ const phaseColors: Record<string, { bg: string; border: string; accent: string; 
   },
 };
 
-const phaseIcons: Record<string, string> = {
-  warmup: "🔥",
-  main: "💪",
-  addon: "🔧",
-  cooldown: "🧊",
-};
-
 export function SessionView({
   session,
   titleOverride,
@@ -81,7 +74,7 @@ export function SessionView({
           <p className="mt-1.5 text-sm text-muted-foreground">{session.subtitle}</p>
           <div className="mt-3 inline-flex items-center gap-1.5 rounded bg-primary px-3 py-1">
             <span className="text-xs font-bold text-primary-foreground">
-              ⏱ {session.totalDuration} min total
+              {session.totalDuration} min total
             </span>
           </div>
           <div className="mt-4">
@@ -89,7 +82,7 @@ export function SessionView({
               onClick={() => setActiveSession(true)}
               className="rounded bg-primary px-6 py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]"
             >
-              ▶ Start Session
+              Start Session
             </button>
           </div>
         </div>
@@ -116,7 +109,7 @@ export function SessionView({
               <ul className="space-y-2">
                 {session.tips.map((tip, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
-                    <span className="mt-0.5 shrink-0 font-bold text-primary">→</span>
+                    <span className="mt-0.5 shrink-0 font-bold text-primary">–</span>
                     {tip}
                   </li>
                 ))}
@@ -143,7 +136,7 @@ export function SessionView({
                     onClick={onRegenerate}
                     className="rounded border border-border px-4 py-2.5 font-heading text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
                   >
-                    🎲 Regenerate
+                    Regenerate
                   </button>
                 )}
               </div>
@@ -152,7 +145,7 @@ export function SessionView({
                   onClick={onSave}
                   className="rounded bg-primary px-5 py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 sm:ml-auto"
                 >
-                  💾 {saveLabel}
+                  {saveLabel}
                 </button>
               )}
             </div>
@@ -165,7 +158,6 @@ export function SessionView({
 
 function BlockSection({ block, index }: { block: SessionBlock; index: number }) {
   const colors = phaseColors[block.phase] || phaseColors.main;
-  const icon = phaseIcons[block.phase] || "📋";
 
   return (
     <motion.div
@@ -176,18 +168,15 @@ function BlockSection({ block, index }: { block: SessionBlock; index: number }) 
     >
       <div className="mx-auto max-w-2xl px-4 py-5 sm:px-6">
         <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">{icon}</span>
-            <div>
-              <span
-                className={`rounded px-2 py-0.5 font-heading text-[10px] font-bold tracking-widest ${colors.accent}`}
-              >
-                {colors.label}
-              </span>
-              <h2 className="mt-0.5 font-heading text-base font-bold text-foreground">
-                {block.phaseLabel}
-              </h2>
-            </div>
+          <div>
+            <span
+              className={`rounded px-2 py-0.5 font-heading text-[10px] font-bold tracking-widest ${colors.accent}`}
+            >
+              {colors.label}
+            </span>
+            <h2 className="mt-0.5 font-heading text-base font-bold text-foreground">
+              {block.phaseLabel}
+            </h2>
           </div>
           <span className="font-heading text-sm font-bold text-muted-foreground">
             {block.totalDuration} min

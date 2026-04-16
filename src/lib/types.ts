@@ -2,7 +2,14 @@
 
 export type Level = "beginner" | "intermediate" | "advanced";
 export type Equipment = "hangboard" | "campus-board" | "resistance-bands" | "pull-up-bar" | "none";
-export type Goal = "technique" | "projecting" | "power" | "endurance" | "volume" | "recovery";
+export type Goal =
+  | "technique"
+  | "projecting"
+  | "power"
+  | "endurance"
+  | "volume"
+  | "recovery"
+  | "dynos";
 export type GymType = "slab" | "comp" | "spray" | "moonboard" | "mixed";
 export type Fatigue = "fresh" | "normal" | "tired";
 

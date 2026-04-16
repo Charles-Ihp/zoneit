@@ -16,6 +16,7 @@ const goalOptions: { value: Goal; label: string }[] = [
   { value: "technique", label: "Technique" },
   { value: "projecting", label: "Projecting" },
   { value: "power", label: "Power" },
+  { value: "dynos", label: "Dynos" },
   { value: "endurance", label: "Endurance" },
   { value: "volume", label: "Volume" },
   { value: "recovery", label: "Recovery" },
@@ -31,10 +32,10 @@ const gymOptions: { value: GymType; label: string }[] = [
 
 const timeOptions = [45, 60, 90, 120];
 
-const fatigueOptions: { value: Fatigue; label: string }[] = [
-  { value: "fresh", label: "Fresh" },
-  { value: "normal", label: "Normal" },
-  { value: "tired", label: "Tired" },
+const fatigueOptions: { value: Fatigue; label: string; emoji: string }[] = [
+  { value: "fresh", label: "Fresh", emoji: "🟢" },
+  { value: "normal", label: "Normal", emoji: "🟡" },
+  { value: "tired", label: "Tired", emoji: "🔴" },
 ];
 
 const injuryOptions = ["fingers", "shoulders", "elbows", "wrists", "knees", "back"];
@@ -156,7 +157,8 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
                     : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
                 }`}
               >
-                <span className="font-heading text-sm font-bold">{opt.label}</span>
+                <span className="text-lg">{opt.emoji}</span>
+                <span className="text-xs">{opt.label}</span>
               </button>
             ))}
           </div>
@@ -209,7 +211,7 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
           disabled={loading}
           className="w-full rounded bg-primary py-4 font-heading text-base font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? "Generating…" : "Generate Session"}
+          {loading ? "Generating…" : "Generate Session →"}
         </button>
       </div>
     </div>

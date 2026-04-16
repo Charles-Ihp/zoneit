@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { GeneratedSession } from "@/lib/types";
+import type { GeneratedSession, ExerciseItem } from "@/lib/types";
 import { api, type CreateSessionLogBody } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -8,6 +8,15 @@ interface ActiveSessionOverlayProps {
   session: GeneratedSession;
   workoutId?: string;
   onClose: () => void;
+}
+
+interface ExerciseState {
+  id: string;
+  name: string;
+  duration: number;
+  elapsed: number;
+  isDone: boolean;
+  isActive: boolean;
 }
 
 function formatTime(seconds: number): string {
@@ -18,11 +27,28 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSessionOverlayProps) {
+export function ActiveSessionOverlay({
+  session,
+  workoutId,
+  onClose,
+}: ActiveSessionOverlayProps) {
   const { user } = useAuth();
-  const [elapsed, setElapsed] = useState(0);
-  const [restActive, setRestActive] = useState(false);
-  const [restSeconds, setRestSeconds] = useState(0);
+
+  const allExercises: ExerciseState[] = session.blocks.flatMap((block) =>
+    block.exercises.map(({ exercise, duration }) => ({
+      id: exercise.id,
+      name: exercise.name,
+      duration,
+      elapsed: 0,
+      isDone: false,
+      isActive: false,
+    })),
+  );
+
+  const [exercises, setExercises] = useState<ExerciseState[]>(allExercises);
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
+  const [sessionElapsed, setSessionElapsed] = useState(0);
+  const [running, setRunning] = useState(false);
   const [notes, setNotes] = useState("");
   const [showFinish, setShowFinish] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -30,52 +56,53 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
 
   const startedAt = useRef<string>(new Date().toISOString());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const restIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Main timer
+  const tick = useCallback(() => {
+    setSessionElapsed((s) => s + 1);
+    setExercises((prev) =>
+      prev.map((ex) => (ex.isActive && !ex.isDone ? { ...ex, elapsed: ex.elapsed + 1 } : ex)),
+    );
+  }, []);
+
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setElapsed((e) => e + 1);
-    }, 1000);
+    if (running) {
+      intervalRef.current = setInterval(tick, 1000);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, []);
+  }, [running, tick]);
 
-  // Rest timer
-  const startRest = useCallback((seconds: number) => {
-    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
-    setRestSeconds(seconds);
-    setRestActive(true);
-    restIntervalRef.current = setInterval(() => {
-      setRestSeconds((s) => {
-        if (s <= 1) {
-          clearInterval(restIntervalRef.current!);
-          setRestActive(false);
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-  }, []);
+  const startExercise = (idx: number) => {
+    setActiveIdx(idx);
+    setRunning(true);
+    setExercises((prev) =>
+      prev.map((ex, i) => ({ ...ex, isActive: i === idx && !ex.isDone })),
+    );
+  };
 
-  const cancelRest = useCallback(() => {
-    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
-    setRestActive(false);
-    setRestSeconds(0);
-  }, []);
-
-  const exerciseCount = session.blocks.reduce((n, b) => n + b.exercises.length, 0);
+  const markDone = useCallback(
+    (idx: number) => {
+      setExercises((prev) =>
+        prev.map((ex, i) => (i === idx ? { ...ex, isDone: true, isActive: false } : ex)),
+      );
+      const next = exercises.findIndex((ex, i) => i > idx && !ex.isDone);
+      if (next !== -1) {
+        startExercise(next);
+      } else {
+        setRunning(false);
+        setActiveIdx(null);
+      }
+    },
+    [exercises],
+  );
 
   const handleFinish = useCallback(async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (restIntervalRef.current) clearInterval(restIntervalRef.current);
-
-    if (!user) {
-      setSaved(true);
-      return;
-    }
-
+    setRunning(false);
+    if (!user) { setSaved(true); return; }
     setSaving(true);
     try {
       const body: CreateSessionLogBody = {
@@ -83,123 +110,139 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         sessionTitle: session.title,
         sessionSubtitle: session.subtitle,
         startedAt: startedAt.current,
-        durationSeconds: elapsed,
-        exerciseCount,
+        durationSeconds: sessionElapsed,
+        exerciseCount: exercises.length,
         notes: notes.trim(),
       };
       await api.sessionLogs.create(body);
-      setSaved(true);
-    } catch {
-      // still close gracefully
-      setSaved(true);
-    } finally {
+    } catch { /* close gracefully */ }
+    finally {
       setSaving(false);
+      setSaved(true);
     }
-  }, [user, workoutId, session, elapsed, exerciseCount, notes]);
+  }, [user, workoutId, session, sessionElapsed, exercises.length, notes]);
 
-  const REST_PRESETS = [60, 90, 120, 180] as const;
+  const doneCount = exercises.filter((e) => e.isDone).length;
+  const allDone = doneCount === exercises.length;
+
+  // Group back into blocks for display
+  let exIdx = 0;
+  const blocks = session.blocks.map((block) => {
+    const items = block.exercises.map(({ exercise }) => {
+      const state = exercises[exIdx];
+      const idx = exIdx++;
+      return { exercise, state, idx };
+    });
+    return { block, items };
+  });
+
+  const phaseBorder: Record<string, string> = {
+    warmup: "border-l-warm",
+    main: "border-l-primary",
+    addon: "border-l-accent",
+    cooldown: "border-l-muted-foreground/40",
+  };
+  const phaseLabel: Record<string, string> = {
+    warmup: "WARM-UP",
+    main: "MAIN",
+    addon: "SUPPLEMENTARY",
+    cooldown: "COOL DOWN",
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col bg-foreground"
+      className="fixed inset-0 z-50 flex flex-col bg-background"
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-background/10 px-4 py-3">
-        <span className="font-heading text-sm font-bold uppercase tracking-widest text-background/50">
-          Session Active
-        </span>
-        <button
-          onClick={() => setShowFinish(true)}
-          className="rounded bg-primary px-3 py-1.5 font-heading text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
-        >
-          Finish
-        </button>
-      </div>
-
-      {/* Main timer */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4">
+      <div className="flex items-center justify-between border-b border-border bg-card px-4 py-3">
         <div>
-          <p className="text-center font-heading text-sm font-bold uppercase tracking-widest text-background/40">
-            {session.title}
+          <p className="font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Active Session
           </p>
-          <p className="mt-4 text-center font-heading text-7xl font-extrabold tabular-nums tracking-tight text-background sm:text-8xl">
-            {formatTime(elapsed)}
-          </p>
-          <p className="mt-2 text-center text-sm text-background/40">
-            {exerciseCount} exercises · {session.totalDuration} min planned
-          </p>
+          <h2 className="font-heading text-sm font-bold text-foreground">{session.title}</h2>
         </div>
-
-        {/* Rest timer */}
-        <div className="w-full max-w-sm">
-          <AnimatePresence mode="wait">
-            {restActive ? (
-              <motion.div
-                key="rest-active"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="rounded border border-primary/30 bg-background/5 p-4 text-center"
-              >
-                <p className="font-heading text-xs font-bold uppercase tracking-widest text-primary">
-                  Rest
-                </p>
-                <p className="mt-1 font-heading text-4xl font-extrabold tabular-nums text-background">
-                  {formatTime(restSeconds)}
-                </p>
-                <button
-                  onClick={cancelRest}
-                  className="mt-3 text-xs text-background/40 underline hover:text-background/70"
-                >
-                  Cancel rest
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="rest-idle"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="rounded border border-background/10 bg-background/5 p-4"
-              >
-                <p className="mb-2 font-heading text-xs font-bold uppercase tracking-widest text-background/40">
-                  Start Rest Timer
-                </p>
-                <div className="grid grid-cols-4 gap-2">
-                  {REST_PRESETS.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => startRest(s)}
-                      className="rounded border border-background/20 py-2 font-heading text-xs font-bold text-background/70 transition-all hover:border-primary hover:text-primary"
-                    >
-                      {s}s
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Notes */}
-        <div className="w-full max-w-sm">
-          <p className="mb-1.5 font-heading text-xs font-bold uppercase tracking-widest text-background/40">
-            Notes
-          </p>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="How's the session going? Any sends?"
-            rows={3}
-            className="w-full resize-none rounded border border-background/20 bg-background/5 px-3 py-2.5 text-sm text-background placeholder:text-background/25 focus:border-primary focus:outline-none"
-          />
+        <div className="flex items-center gap-3">
+          <span className="font-heading text-xl font-bold tabular-nums text-primary">
+            {formatTime(sessionElapsed)}
+          </span>
+          <button
+            onClick={() => setShowFinish(true)}
+            className="rounded bg-primary px-3 py-1.5 font-heading text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
+          >
+            Finish
+          </button>
         </div>
       </div>
 
-      {/* Finish confirmation */}
+      {/* Exercise list */}
+      <div className="flex-1 overflow-y-auto pb-24">
+        {blocks.map(({ block, items }) => (
+          <div
+            key={block.phase}
+            className={`border-l-4 ${phaseBorder[block.phase] ?? "border-l-border"}`}
+          >
+            <div className="px-4 pt-4 pb-1">
+              <span className="font-heading text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {phaseLabel[block.phase] ?? block.phase} · {block.phaseLabel}
+              </span>
+            </div>
+            <div className="space-y-2 px-4 pb-4">
+              {items.map(({ exercise, state, idx }) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  state={state}
+                  onStart={() => startExercise(idx)}
+                  onDone={() => markDone(idx)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+          <span className="text-sm text-muted-foreground">
+            {doneCount}/{exercises.length} done
+          </span>
+          <div className="flex gap-2">
+            {!allDone && activeIdx !== null && (
+              <button
+                onClick={() => setRunning((r) => !r)}
+                className="rounded border border-border px-4 py-2 font-heading text-sm font-bold text-foreground transition-colors hover:bg-secondary"
+              >
+                {running ? "Pause" : "Resume"}
+              </button>
+            )}
+            {!allDone && activeIdx === null && (
+              <button
+                onClick={() => {
+                  const first = exercises.findIndex((e) => !e.isDone);
+                  if (first !== -1) startExercise(first);
+                }}
+                className="rounded bg-primary px-5 py-2 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90"
+              >
+                Start
+              </button>
+            )}
+            {allDone && (
+              <button
+                onClick={() => setShowFinish(true)}
+                className="rounded bg-primary px-5 py-2 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90"
+              >
+                Finish Session
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Finish modal */}
       <AnimatePresence>
         {showFinish && !saved && (
           <motion.div
@@ -218,13 +261,20 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
             >
               <h2 className="font-heading text-lg font-bold text-foreground">End session?</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                You've been climbing for <strong>{formatTime(elapsed)}</strong>.
+                {formatTime(sessionElapsed)} · {doneCount}/{exercises.length} exercises done.
                 {user ? " This will be saved to your history." : " Sign in to save to history."}
               </p>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Session notes (optional)"
+                rows={2}
+                className="mt-3 w-full resize-none rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+              />
               <button
                 onClick={handleFinish}
                 disabled={saving}
-                className="mt-4 w-full rounded bg-primary py-3 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
+                className="mt-3 w-full rounded bg-primary py-3 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving ? "Saving…" : "Finish & Save"}
               </button>
@@ -242,13 +292,13 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center bg-foreground"
+            className="absolute inset-0 flex items-center justify-center bg-background"
           >
             <div className="text-center">
-              <p className="font-heading text-5xl font-extrabold text-primary">✓</p>
-              <p className="mt-3 font-heading text-xl font-bold text-background">Session logged!</p>
-              <p className="mt-1 text-sm text-background/50">
-                {formatTime(elapsed)} · {exerciseCount} exercises
+              <p className="font-heading text-4xl font-extrabold text-primary">Done</p>
+              <p className="mt-2 font-heading text-base font-bold text-foreground">Session logged!</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {formatTime(sessionElapsed)} · {doneCount} exercises
               </p>
               <button
                 onClick={onClose}
@@ -261,5 +311,85 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         )}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+function ExerciseCard({
+  exercise,
+  state,
+  onStart,
+  onDone,
+}: {
+  exercise: ExerciseItem;
+  state: ExerciseState;
+  onStart: () => void;
+  onDone: () => void;
+}) {
+  const badgeText =
+    state.isDone && state.elapsed > 0
+      ? formatTime(state.elapsed)
+      : state.isActive
+        ? formatTime(state.elapsed)
+        : `${state.duration}m`;
+
+  return (
+    <div
+      className={`flex items-start gap-3 rounded border p-3 transition-colors sm:p-4 ${
+        state.isActive
+          ? "border-primary bg-primary/5"
+          : state.isDone
+            ? "border-border bg-muted/30 opacity-60"
+            : "border-border bg-card"
+      }`}
+    >
+      <div
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded font-heading text-xs font-bold tabular-nums ${
+          state.isDone || state.isActive
+            ? "bg-primary text-primary-foreground"
+            : "bg-secondary text-secondary-foreground"
+        }`}
+      >
+        {badgeText}
+      </div>
+      <div className="min-w-0 flex-1">
+        <h4 className="font-heading text-sm font-bold text-foreground">{exercise.name}</h4>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+          {exercise.description}
+        </p>
+        {exercise.focus.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {exercise.focus.map((f) => (
+              <span
+                key={f}
+                className="rounded bg-secondary px-1.5 py-0.5 font-heading text-[10px] font-bold uppercase tracking-wider text-secondary-foreground"
+              >
+                {f}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="flex shrink-0 flex-col gap-1.5">
+        {!state.isDone && !state.isActive && (
+          <button
+            onClick={onStart}
+            className="rounded border border-border px-2.5 py-1 font-heading text-xs font-bold text-foreground transition-colors hover:bg-secondary"
+          >
+            Start
+          </button>
+        )}
+        {!state.isDone && (
+          <button
+            onClick={onDone}
+            className="rounded bg-primary px-2.5 py-1 font-heading text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
+          >
+            Done
+          </button>
+        )}
+        {state.isDone && (
+          <span className="font-heading text-xs font-bold text-primary">✓</span>
+        )}
+      </div>
+    </div>
   );
 }

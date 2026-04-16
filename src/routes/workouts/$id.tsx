@@ -121,13 +121,13 @@ function WorkoutView() {
                 <button
                   onClick={startEditing}
                   title="Click to rename"
-                  className="group inline-flex items-center gap-3 rounded-xl px-2 py-1 transition-colors hover:bg-secondary"
+                  className="group inline-flex items-center gap-2 rounded-xl px-2 py-1 transition-colors hover:bg-secondary"
                 >
                   <span className="font-heading text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
                     {workout!.name}
                   </span>
-                  <span className="text-2xl text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                    ✏️
+                  <span className="flex items-center justify-center rounded border border-border bg-secondary px-2 py-1 font-heading text-xs font-bold text-muted-foreground transition-colors group-hover:border-primary group-hover:text-primary">
+                    Edit
                   </span>
                 </button>
               )

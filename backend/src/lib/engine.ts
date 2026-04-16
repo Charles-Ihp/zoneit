@@ -118,6 +118,10 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
       mainExs = f("warmup-climbing", 2);
       mainLabel = "Easy Movement";
       break;
+    case "dynos":
+      mainExs = f("dynos", isShort ? 2 : 3);
+      mainLabel = "Dynos & Movement";
+      break;
   }
   const main = buildBlock("main", mainLabel, mainExs, mainTime);
 
@@ -161,6 +165,8 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
   if (goal === "projecting")
     tips.push("Quality attempts matter more than quantity. Rest fully between tries.");
   if (goal === "power") tips.push("Never train power when fatigued. Each rep should be explosive.");
+  if (goal === "dynos")
+    tips.push("Warm up thoroughly before dynos — cold shoulders and fingers are injury risks.");
 
   const goalLabels: Record<string, string> = {
     technique: "Technique Day",
@@ -169,6 +175,7 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
     endurance: "Endurance Session",
     volume: "Volume Day",
     recovery: "Recovery Session",
+    dynos: "Dynos Session",
   };
 
   const blocks = [warmup, main, ...(addon.exercises.length ? [addon] : []), cooldown];

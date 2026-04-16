@@ -383,7 +383,8 @@
 					"power",
 					"endurance",
 					"volume",
-					"recovery"
+					"recovery",
+					"dynos"
 				]
 			},
 			"GymType": {

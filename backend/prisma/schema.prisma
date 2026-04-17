@@ -97,3 +97,11 @@ model PromoCode {
   usedBy    String?
   createdAt DateTime @default(now())
 }
+
+/// Bouldering glossary terms.
+model Term {
+  id         String @id @default(cuid())
+  term       String @unique
+  definition String
+  letter     String
+}

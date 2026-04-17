@@ -61,7 +61,14 @@ export interface CreateSessionLogBody {
   notes?: string;
 }
 
-// ─── Client ───────────────────────────────────────────────────────────────────
+export interface TermResponse {
+  id: string;
+  term: string;
+  definition: string;
+  letter: string;
+}
+
+
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3001";
 
@@ -158,5 +165,10 @@ export const api = {
         body: JSON.stringify(body),
       }),
     delete: (id: string) => request<void>(`/api/session-logs/${id}`, { method: "DELETE" }),
+  },
+
+  terms: {
+    list: (q?: string) =>
+      request<TermResponse[]>(`/api/terms${q ? `?q=${encodeURIComponent(q)}` : ""}`),
   },
 };

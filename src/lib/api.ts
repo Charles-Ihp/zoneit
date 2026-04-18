@@ -68,8 +68,6 @@ export interface TermResponse {
   letter: string;
 }
 
-
-
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3001";
 
 export const TOKEN_KEY = "auth_token";

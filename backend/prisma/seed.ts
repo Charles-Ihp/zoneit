@@ -1171,241 +1171,972 @@ async function main() {
   console.log("Seeding bouldering terms…");
   const terms: { term: string; definition: string; letter: string }[] = [
     // A
-    { term: "Antagonistic", definition: "The antagonistic muscles are those responsible for pushing as opposed to pulling.", letter: "A" },
-    { term: "Antihydral", definition: "A skin drying agent that reduces the hand's sweating.", letter: "A" },
-    { term: "Ape Index", definition: "The difference between your arm span and height.", letter: "A" },
-    { term: "Approach Shoe", definition: "A hybrid between a running shoe and a hiking boot.", letter: "A" },
-    { term: "Arch", definition: "The arched middle part of the sole of the foot that lies between the toes and the ankle. Or a steeply overhanging arete.", letter: "A" },
-    { term: "Arete", definition: "A protruding rock feature that is formed by the meeting of two planes. The opposite to a corner.", letter: "A" },
-    { term: "Arm Bar", definition: "A crack climbing technique in which an arm is inserted deep into the crack and secured by pressing the palm of the hand against one wall and the tricep/shoulder against the other.", letter: "A" },
+    {
+      term: "Antagonistic",
+      definition:
+        "The antagonistic muscles are those responsible for pushing as opposed to pulling.",
+      letter: "A",
+    },
+    {
+      term: "Antihydral",
+      definition: "A skin drying agent that reduces the hand's sweating.",
+      letter: "A",
+    },
+    {
+      term: "Ape Index",
+      definition: "The difference between your arm span and height.",
+      letter: "A",
+    },
+    {
+      term: "Approach Shoe",
+      definition: "A hybrid between a running shoe and a hiking boot.",
+      letter: "A",
+    },
+    {
+      term: "Arch",
+      definition:
+        "The arched middle part of the sole of the foot that lies between the toes and the ankle. Or a steeply overhanging arete.",
+      letter: "A",
+    },
+    {
+      term: "Arete",
+      definition:
+        "A protruding rock feature that is formed by the meeting of two planes. The opposite to a corner.",
+      letter: "A",
+    },
+    {
+      term: "Arm Bar",
+      definition:
+        "A crack climbing technique in which an arm is inserted deep into the crack and secured by pressing the palm of the hand against one wall and the tricep/shoulder against the other.",
+      letter: "A",
+    },
     // B
-    { term: "Backstep", definition: "A technique in which one foot inside edges while the other outside edges. Similar to a dropknee.", letter: "B" },
-    { term: "Back and Foot", definition: "A method of climbing chimneys in which the back is pressed against one side while the feet push against the other.", letter: "B" },
-    { term: "Barndoor", definition: "An unintentional, uncontrolled rotation away from the rock.", letter: "B" },
-    { term: "Belaying", definition: "Paying out or taking in the rope while another climber climbs.", letter: "B" },
-    { term: "Beta", definition: "A description of how to climb a specific problem, usually refers to the best (ie. easiest) way.", letter: "B" },
-    { term: "Bicycle", definition: "A technique in which one foot pushes a hold conventionally while the other foot toe hooks the same, or a nearby, hold. Most commonly used when climbing roofs (AKA clamp).", letter: "B" },
-    { term: "Body Position", definition: "The position of the body relative to the hand and foot holds.", letter: "B" },
-    { term: "Body Tension", definition: "The ability to keep the feet on their foot holds when climbing steep rock. Core strength and technique are components of body tension.", letter: "B" },
-    { term: "Bolt On", definition: "A resin or wood hold that is bolted to the surface of a climbing wall.", letter: "B" },
-    { term: "Boss", definition: "A rounded lump protruding from the rock that can be used as a hand hold.", letter: "B" },
-    { term: "Bouldering Pad", definition: "A rectangular crash mat that consists of multiple layers of foam covered in a heavy duty material. The pad is placed where the climber is expected to fall to cushion their landing (AKA bouldering mat).", letter: "B" },
+    {
+      term: "Backstep",
+      definition:
+        "A technique in which one foot inside edges while the other outside edges. Similar to a dropknee.",
+      letter: "B",
+    },
+    {
+      term: "Back and Foot",
+      definition:
+        "A method of climbing chimneys in which the back is pressed against one side while the feet push against the other.",
+      letter: "B",
+    },
+    {
+      term: "Barndoor",
+      definition: "An unintentional, uncontrolled rotation away from the rock.",
+      letter: "B",
+    },
+    {
+      term: "Belaying",
+      definition: "Paying out or taking in the rope while another climber climbs.",
+      letter: "B",
+    },
+    {
+      term: "Beta",
+      definition:
+        "A description of how to climb a specific problem, usually refers to the best (ie. easiest) way.",
+      letter: "B",
+    },
+    {
+      term: "Bicycle",
+      definition:
+        "A technique in which one foot pushes a hold conventionally while the other foot toe hooks the same, or a nearby, hold. Most commonly used when climbing roofs (AKA clamp).",
+      letter: "B",
+    },
+    {
+      term: "Body Position",
+      definition: "The position of the body relative to the hand and foot holds.",
+      letter: "B",
+    },
+    {
+      term: "Body Tension",
+      definition:
+        "The ability to keep the feet on their foot holds when climbing steep rock. Core strength and technique are components of body tension.",
+      letter: "B",
+    },
+    {
+      term: "Bolt On",
+      definition: "A resin or wood hold that is bolted to the surface of a climbing wall.",
+      letter: "B",
+    },
+    {
+      term: "Boss",
+      definition: "A rounded lump protruding from the rock that can be used as a hand hold.",
+      letter: "B",
+    },
+    {
+      term: "Bouldering Pad",
+      definition:
+        "A rectangular crash mat that consists of multiple layers of foam covered in a heavy duty material. The pad is placed where the climber is expected to fall to cushion their landing (AKA bouldering mat).",
+      letter: "B",
+    },
     { term: "Break", definition: "A horizontal, often rounded, crack.", letter: "B" },
-    { term: "Bridging", definition: "Pushing onwards with the hands and/or feet. Usually done in corners or grooves, but can also be done between two protruding holds (AKA stemming).", letter: "B" },
-    { term: "Buildering", definition: "Bouldering on buildings or other man-made structures.", letter: "B" },
+    {
+      term: "Bridging",
+      definition:
+        "Pushing onwards with the hands and/or feet. Usually done in corners or grooves, but can also be done between two protruding holds (AKA stemming).",
+      letter: "B",
+    },
+    {
+      term: "Buildering",
+      definition: "Bouldering on buildings or other man-made structures.",
+      letter: "B",
+    },
     { term: "Bulge", definition: "A rounded roof or overhang.", letter: "B" },
-    { term: "Bump", definition: "Making two consecutive hand moves with the same hand (AKA going again).", letter: "B" },
+    {
+      term: "Bump",
+      definition: "Making two consecutive hand moves with the same hand (AKA going again).",
+      letter: "B",
+    },
     { term: "Buttress", definition: "A prominent rock face protruding from a crag.", letter: "B" },
     // C
-    { term: "Callouses", definition: "Areas of hard skin that can develop on the fingers or palm.", letter: "C" },
-    { term: "Campus Board", definition: "A training device that consists of a small overhanging board crossed by wooden rungs at regular intervals. The idea is to climb it without using the feet so as to develop arm and finger strength.", letter: "C" },
+    {
+      term: "Callouses",
+      definition: "Areas of hard skin that can develop on the fingers or palm.",
+      letter: "C",
+    },
+    {
+      term: "Campus Board",
+      definition:
+        "A training device that consists of a small overhanging board crossed by wooden rungs at regular intervals. The idea is to climb it without using the feet so as to develop arm and finger strength.",
+      letter: "C",
+    },
     { term: "Campusing", definition: "Climbing without using the feet.", letter: "C" },
-    { term: "Centre of Gravity", definition: "The theoretical point where the entire mass of a body is concentrated (abbreviated to CoG).", letter: "C" },
-    { term: "Chalk", definition: "Magnesium Carbonate (MgCO₃) is a white powder that is used to absorb sweat from a climber's hands.", letter: "C" },
-    { term: "Chalk Bag", definition: "A small pouch for holding chalk that is hung on a belt tied around the waist.", letter: "C" },
+    {
+      term: "Centre of Gravity",
+      definition:
+        "The theoretical point where the entire mass of a body is concentrated (abbreviated to CoG).",
+      letter: "C",
+    },
+    {
+      term: "Chalk",
+      definition:
+        "Magnesium Carbonate (MgCO₃) is a white powder that is used to absorb sweat from a climber's hands.",
+      letter: "C",
+    },
+    {
+      term: "Chalk Bag",
+      definition: "A small pouch for holding chalk that is hung on a belt tied around the waist.",
+      letter: "C",
+    },
     { term: "Chalk Ball", definition: "A small round mesh bag filled with chalk.", letter: "C" },
-    { term: "Chalk Bucket", definition: "A large chalk bag designed to be left on the ground.", letter: "C" },
+    {
+      term: "Chalk Bucket",
+      definition: "A large chalk bag designed to be left on the ground.",
+      letter: "C",
+    },
     { term: "Chalking Up", definition: "Coating the hands with chalk.", letter: "C" },
-    { term: "Cheatstone", definition: "A stone placed at the bottom of a problem to bring the starting holds into reach.", letter: "C" },
-    { term: "Chicken Head", definition: "A protruding lump of rock, most common on granite.", letter: "C" },
-    { term: "Chicken Wing", definition: "A jamming technique in which the arm is bent and inserted into a crack elbow first with the palm pressed against one wall while the tricep/shoulder presses against the other. Similar to an arm bar.", letter: "C" },
-    { term: "Chimney", definition: "A wide crack that is large enough to climb into.", letter: "C" },
-    { term: "Chipping", definition: "Creating or enhancing a climbing hold. The worst sin a climber can commit.", letter: "C" },
+    {
+      term: "Cheatstone",
+      definition:
+        "A stone placed at the bottom of a problem to bring the starting holds into reach.",
+      letter: "C",
+    },
+    {
+      term: "Chicken Head",
+      definition: "A protruding lump of rock, most common on granite.",
+      letter: "C",
+    },
+    {
+      term: "Chicken Wing",
+      definition:
+        "A jamming technique in which the arm is bent and inserted into a crack elbow first with the palm pressed against one wall while the tricep/shoulder presses against the other. Similar to an arm bar.",
+      letter: "C",
+    },
+    {
+      term: "Chimney",
+      definition: "A wide crack that is large enough to climb into.",
+      letter: "C",
+    },
+    {
+      term: "Chipping",
+      definition: "Creating or enhancing a climbing hold. The worst sin a climber can commit.",
+      letter: "C",
+    },
     { term: "Choss", definition: "Loose, dirty or otherwise unappealing rock.", letter: "C" },
-    { term: "Chunking", definition: "Breaking down a move or problem into small sections to figure out how to climb it.", letter: "C" },
-    { term: "Circuit", definition: "Either a grouping of problems of similar difficulty (most common in Fontainebleau, France) or a long problem, often a loop, climbed on an indoor wall to train endurance.", letter: "C" },
-    { term: "Climbing Shoes", definition: "Tight fitting, rubber covered shoes designed for rock climbing.", letter: "C" },
-    { term: "Cobble", definition: "An embedded stone that is used as a hold. Usually rounded and smooth.", letter: "C" },
-    { term: "Compression", definition: "A technique for climbing symmetrical features by placing a hand (or foot) on either side and pulling hard to hold the body in place.", letter: "C" },
-    { term: "Conditions", definition: "The suitability of the temperature, humidity, wind etc. for climbing.", letter: "C" },
-    { term: "Conglomerate", definition: "A sedimentary rock type that is mainly composed of embedded round stones (cobbles).", letter: "C" },
+    {
+      term: "Chunking",
+      definition:
+        "Breaking down a move or problem into small sections to figure out how to climb it.",
+      letter: "C",
+    },
+    {
+      term: "Circuit",
+      definition:
+        "Either a grouping of problems of similar difficulty (most common in Fontainebleau, France) or a long problem, often a loop, climbed on an indoor wall to train endurance.",
+      letter: "C",
+    },
+    {
+      term: "Climbing Shoes",
+      definition: "Tight fitting, rubber covered shoes designed for rock climbing.",
+      letter: "C",
+    },
+    {
+      term: "Cobble",
+      definition: "An embedded stone that is used as a hold. Usually rounded and smooth.",
+      letter: "C",
+    },
+    {
+      term: "Compression",
+      definition:
+        "A technique for climbing symmetrical features by placing a hand (or foot) on either side and pulling hard to hold the body in place.",
+      letter: "C",
+    },
+    {
+      term: "Conditions",
+      definition: "The suitability of the temperature, humidity, wind etc. for climbing.",
+      letter: "C",
+    },
+    {
+      term: "Conglomerate",
+      definition:
+        "A sedimentary rock type that is mainly composed of embedded round stones (cobbles).",
+      letter: "C",
+    },
     { term: "Core", definition: "The muscles of the stomach, lower back and legs.", letter: "C" },
-    { term: "Corner", definition: "A feature formed where two planes meet at roughly right angles (AKA dihedral).", letter: "C" },
-    { term: "Crag", definition: "A generic term for a climbing or bouldering area. May also refer specifically to an outcrop of rock.", letter: "C" },
-    { term: "Crimp", definition: "A small edge. Also a powerful grip in which the second finger joint is bent sharply and the thumb presses onto the index finger (AKA full crimp).", letter: "C" },
-    { term: "Cross Through", definition: "A traversing move in which one hand reaches past (over or under) the other to reach the next hold.", letter: "C" },
-    { term: "Crystal", definition: "A small piece of quartz that can be used as a hold, common on some types of granite.", letter: "C" },
+    {
+      term: "Corner",
+      definition: "A feature formed where two planes meet at roughly right angles (AKA dihedral).",
+      letter: "C",
+    },
+    {
+      term: "Crag",
+      definition:
+        "A generic term for a climbing or bouldering area. May also refer specifically to an outcrop of rock.",
+      letter: "C",
+    },
+    {
+      term: "Crimp",
+      definition:
+        "A small edge. Also a powerful grip in which the second finger joint is bent sharply and the thumb presses onto the index finger (AKA full crimp).",
+      letter: "C",
+    },
+    {
+      term: "Cross Through",
+      definition:
+        "A traversing move in which one hand reaches past (over or under) the other to reach the next hold.",
+      letter: "C",
+    },
+    {
+      term: "Crystal",
+      definition:
+        "A small piece of quartz that can be used as a hold, common on some types of granite.",
+      letter: "C",
+    },
     { term: "Crux", definition: "A problem's hardest move.", letter: "C" },
-    { term: "Cusp", definition: "A grip in which a protruding hold is squeezed, over the top or around the side, between the fingers and palm, with the fingers on the side nearest the body (AKA guppy).", letter: "C" },
-    { term: "Cutting Loose", definition: "When both feet swing off the rock and all the climber's weight is taken by the hands.", letter: "C" },
+    {
+      term: "Cusp",
+      definition:
+        "A grip in which a protruding hold is squeezed, over the top or around the side, between the fingers and palm, with the fingers on the side nearest the body (AKA guppy).",
+      letter: "C",
+    },
+    {
+      term: "Cutting Loose",
+      definition:
+        "When both feet swing off the rock and all the climber's weight is taken by the hands.",
+      letter: "C",
+    },
     // D
-    { term: "Dab", definition: "When, mid ascent, a climber brushes off or hits into their spotter, a tree, the ground, another boulder or a pad.", letter: "D" },
-    { term: "Deadhang", definition: "To hang with straight arms without any assistance from the feet.", letter: "D" },
-    { term: "Deadpoint", definition: "The instant in a movement when the body is moving neither up nor down, the ideal time to grab a hold.", letter: "D" },
-    { term: "Deep Water Soloing", definition: "Climbing above water without a rope, often abbreviated to DWS.", letter: "D" },
-    { term: "Descent Route", definition: "The way down from a boulder (AKA downclimb).", letter: "D" },
+    {
+      term: "Dab",
+      definition:
+        "When, mid ascent, a climber brushes off or hits into their spotter, a tree, the ground, another boulder or a pad.",
+      letter: "D",
+    },
+    {
+      term: "Deadhang",
+      definition: "To hang with straight arms without any assistance from the feet.",
+      letter: "D",
+    },
+    {
+      term: "Deadpoint",
+      definition:
+        "The instant in a movement when the body is moving neither up nor down, the ideal time to grab a hold.",
+      letter: "D",
+    },
+    {
+      term: "Deep Water Soloing",
+      definition: "Climbing above water without a rope, often abbreviated to DWS.",
+      letter: "D",
+    },
+    {
+      term: "Descent Route",
+      definition: "The way down from a boulder (AKA downclimb).",
+      letter: "D",
+    },
     { term: "Diagonal Stride", definition: "Using opposing limbs in coordination.", letter: "D" },
-    { term: "Double Dyno", definition: "A dyno in which the target hold or holds are simultaneously grabbed with both hands.", letter: "D" },
-    { term: "Down Climbing", definition: "Reversing down a problem either as a retreat or as a means of getting off a boulder.", letter: "D" },
-    { term: "Dropknee", definition: "When one foot inside edges while the other outside edges, the knee of the outside edging leg is lowered so that the feet are pushing away from each other rather than down (AKA Egyptian).", letter: "D" },
+    {
+      term: "Double Dyno",
+      definition:
+        "A dyno in which the target hold or holds are simultaneously grabbed with both hands.",
+      letter: "D",
+    },
+    {
+      term: "Down Climbing",
+      definition:
+        "Reversing down a problem either as a retreat or as a means of getting off a boulder.",
+      letter: "D",
+    },
+    {
+      term: "Dropknee",
+      definition:
+        "When one foot inside edges while the other outside edges, the knee of the outside edging leg is lowered so that the feet are pushing away from each other rather than down (AKA Egyptian).",
+      letter: "D",
+    },
     { term: "Dynamic", definition: "Any move that uses momentum.", letter: "D" },
-    { term: "Dyno", definition: "An all out leap during which the whole body is airborne and has, very briefly, no contact with the rock.", letter: "D" },
+    {
+      term: "Dyno",
+      definition:
+        "An all out leap during which the whole body is airborne and has, very briefly, no contact with the rock.",
+      letter: "D",
+    },
     // E
     { term: "Edge", definition: "A flat horizontal hold.", letter: "E" },
     { term: "Edging", definition: "Standing on an edge.", letter: "E" },
-    { term: "Eliminate", definition: "A contrived problem in which certain holds are deemed off limits to make the climbing harder.", letter: "E" },
+    {
+      term: "Eliminate",
+      definition:
+        "A contrived problem in which certain holds are deemed off limits to make the climbing harder.",
+      letter: "E",
+    },
     // F
-    { term: "Featured Wall", definition: "An indoor wall that is designed to resemble real rock.", letter: "F" },
-    { term: "Figure Four", definition: "A very rarely used technique for making a long static reach from a positive hold. Involves hooking a leg over the holding arm.", letter: "F" },
-    { term: "Finger Jam", definition: "A jam in which the fingers are inserted into a crack and rotated until they are wedged.", letter: "F" },
-    { term: "Finger Tape", definition: "Strong tape designed to provide support to injured fingers.", letter: "F" },
-    { term: "Fingerboard", definition: "A small wooden or resin board covered in hand holds that is hung from to train finger strength.", letter: "F" },
-    { term: "First Ascent", definition: "The first time a boulder problem is climbed.", letter: "F" },
-    { term: "Fist Jam", definition: "A jam in which the fist is inserted into a crack.", letter: "F" },
-    { term: "Flagging", definition: "To dangle one leg in the air for balance, usually done on steep rock.", letter: "F" },
+    {
+      term: "Featured Wall",
+      definition: "An indoor wall that is designed to resemble real rock.",
+      letter: "F",
+    },
+    {
+      term: "Figure Four",
+      definition:
+        "A very rarely used technique for making a long static reach from a positive hold. Involves hooking a leg over the holding arm.",
+      letter: "F",
+    },
+    {
+      term: "Finger Jam",
+      definition:
+        "A jam in which the fingers are inserted into a crack and rotated until they are wedged.",
+      letter: "F",
+    },
+    {
+      term: "Finger Tape",
+      definition: "Strong tape designed to provide support to injured fingers.",
+      letter: "F",
+    },
+    {
+      term: "Fingerboard",
+      definition:
+        "A small wooden or resin board covered in hand holds that is hung from to train finger strength.",
+      letter: "F",
+    },
+    {
+      term: "First Ascent",
+      definition: "The first time a boulder problem is climbed.",
+      letter: "F",
+    },
+    {
+      term: "Fist Jam",
+      definition: "A jam in which the fist is inserted into a crack.",
+      letter: "F",
+    },
+    {
+      term: "Flagging",
+      definition: "To dangle one leg in the air for balance, usually done on steep rock.",
+      letter: "F",
+    },
     { term: "Flake", definition: "A thin, partially detached, slice of rock.", letter: "F" },
-    { term: "Flapper", definition: "When a large chunk of skin is ripped off, usually during a dynamic move.", letter: "F" },
-    { term: "Flared", definition: "A crack with sides that taper outwards making it very difficult to jam.", letter: "F" },
-    { term: "Flash", definition: "To climb a problem on the first try from start to finish.", letter: "F" },
-    { term: "Fontainebleau", definition: "The famous bouldering area just south of Paris, France (AKA Font or Bleau). Also a system for grading boulder problems, the grade is often prefixed with 'Font'.", letter: "F" },
-    { term: "Foot Cam", definition: "A technique in which the foot is rotated around the heel until it wedges, works well in horizontal cracks or breaks.", letter: "F" },
-    { term: "Foot Jam", definition: "A jamming technique in which the foot is wedged, toes first, into a crack.", letter: "F" },
-    { term: "Foot Swap", definition: "Replacing one foot for another on a foot hold.", letter: "F" },
+    {
+      term: "Flapper",
+      definition: "When a large chunk of skin is ripped off, usually during a dynamic move.",
+      letter: "F",
+    },
+    {
+      term: "Flared",
+      definition: "A crack with sides that taper outwards making it very difficult to jam.",
+      letter: "F",
+    },
+    {
+      term: "Flash",
+      definition: "To climb a problem on the first try from start to finish.",
+      letter: "F",
+    },
+    {
+      term: "Fontainebleau",
+      definition:
+        "The famous bouldering area just south of Paris, France (AKA Font or Bleau). Also a system for grading boulder problems, the grade is often prefixed with 'Font'.",
+      letter: "F",
+    },
+    {
+      term: "Foot Cam",
+      definition:
+        "A technique in which the foot is rotated around the heel until it wedges, works well in horizontal cracks or breaks.",
+      letter: "F",
+    },
+    {
+      term: "Foot Jam",
+      definition: "A jamming technique in which the foot is wedged, toes first, into a crack.",
+      letter: "F",
+    },
+    {
+      term: "Foot Swap",
+      definition: "Replacing one foot for another on a foot hold.",
+      letter: "F",
+    },
     { term: "Footwork", definition: "The art of using the feet well.", letter: "F" },
-    { term: "Friction", definition: "The force created when skin or rubber is pressed into the rock.", letter: "F" },
-    { term: "Frogging", definition: "Getting the hips parallel and as close as possible to the wall with the knees pointing out to the sides.", letter: "F" },
-    { term: "Front Lever", definition: "A strength exercise that involves hanging from a bar, raising the body so it's horizontal and holding that position for as long as possible.", letter: "F" },
-    { term: "Front Pointing", definition: "Standing on a hold with the tip of the big toe.", letter: "F" },
-    { term: "Full-body Stem", definition: "Climbing a very wide crack with the hands on one wall and feet on the other.", letter: "F" },
+    {
+      term: "Friction",
+      definition: "The force created when skin or rubber is pressed into the rock.",
+      letter: "F",
+    },
+    {
+      term: "Frogging",
+      definition:
+        "Getting the hips parallel and as close as possible to the wall with the knees pointing out to the sides.",
+      letter: "F",
+    },
+    {
+      term: "Front Lever",
+      definition:
+        "A strength exercise that involves hanging from a bar, raising the body so it's horizontal and holding that position for as long as possible.",
+      letter: "F",
+    },
+    {
+      term: "Front Pointing",
+      definition: "Standing on a hold with the tip of the big toe.",
+      letter: "F",
+    },
+    {
+      term: "Full-body Stem",
+      definition: "Climbing a very wide crack with the hands on one wall and feet on the other.",
+      letter: "F",
+    },
     // G
     { term: "Gabbro", definition: "A coarse grained, rough igneous rock.", letter: "G" },
-    { term: "Gaston", definition: "Gripping a vertical hold with the arm bent at the elbow and the hand, thumb down, pulling the hold away from the body.", letter: "G" },
-    { term: "Golfer's Elbow", definition: "Aches and pains in the inside of the elbows caused by a lack of balance between the pushing and pulling muscles.", letter: "G" },
-    { term: "Grades", definition: "An indication of how difficult it is to climb a problem assuming good conditions and the best sequence.", letter: "G" },
-    { term: "Granite", definition: "A rough, igneous rock that consists mainly of quartz, mica, and feldspar.", letter: "G" },
-    { term: "Gritstone", definition: "A hard, coarse grained form of sandstone (AKA grit).", letter: "G" },
+    {
+      term: "Gaston",
+      definition:
+        "Gripping a vertical hold with the arm bent at the elbow and the hand, thumb down, pulling the hold away from the body.",
+      letter: "G",
+    },
+    {
+      term: "Golfer's Elbow",
+      definition:
+        "Aches and pains in the inside of the elbows caused by a lack of balance between the pushing and pulling muscles.",
+      letter: "G",
+    },
+    {
+      term: "Grades",
+      definition:
+        "An indication of how difficult it is to climb a problem assuming good conditions and the best sequence.",
+      letter: "G",
+    },
+    {
+      term: "Granite",
+      definition: "A rough, igneous rock that consists mainly of quartz, mica, and feldspar.",
+      letter: "G",
+    },
+    {
+      term: "Gritstone",
+      definition: "A hard, coarse grained form of sandstone (AKA grit).",
+      letter: "G",
+    },
     { term: "Groove", definition: "A shallow corner.", letter: "G" },
-    { term: "Ground Up", definition: "Attempting and climbing a problem or route without inspecting it from a rope and starting from the ground on each attempt.", letter: "G" },
-    { term: "Guidebook", definition: "A book containing information about a bouldering area (or areas) including details of the problems, directions, maps and photos.", letter: "G" },
+    {
+      term: "Ground Up",
+      definition:
+        "Attempting and climbing a problem or route without inspecting it from a rope and starting from the ground on each attempt.",
+      letter: "G",
+    },
+    {
+      term: "Guidebook",
+      definition:
+        "A book containing information about a bouldering area (or areas) including details of the problems, directions, maps and photos.",
+      letter: "G",
+    },
     // H
-    { term: "Half Crimp", definition: "A versatile grip in which the fingers are partially bent. It's a compromise between open handing and crimping and is particularly useful on flat holds.", letter: "H" },
-    { term: "Hand Jam", definition: "A jam in which an open hand is inserted into a crack and pressed against the sides with the knuckles against one side, fingertips and palm against the other.", letter: "H" },
-    { term: "Hand Stacking", definition: "An advanced technique for hand jamming in offwidth cracks.", letter: "H" },
-    { term: "Headpointing", definition: "Climbing a route or problem after rehearsing the moves on a top rope first.", letter: "H" },
-    { term: "Heel Hooking", definition: "Placing the heel of the foot on a hold and using it like an extra hand.", letter: "H" },
+    {
+      term: "Half Crimp",
+      definition:
+        "A versatile grip in which the fingers are partially bent. It's a compromise between open handing and crimping and is particularly useful on flat holds.",
+      letter: "H",
+    },
+    {
+      term: "Hand Jam",
+      definition:
+        "A jam in which an open hand is inserted into a crack and pressed against the sides with the knuckles against one side, fingertips and palm against the other.",
+      letter: "H",
+    },
+    {
+      term: "Hand Stacking",
+      definition: "An advanced technique for hand jamming in offwidth cracks.",
+      letter: "H",
+    },
+    {
+      term: "Headpointing",
+      definition: "Climbing a route or problem after rehearsing the moves on a top rope first.",
+      letter: "H",
+    },
+    {
+      term: "Heel Hooking",
+      definition: "Placing the heel of the foot on a hold and using it like an extra hand.",
+      letter: "H",
+    },
     { term: "Heel-toe Jam", definition: "A jam used in wide cracks.", letter: "H" },
     { term: "Highball", definition: "A tall boulder problem.", letter: "H" },
     { term: "Hueco", definition: "A large rounded pocket.", letter: "H" },
     // I
-    { term: "Inside Edge", definition: "The straight edge running along the inside of the big toe.", letter: "I" },
-    { term: "Intermediate", definition: "A small hold that is used briefly during a reach to a distant hold.", letter: "I" },
+    {
+      term: "Inside Edge",
+      definition: "The straight edge running along the inside of the big toe.",
+      letter: "I",
+    },
+    {
+      term: "Intermediate",
+      definition: "A small hold that is used briefly during a reach to a distant hold.",
+      letter: "I",
+    },
     // J
     { term: "Jamming", definition: "Wedging a body part into a crack.", letter: "J" },
     { term: "Jug", definition: "A large incut hold (AKA bucket).", letter: "J" },
-    { term: "Jump", definition: "A dynamic movement in which one hand stays on while both feet leave the rock. There is at least one point of contact at all times.", letter: "J" },
-    { term: "Jump Start", definition: "Jumping from the ground to the starting holds of a problem (AKA French start).", letter: "J" },
+    {
+      term: "Jump",
+      definition:
+        "A dynamic movement in which one hand stays on while both feet leave the rock. There is at least one point of contact at all times.",
+      letter: "J",
+    },
+    {
+      term: "Jump Start",
+      definition: "Jumping from the ground to the starting holds of a problem (AKA French start).",
+      letter: "J",
+    },
     // K
-    { term: "Kipping", definition: "Kicking the legs to generate momentum when hanging from the arms.", letter: "K" },
-    { term: "Kneebars", definition: "A jam that leverages between foot and knee. The foot stands on a conventional hold while the knee (really the front or side of the lower thigh) presses into a corner, overlap or large protruding hold.", letter: "K" },
+    {
+      term: "Kipping",
+      definition: "Kicking the legs to generate momentum when hanging from the arms.",
+      letter: "K",
+    },
+    {
+      term: "Kneebars",
+      definition:
+        "A jam that leverages between foot and knee. The foot stands on a conventional hold while the knee (really the front or side of the lower thigh) presses into a corner, overlap or large protruding hold.",
+      letter: "K",
+    },
     // L
     { term: "Lace Ups", definition: "Climbing shoes that are fastened with laces.", letter: "L" },
     { term: "Landing", definition: "The landing zone beneath a problem.", letter: "L" },
-    { term: "Launch Pad", definition: "A small bouldering pad that is designed to protect the start of a problem or as a supplement to other larger pads.", letter: "L" },
-    { term: "Layback", definition: "A technique for climbing continuous vertical features such as cracks, flakes or aretes, that relies on opposition created by pulling with the hands and pushing with the feet (AKA liebacking).", letter: "L" },
-    { term: "Link Up", definition: "Combining sections or whole problems together to create a more difficult challenge.", letter: "L" },
-    { term: "Linking", definition: "Practising sections of a problem to prepare for the complete ascent from start to finish.", letter: "L" },
-    { term: "Limestone", definition: "A sedimentary rock composed of skeletal fragments of marine organisms such as coral.", letter: "L" },
-    { term: "Liquid Chalk", definition: "A mix of alcohol and chalk that is rubbed into the hands to coat them with chalk.", letter: "L" },
-    { term: "Lock Off", definition: "A static reach done with the holding arm bent sharply.", letter: "L" },
+    {
+      term: "Launch Pad",
+      definition:
+        "A small bouldering pad that is designed to protect the start of a problem or as a supplement to other larger pads.",
+      letter: "L",
+    },
+    {
+      term: "Layback",
+      definition:
+        "A technique for climbing continuous vertical features such as cracks, flakes or aretes, that relies on opposition created by pulling with the hands and pushing with the feet (AKA liebacking).",
+      letter: "L",
+    },
+    {
+      term: "Link Up",
+      definition:
+        "Combining sections or whole problems together to create a more difficult challenge.",
+      letter: "L",
+    },
+    {
+      term: "Linking",
+      definition:
+        "Practising sections of a problem to prepare for the complete ascent from start to finish.",
+      letter: "L",
+    },
+    {
+      term: "Limestone",
+      definition:
+        "A sedimentary rock composed of skeletal fragments of marine organisms such as coral.",
+      letter: "L",
+    },
+    {
+      term: "Liquid Chalk",
+      definition:
+        "A mix of alcohol and chalk that is rubbed into the hands to coat them with chalk.",
+      letter: "L",
+    },
+    {
+      term: "Lock Off",
+      definition: "A static reach done with the holding arm bent sharply.",
+      letter: "L",
+    },
     { term: "Lowball", definition: "A low or short boulder problem.", letter: "L" },
     // M
-    { term: "Mantel", definition: "A method of getting from hanging the lip of a boulder or ledge to standing on it (short for mantel-shelf). Also a verb, \"mantel the ledge\".", letter: "M" },
-    { term: "Matching", definition: "Placing both hands side by side on a hold (AKA sharing).", letter: "M" },
-    { term: "Midge", definition: "Tiny (1–4mm) flying insects which are most common in temperate climates during the summer months on humid, still days.", letter: "M" },
+    {
+      term: "Mantel",
+      definition:
+        'A method of getting from hanging the lip of a boulder or ledge to standing on it (short for mantel-shelf). Also a verb, "mantel the ledge".',
+      letter: "M",
+    },
+    {
+      term: "Matching",
+      definition: "Placing both hands side by side on a hold (AKA sharing).",
+      letter: "M",
+    },
+    {
+      term: "Midge",
+      definition:
+        "Tiny (1–4mm) flying insects which are most common in temperate climates during the summer months on humid, still days.",
+      letter: "M",
+    },
     { term: "Mono", definition: "A small pocket that can only fit one finger.", letter: "M" },
     { term: "Monzonite", definition: "An igneous rock type, similar to granite.", letter: "M" },
-    { term: "Morpho", definition: "A climb or move whose difficulty is highly dependent on the body shape or size of the climber. Usually code for \"hard for the short\".", letter: "M" },
+    {
+      term: "Morpho",
+      definition:
+        'A climb or move whose difficulty is highly dependent on the body shape or size of the climber. Usually code for "hard for the short".',
+      letter: "M",
+    },
     // N
-    { term: "No Hands Rest", definition: "An excellent resting position that doesn't require use of the hands.", letter: "N" },
+    {
+      term: "No Hands Rest",
+      definition: "An excellent resting position that doesn't require use of the hands.",
+      letter: "N",
+    },
     // O
-    { term: "Offwidth", definition: "A crack that is too wide to jam but too narrow to climb inside.", letter: "O" },
-    { term: "Open Hand", definition: "Gripping a hold with the fingers only slightly bent.", letter: "O" },
-    { term: "Opposition", definition: "Creating tension either by pulling a pair of holds that face away from each other or pushing on a pair of holds that face each other.", letter: "O" },
-    { term: "Outside Edge", definition: "The curved section of a climbing shoe between the tip of the big toe and the side of the little toe.", letter: "O" },
-    { term: "Over Gripping", definition: "Holding on with the hands harder than necessary, wasting strength and energy.", letter: "O" },
+    {
+      term: "Offwidth",
+      definition: "A crack that is too wide to jam but too narrow to climb inside.",
+      letter: "O",
+    },
+    {
+      term: "Open Hand",
+      definition: "Gripping a hold with the fingers only slightly bent.",
+      letter: "O",
+    },
+    {
+      term: "Opposition",
+      definition:
+        "Creating tension either by pulling a pair of holds that face away from each other or pushing on a pair of holds that face each other.",
+      letter: "O",
+    },
+    {
+      term: "Outside Edge",
+      definition:
+        "The curved section of a climbing shoe between the tip of the big toe and the side of the little toe.",
+      letter: "O",
+    },
+    {
+      term: "Over Gripping",
+      definition: "Holding on with the hands harder than necessary, wasting strength and energy.",
+      letter: "O",
+    },
     { term: "Overlap", definition: "A small roof.", letter: "O" },
     { term: "Overhanging", definition: "Rock that is steeper than vertical.", letter: "O" },
     // P
     { term: "Palming", definition: "Pressing the palm of the hand onto the rock.", letter: "P" },
-    { term: "Parkour", definition: "A physical discipline that focuses on movement around obstacles by vaulting, rolling, running, climbing, and jumping (AKA free running).", letter: "P" },
+    {
+      term: "Parkour",
+      definition:
+        "A physical discipline that focuses on movement around obstacles by vaulting, rolling, running, climbing, and jumping (AKA free running).",
+      letter: "P",
+    },
     { term: "Patioing", definition: "Improving a landing by shifting rocks.", letter: "P" },
-    { term: "Pebbles", definition: "Tiny stones protruding from the surface of the rock, most common on gritstone.", letter: "P" },
-    { term: "Pinch", definition: "A hand hold that is squeezed between the fingers and thumb.", letter: "P" },
-    { term: "Pocket", definition: "A hole in the rock that can be used as a hand or foot hold.", letter: "P" },
-    { term: "Pof", definition: "Dried pine resin that is wrapped in a cloth and slapped onto hand and foot holds. It's used by a minority of climbers in Fontainebleau but most climbers consider it very damaging to the rock (AKA resin).", letter: "P" },
-    { term: "Power Endurance", definition: "The ability to do multiple hard moves in a row.", letter: "P" },
-    { term: "Powerspot", definition: "When the spotter takes some of the climber's weight so they can get the feel of a move.", letter: "P" },
+    {
+      term: "Pebbles",
+      definition: "Tiny stones protruding from the surface of the rock, most common on gritstone.",
+      letter: "P",
+    },
+    {
+      term: "Pinch",
+      definition: "A hand hold that is squeezed between the fingers and thumb.",
+      letter: "P",
+    },
+    {
+      term: "Pocket",
+      definition: "A hole in the rock that can be used as a hand or foot hold.",
+      letter: "P",
+    },
+    {
+      term: "Pof",
+      definition:
+        "Dried pine resin that is wrapped in a cloth and slapped onto hand and foot holds. It's used by a minority of climbers in Fontainebleau but most climbers consider it very damaging to the rock (AKA resin).",
+      letter: "P",
+    },
+    {
+      term: "Power Endurance",
+      definition: "The ability to do multiple hard moves in a row.",
+      letter: "P",
+    },
+    {
+      term: "Powerspot",
+      definition:
+        "When the spotter takes some of the climber's weight so they can get the feel of a move.",
+      letter: "P",
+    },
     { term: "Problem", definition: "A bouldering route.", letter: "P" },
-    { term: "Project", definition: "A problem that has been attempted but hasn't yet been climbed or a problem that an individual is working towards climbing ie. a personal goal.", letter: "P" },
+    {
+      term: "Project",
+      definition:
+        "A problem that has been attempted but hasn't yet been climbed or a problem that an individual is working towards climbing ie. a personal goal.",
+      letter: "P",
+    },
     { term: "Prow", definition: "A narrow overhanging arete.", letter: "P" },
-    { term: "Pumped", definition: "When the forearms become filled with lactic acid after a bout of hard or sustained climbing.", letter: "P" },
+    {
+      term: "Pumped",
+      definition:
+        "When the forearms become filled with lactic acid after a bout of hard or sustained climbing.",
+      letter: "P",
+    },
     // R
     { term: "Reading", definition: "Analysing how to climb a problem.", letter: "R" },
-    { term: "Red Herrings", definition: "Holds that aren't essential to the sequence and only serve to distract and confuse.", letter: "R" },
-    { term: "Rockover", definition: "Placing a foot on a high hold and standing up on it using a combination of pulling with the arms and pushing with the legs.", letter: "R" },
+    {
+      term: "Red Herrings",
+      definition:
+        "Holds that aren't essential to the sequence and only serve to distract and confuse.",
+      letter: "R",
+    },
+    {
+      term: "Rockover",
+      definition:
+        "Placing a foot on a high hold and standing up on it using a combination of pulling with the arms and pushing with the legs.",
+      letter: "R",
+    },
     { term: "Roof", definition: "An approximately horizontal piece of rock.", letter: "R" },
-    { term: "Rubber", definition: "The sticky compound that is used on the soles of climbing shoes.", letter: "R" },
-    { term: "Run and Jump", definition: "A dynamic technique that involves running at the rock, kicking off one or more foot holds and jumping for the hand holds.", letter: "R" },
+    {
+      term: "Rubber",
+      definition: "The sticky compound that is used on the soles of climbing shoes.",
+      letter: "R",
+    },
+    {
+      term: "Run and Jump",
+      definition:
+        "A dynamic technique that involves running at the rock, kicking off one or more foot holds and jumping for the hand holds.",
+      letter: "R",
+    },
     // S
-    { term: "Sandbag", definition: "A problem that is given a significantly lower grade than it deserves. Also a verb, to sandbag, which is to underplay the difficulty of a problem.", letter: "S" },
-    { term: "Sandstone", definition: "A sedimentary rock composed mainly of sand-sized minerals or rock grains.", letter: "S" },
-    { term: "Screw On", definition: "A very small artificial hold, that is screwed rather than bolted to the surface of a climbing wall. Usually used as a foot hold.", letter: "S" },
+    {
+      term: "Sandbag",
+      definition:
+        "A problem that is given a significantly lower grade than it deserves. Also a verb, to sandbag, which is to underplay the difficulty of a problem.",
+      letter: "S",
+    },
+    {
+      term: "Sandstone",
+      definition: "A sedimentary rock composed mainly of sand-sized minerals or rock grains.",
+      letter: "S",
+    },
+    {
+      term: "Screw On",
+      definition:
+        "A very small artificial hold, that is screwed rather than bolted to the surface of a climbing wall. Usually used as a foot hold.",
+      letter: "S",
+    },
     { term: "Seam", definition: "A narrow or closed crack.", letter: "S" },
     { term: "Send", definition: "To successfully climb a problem.", letter: "S" },
-    { term: "Sequence", definition: "The details of how a problem is climbed (AKA beta).", letter: "S" },
-    { term: "Share", definition: "To place both hands on the same hold simultaneously.", letter: "S" },
+    {
+      term: "Sequence",
+      definition: "The details of how a problem is climbed (AKA beta).",
+      letter: "S",
+    },
+    {
+      term: "Share",
+      definition: "To place both hands on the same hold simultaneously.",
+      letter: "S",
+    },
     { term: "Sidepull", definition: "A vertical hold that faces away from the body.", letter: "S" },
-    { term: "Sit Start", definition: "To start a problem from a sitting position, sometimes abbreviated as SS or SDS (sit down start).", letter: "S" },
+    {
+      term: "Sit Start",
+      definition:
+        "To start a problem from a sitting position, sometimes abbreviated as SS or SDS (sit down start).",
+      letter: "S",
+    },
     { term: "Slab", definition: "A less than vertical piece of rock.", letter: "S" },
-    { term: "Slap", definition: "A quick reach or lunge during which there is a minimum of two points of contact at all times.", letter: "S" },
+    {
+      term: "Slap",
+      definition:
+        "A quick reach or lunge during which there is a minimum of two points of contact at all times.",
+      letter: "S",
+    },
     { term: "Slippers", definition: "Soft climbing shoes.", letter: "S" },
     { term: "Sloper", definition: "A rounded or sloping hand hold.", letter: "S" },
     { term: "Slot", definition: "A narrow horizontal pocket.", letter: "S" },
-    { term: "Smear", definition: "A sloping foot hold. Used as a verb it means to place a foot flat against the rock.", letter: "S" },
-    { term: "Soloing", definition: "Climbing a route without a rope. The complete term is free soloing.", letter: "S" },
+    {
+      term: "Smear",
+      definition:
+        "A sloping foot hold. Used as a verb it means to place a foot flat against the rock.",
+      letter: "S",
+    },
+    {
+      term: "Soloing",
+      definition: "Climbing a route without a rope. The complete term is free soloing.",
+      letter: "S",
+    },
     { term: "Splitter", definition: "A long, parallel sided crack.", letter: "S" },
-    { term: "Sport Climbing", definition: "Routes that are protected by clipping the rope to permanent bolts.", letter: "S" },
-    { term: "Spotting", definition: "Guiding a falling climber safely to the ground.", letter: "S" },
-    { term: "Sprag", definition: "A grip in which the thumb pushes the rock above the fingers to create more downward force.", letter: "S" },
+    {
+      term: "Sport Climbing",
+      definition: "Routes that are protected by clipping the rope to permanent bolts.",
+      letter: "S",
+    },
+    {
+      term: "Spotting",
+      definition: "Guiding a falling climber safely to the ground.",
+      letter: "S",
+    },
+    {
+      term: "Sprag",
+      definition:
+        "A grip in which the thumb pushes the rock above the fingers to create more downward force.",
+      letter: "S",
+    },
     { term: "Squat", definition: "An exercise for developing leg strength.", letter: "S" },
     { term: "Squeak", definition: "To thoroughly clean the sole of a climbing shoe.", letter: "S" },
-    { term: "Stalactites", definition: "A limestone tooth that hangs from the ceiling of a roof.", letter: "S" },
+    {
+      term: "Stalactites",
+      definition: "A limestone tooth that hangs from the ceiling of a roof.",
+      letter: "S",
+    },
     { term: "Stamina", definition: "The ability to do a large volume of climbing.", letter: "S" },
     { term: "Static", definition: "To do a move slowly and in total control.", letter: "S" },
-    { term: "Stemming", definition: "Pressing the legs away from each other to create an opposition force that holds the body in place. Usually done in corners or grooves but can be done between two protruding holds (AKA bridging).", letter: "S" },
-    { term: "Stepping Through", definition: "Standing (usually with the outside edge) on the next foot hold with the foot furthest from it.", letter: "S" },
-    { term: "Syenite", definition: "A coarse grained igneous rock of similar composition to granite but with a very low amount of chalk.", letter: "S" },
-    { term: "Systems Board", definition: "A steep board on which the various hold types – pinch, crimp, sloper, pocket, undercut, sidepull – are laid out in a repeating, symmetrical pattern.", letter: "S" },
+    {
+      term: "Stemming",
+      definition:
+        "Pressing the legs away from each other to create an opposition force that holds the body in place. Usually done in corners or grooves but can be done between two protruding holds (AKA bridging).",
+      letter: "S",
+    },
+    {
+      term: "Stepping Through",
+      definition:
+        "Standing (usually with the outside edge) on the next foot hold with the foot furthest from it.",
+      letter: "S",
+    },
+    {
+      term: "Syenite",
+      definition:
+        "A coarse grained igneous rock of similar composition to granite but with a very low amount of chalk.",
+      letter: "S",
+    },
+    {
+      term: "Systems Board",
+      definition:
+        "A steep board on which the various hold types – pinch, crimp, sloper, pocket, undercut, sidepull – are laid out in a repeating, symmetrical pattern.",
+      letter: "S",
+    },
     // T
-    { term: "Taco", definition: "A type of bouldering pad that consists of one continuous section of foam that bends in the middle for transporting.", letter: "T" },
-    { term: "Technical", definition: "A problem that demands a high standard of technique and movement skills.", letter: "T" },
-    { term: "Technique", definition: "Can refer to either a specific type of movement or more generally to a climber's movement skills – \"she has good technique\".", letter: "T" },
-    { term: "Tennis Elbow", definition: "Aches and pains in the outside of the elbows caused by a lack of balance between the pushing and pulling muscles.", letter: "T" },
-    { term: "Thumbcatch", definition: "Improving a hold by pinching the underside of it with the thumb.", letter: "T" },
-    { term: "Tickmark", definition: "A small chalk mark that indicates the location of a hard to see hold.", letter: "T" },
+    {
+      term: "Taco",
+      definition:
+        "A type of bouldering pad that consists of one continuous section of foam that bends in the middle for transporting.",
+      letter: "T",
+    },
+    {
+      term: "Technical",
+      definition: "A problem that demands a high standard of technique and movement skills.",
+      letter: "T",
+    },
+    {
+      term: "Technique",
+      definition:
+        'Can refer to either a specific type of movement or more generally to a climber\'s movement skills – "she has good technique".',
+      letter: "T",
+    },
+    {
+      term: "Tennis Elbow",
+      definition:
+        "Aches and pains in the outside of the elbows caused by a lack of balance between the pushing and pulling muscles.",
+      letter: "T",
+    },
+    {
+      term: "Thumbcatch",
+      definition: "Improving a hold by pinching the underside of it with the thumb.",
+      letter: "T",
+    },
+    {
+      term: "Tickmark",
+      definition: "A small chalk mark that indicates the location of a hard to see hold.",
+      letter: "T",
+    },
     { term: "Toe Hooking", definition: "Using the top of the toe to pull on a hold.", letter: "T" },
-    { term: "Topo", definition: "A map or photo upon which the line taken by a problem (or problems) is marked.", letter: "T" },
-    { term: "Top Out", definition: "The process of getting stood up on the top of a problem. Indoors you usually jump down from the finishing hold rather than top out.", letter: "T" },
-    { term: "Top Rope", definition: "Anchoring the rope at the top of the cliff or boulder so that the climber can climb in safety.", letter: "T" },
-    { term: "Trad Climbing", definition: "Climbing a route protected by gear that has been placed by the leader.", letter: "T" },
-    { term: "Training Board", definition: "A small, steep wooden climbing wall (AKA woodie).", letter: "T" },
+    {
+      term: "Topo",
+      definition: "A map or photo upon which the line taken by a problem (or problems) is marked.",
+      letter: "T",
+    },
+    {
+      term: "Top Out",
+      definition:
+        "The process of getting stood up on the top of a problem. Indoors you usually jump down from the finishing hold rather than top out.",
+      letter: "T",
+    },
+    {
+      term: "Top Rope",
+      definition:
+        "Anchoring the rope at the top of the cliff or boulder so that the climber can climb in safety.",
+      letter: "T",
+    },
+    {
+      term: "Trad Climbing",
+      definition: "Climbing a route protected by gear that has been placed by the leader.",
+      letter: "T",
+    },
+    {
+      term: "Training Board",
+      definition: "A small, steep wooden climbing wall (AKA woodie).",
+      letter: "T",
+    },
     { term: "Traverse", definition: "A problem that travels predominantly sideways.", letter: "T" },
     { term: "Tufas", definition: "A limestone rib.", letter: "T" },
-    { term: "Turning the Lip", definition: "The process of getting from hanging from the lip of a roof to standing on the lip.", letter: "T" },
-    { term: "Twist-locking", definition: "A technique for climbing steep ground in which the torso twists perpendicular to the rock to maximise reach.", letter: "T" },
+    {
+      term: "Turning the Lip",
+      definition:
+        "The process of getting from hanging from the lip of a roof to standing on the lip.",
+      letter: "T",
+    },
+    {
+      term: "Twist-locking",
+      definition:
+        "A technique for climbing steep ground in which the torso twists perpendicular to the rock to maximise reach.",
+      letter: "T",
+    },
     // U
     { term: "Undercut", definition: "A downward facing hold (AKA undercling).", letter: "U" },
     // V
-    { term: "V Grade", definition: "An American system for grading problems, consisting of a number prefixed by the letter V, the higher the number the more difficult the problem.", letter: "V" },
-    { term: "Velcros", definition: "Climbing shoes that are fastened with velcro straps.", letter: "V" },
-    { term: "volcanic Tuff", definition: "A rock type consisting of consolidated ash ejected from a volcano.", letter: "V" },
-    { term: "Volume", definition: "A large, hollow plywood or resin hold (usually triangular or rounded), upon which other holds can be mounted.", letter: "V" },
+    {
+      term: "V Grade",
+      definition:
+        "An American system for grading problems, consisting of a number prefixed by the letter V, the higher the number the more difficult the problem.",
+      letter: "V",
+    },
+    {
+      term: "Velcros",
+      definition: "Climbing shoes that are fastened with velcro straps.",
+      letter: "V",
+    },
+    {
+      term: "volcanic Tuff",
+      definition: "A rock type consisting of consolidated ash ejected from a volcano.",
+      letter: "V",
+    },
+    {
+      term: "Volume",
+      definition:
+        "A large, hollow plywood or resin hold (usually triangular or rounded), upon which other holds can be mounted.",
+      letter: "V",
+    },
     // W
     { term: "Wall", definition: "A roughly vertical piece of rock.", letter: "W" },
-    { term: "Warm-up", definition: "A routine to prepare the mind and body for climbing.", letter: "W" },
-    { term: "Wire Brush", definition: "A very aggressive wire bristled brush that should never be used to clean rock.", letter: "W" },
+    {
+      term: "Warm-up",
+      definition: "A routine to prepare the mind and body for climbing.",
+      letter: "W",
+    },
+    {
+      term: "Wire Brush",
+      definition: "A very aggressive wire bristled brush that should never be used to clean rock.",
+      letter: "W",
+    },
     { term: "Wired", definition: "Having a problem mastered (AKA dialled).", letter: "W" },
-    { term: "Working", definition: "Figuring out and rehearsing the moves of a problem.", letter: "W" },
+    {
+      term: "Working",
+      definition: "Figuring out and rehearsing the moves of a problem.",
+      letter: "W",
+    },
   ];
   for (const t of terms) {
     await prisma.term.upsert({

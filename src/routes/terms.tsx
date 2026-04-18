@@ -13,7 +13,10 @@ export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
       { title: "Glossary — Zone It" },
-      { name: "description", content: "Bouldering terminology glossary. Search and browse common climbing terms." },
+      {
+        name: "description",
+        content: "Bouldering terminology glossary. Search and browse common climbing terms.",
+      },
     ],
   }),
 });
@@ -37,8 +40,7 @@ function TermsPage() {
     if (!query.trim()) return terms;
     const q = query.toLowerCase();
     return terms.filter(
-      (t) =>
-        t.term.toLowerCase().includes(q) || t.definition.toLowerCase().includes(q),
+      (t) => t.term.toLowerCase().includes(q) || t.definition.toLowerCase().includes(q),
     );
   }, [terms, query]);
 

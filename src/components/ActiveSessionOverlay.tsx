@@ -27,11 +27,7 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-export function ActiveSessionOverlay({
-  session,
-  workoutId,
-  onClose,
-}: ActiveSessionOverlayProps) {
+export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSessionOverlayProps) {
   const { user } = useAuth();
 
   const allExercises: ExerciseState[] = session.blocks.flatMap((block) =>
@@ -56,30 +52,62 @@ export function ActiveSessionOverlay({
 
   const startedAt = useRef<string>(new Date().toISOString());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const tick = useCallback(() => {
-    setSessionElapsed((s) => s + 1);
-    setExercises((prev) =>
-      prev.map((ex) => (ex.isActive && !ex.isDone ? { ...ex, elapsed: ex.elapsed + 1 } : ex)),
-    );
-  }, []);
+  // Wall-clock references so the timer stays accurate in background tabs
+  const sessionStartWall = useRef<number | null>(null);
+  const sessionBaseElapsed = useRef<number>(0);
+  const exerciseStartWall = useRef<number | null>(null);
+  const exerciseBaseElapsed = useRef<number>(0);
 
   useEffect(() => {
     if (running) {
-      intervalRef.current = setInterval(tick, 1000);
+      const now = Date.now();
+      sessionStartWall.current = now;
+      exerciseStartWall.current = now;
+      intervalRef.current = setInterval(() => {
+        const wall = Date.now();
+        const sessionSec = Math.floor(
+          sessionBaseElapsed.current + (wall - (sessionStartWall.current ?? wall)) / 1000,
+        );
+        const exSec = Math.floor(
+          exerciseBaseElapsed.current + (wall - (exerciseStartWall.current ?? wall)) / 1000,
+        );
+        setSessionElapsed(sessionSec);
+        setExercises((prev) =>
+          prev.map((ex) => (ex.isActive && !ex.isDone ? { ...ex, elapsed: exSec } : ex)),
+        );
+      }, 500);
     } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      // Snapshot elapsed so far when paused
+      if (sessionStartWall.current !== null) {
+        sessionBaseElapsed.current += (Date.now() - sessionStartWall.current) / 1000;
+        sessionStartWall.current = null;
+      }
+      if (exerciseStartWall.current !== null) {
+        exerciseBaseElapsed.current += (Date.now() - exerciseStartWall.current) / 1000;
+        exerciseStartWall.current = null;
+      }
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [running, tick]);
+  }, [running]);
 
   const startExercise = (idx: number) => {
+    // Reset per-exercise wall-clock when switching to a new exercise
+    exerciseBaseElapsed.current = 0;
+    exerciseStartWall.current = Date.now();
     setActiveIdx(idx);
     setRunning(true);
     setExercises((prev) =>
-      prev.map((ex, i) => ({ ...ex, isActive: i === idx && !ex.isDone })),
+      prev.map((ex, i) => ({
+        ...ex,
+        isActive: i === idx && !ex.isDone,
+        elapsed: i === idx ? 0 : ex.elapsed,
+      })),
     );
   };
 
@@ -102,7 +130,10 @@ export function ActiveSessionOverlay({
   const handleFinish = useCallback(async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setRunning(false);
-    if (!user) { setSaved(true); return; }
+    if (!user) {
+      setSaved(true);
+      return;
+    }
     setSaving(true);
     try {
       const body: CreateSessionLogBody = {
@@ -115,8 +146,9 @@ export function ActiveSessionOverlay({
         notes: notes.trim(),
       };
       await api.sessionLogs.create(body);
-    } catch { /* close gracefully */ }
-    finally {
+    } catch {
+      /* close gracefully */
+    } finally {
       setSaving(false);
       setSaved(true);
     }
@@ -296,7 +328,9 @@ export function ActiveSessionOverlay({
           >
             <div className="text-center">
               <p className="font-heading text-4xl font-extrabold text-primary">Done</p>
-              <p className="mt-2 font-heading text-base font-bold text-foreground">Session logged!</p>
+              <p className="mt-2 font-heading text-base font-bold text-foreground">
+                Session logged!
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {formatTime(sessionElapsed)} · {doneCount} exercises
               </p>
@@ -386,9 +420,7 @@ function ExerciseCard({
             Done
           </button>
         )}
-        {state.isDone && (
-          <span className="font-heading text-xs font-bold text-primary">✓</span>
-        )}
+        {state.isDone && <span className="font-heading text-xs font-bold text-primary">✓</span>}
       </div>
     </div>
   );

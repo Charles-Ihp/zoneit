@@ -3,6 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { GeneratedSession, ExerciseItem } from "@/lib/types";
 import { api, type CreateSessionLogBody } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  loadActiveSession,
+  saveActiveSession,
+  clearActiveSession,
+} from "@/lib/active-session-store";
 
 interface ActiveSessionOverlayProps {
   session: GeneratedSession;
@@ -41,22 +46,57 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
     })),
   );
 
-  const [exercises, setExercises] = useState<ExerciseState[]>(allExercises);
-  const [activeIdx, setActiveIdx] = useState<number | null>(null);
-  const [sessionElapsed, setSessionElapsed] = useState(0);
+  // Load any persisted session that matches the current session title
+  const storedOnMount = (() => {
+    const s = loadActiveSession();
+    return s && s.session.title === session.title ? s : null;
+  })();
+  const isRestore = storedOnMount !== null;
+
+  const [exercises, setExercises] = useState<ExerciseState[]>(
+    () => (isRestore ? storedOnMount!.exercises : allExercises) as ExerciseState[],
+  );
+  const [activeIdx, setActiveIdx] = useState<number | null>(
+    isRestore ? storedOnMount!.activeIdx : null,
+  );
+  const [sessionElapsed, setSessionElapsed] = useState(
+    isRestore ? Math.floor(storedOnMount!.sessionBaseElapsed) : 0,
+  );
   const [running, setRunning] = useState(false);
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(isRestore ? storedOnMount!.notes : "");
   const [showFinish, setShowFinish] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const startedAt = useRef<string>(new Date().toISOString());
+  const startedAt = useRef<string>(isRestore ? storedOnMount!.startedAt : new Date().toISOString());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Wall-clock references so the timer stays accurate in background tabs
   const sessionStartWall = useRef<number | null>(null);
-  const sessionBaseElapsed = useRef<number>(0);
+  const sessionBaseElapsed = useRef<number>(isRestore ? storedOnMount!.sessionBaseElapsed : 0);
   const exerciseStartWall = useRef<number | null>(null);
-  const exerciseBaseElapsed = useRef<number>(0);
+  const exerciseBaseElapsed = useRef<number>(isRestore ? storedOnMount!.exerciseBaseElapsed : 0);
+
+  // On mount: if restoring a running session, catch up elapsed time and auto-resume
+  useEffect(() => {
+    if (!isRestore || !storedOnMount) return;
+    if (storedOnMount.runningAt !== null) {
+      const extra = (Date.now() - storedOnMount.runningAt) / 1000;
+      sessionBaseElapsed.current = storedOnMount.sessionBaseElapsed + extra;
+      exerciseBaseElapsed.current = storedOnMount.exerciseBaseElapsed + extra;
+      setSessionElapsed(Math.floor(sessionBaseElapsed.current));
+      // Update the active exercise's elapsed to include the time since the page closed
+      if (storedOnMount.activeIdx !== null) {
+        const extraFloor = Math.floor(extra);
+        setExercises((prev) =>
+          prev.map((ex, i) =>
+            i === storedOnMount.activeIdx ? { ...ex, elapsed: ex.elapsed + extraFloor } : ex,
+          ),
+        );
+      }
+      setRunning(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (running) {
@@ -96,6 +136,24 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
     };
   }, [running]);
 
+  // Persist state to localStorage whenever meaningful state changes.
+  // We save sessionBaseElapsed (from the ref) and runningAt so we can
+  // reconstruct total elapsed on the next page load.
+  useEffect(() => {
+    if (saved) return; // already finished — store was cleared
+    saveActiveSession({
+      session,
+      workoutId,
+      startedAt: startedAt.current,
+      exercises,
+      sessionBaseElapsed: sessionBaseElapsed.current,
+      exerciseBaseElapsed: exerciseBaseElapsed.current,
+      activeIdx,
+      notes,
+      runningAt: sessionStartWall.current,
+    });
+  }, [exercises, activeIdx, notes, running, saved, session, workoutId]);
+
   const startExercise = (idx: number) => {
     // Reset per-exercise wall-clock when switching to a new exercise
     exerciseBaseElapsed.current = 0;
@@ -130,6 +188,7 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
   const handleFinish = useCallback(async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setRunning(false);
+    clearActiveSession();
     if (!user) {
       setSaved(true);
       return;

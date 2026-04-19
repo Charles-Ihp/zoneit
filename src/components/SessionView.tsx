@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { GeneratedSession, SessionBlock } from "@/lib/types";
 import { ActiveSessionOverlay } from "./ActiveSessionOverlay";
+import { loadActiveSession, clearActiveSession } from "@/lib/active-session-store";
 
 interface SessionViewProps {
   session: GeneratedSession;
@@ -49,7 +50,10 @@ export function SessionView({
   onSave,
   saveLabel = "Save Session",
 }: SessionViewProps) {
-  const [activeSession, setActiveSession] = useState(false);
+  const [activeSession, setActiveSession] = useState(() => {
+    const stored = loadActiveSession();
+    return stored !== null && stored.session.title === session.title;
+  });
 
   return (
     <>
@@ -58,7 +62,10 @@ export function SessionView({
           <ActiveSessionOverlay
             session={session}
             workoutId={workoutId}
-            onClose={() => setActiveSession(false)}
+            onClose={() => {
+              clearActiveSession();
+              setActiveSession(false);
+            }}
           />
         )}
       </AnimatePresence>

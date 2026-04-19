@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SessionForm } from "@/components/SessionForm";
 import { SessionView } from "@/components/SessionView";
@@ -8,6 +8,7 @@ import { UserMenu } from "@/components/UserMenu";
 import type { GeneratedSession, SessionInput } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { api } from "@/lib/api";
+import { loadActiveSession } from "@/lib/active-session-store";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -30,8 +31,20 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { user, loading: authLoading, login, logout, testingMode } = useAuth();
-  const [session, setSession] = useState<GeneratedSession | null>(null);
+  const [session, setSession] = useState<GeneratedSession | null>(() => {
+    const stored = loadActiveSession();
+    return stored ? stored.session : null;
+  });
   const [lastInput, setLastInput] = useState<SessionInput | null>(null);
+
+  // Keep session restored from localStorage in sync (runs once on mount)
+  useEffect(() => {
+    const stored = loadActiveSession();
+    if (stored && !session) {
+      setSession(stored.session);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [generating, setGenerating] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);

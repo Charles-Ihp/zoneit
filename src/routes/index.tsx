@@ -14,13 +14,13 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Zone it" },
+      { title: "GRAVITACIO" },
       {
         name: "description",
         content:
           "Generate personalized climbing sessions based on your level, goals, and energy. Rule-based session plans you can actually follow at the gym.",
       },
-      { property: "og:title", content: "Zone it" },
+      { property: "og:title", content: "GRAVITACIO" },
       {
         property: "og:description",
         content: "Generate personalized climbing sessions based on your level, goals, and energy.",
@@ -136,7 +136,7 @@ function Index() {
               to="/"
               className="font-heading text-lg font-extrabold tracking-tight text-foreground"
             >
-              🪨 Zone It
+              GRAVITACIO
             </Link>
           </div>
           <div className="flex items-center gap-2">

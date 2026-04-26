@@ -1,6 +1,6 @@
-# Zone It Bots
+# GRAVITACIO Bots
 
-Automation scripts for the Zone It app.
+Automation scripts for the GRAVITACIO app.
 
 ## Fake Activity Bot
 

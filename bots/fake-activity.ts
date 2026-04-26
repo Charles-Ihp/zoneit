@@ -10,15 +10,15 @@ const prisma = new PrismaClient();
 
 // Fake user data
 const FAKE_USERS = [
-  { name: "Alex Chen", email: "bot-alex@zoneit.app" },
-  { name: "Jordan Lee", email: "bot-jordan@zoneit.app" },
-  { name: "Sam Rivera", email: "bot-sam@zoneit.app" },
-  { name: "Taylor Kim", email: "bot-taylor@zoneit.app" },
-  { name: "Morgan Wu", email: "bot-morgan@zoneit.app" },
-  { name: "Casey Patel", email: "bot-casey@zoneit.app" },
-  { name: "Riley Santos", email: "bot-riley@zoneit.app" },
-  { name: "Jamie Torres", email: "bot-jamie@zoneit.app" },
-  { name: "Avery Nguyen", email: "bot-avery@zoneit.app" },
+  { name: "Alex Chen", email: "bot-alex@gravitacio.app" },
+  { name: "Jordan Lee", email: "bot-jordan@gravitacio.app" },
+  { name: "Sam Rivera", email: "bot-sam@gravitacio.app" },
+  { name: "Taylor Kim", email: "bot-taylor@gravitacio.app" },
+  { name: "Morgan Wu", email: "bot-morgan@gravitacio.app" },
+  { name: "Casey Patel", email: "bot-casey@gravitacio.app" },
+  { name: "Riley Santos", email: "bot-riley@gravitacio.app" },
+  { name: "Jamie Torres", email: "bot-jamie@gravitacio.app" },
+  { name: "Avery Nguyen", email: "bot-avery@gravitacio.app" },
   { name: "Quinn Davis", email: "bot-quinn@zoneit.app" },
 ];
 

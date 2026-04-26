@@ -5,7 +5,7 @@
   "spec": {
     "outputDirectory": "public",
     "specVersion": 3,
-    "name": "ZoneIt API",
+    "name": "GRAVITACIO API",
     "description": "Bouldering workout planner API",
     "version": "1.0.0",
     "securityDefinitions": {

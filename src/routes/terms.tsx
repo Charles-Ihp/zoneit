@@ -12,7 +12,7 @@ export const Route = createFileRoute("/terms")({
   component: TermsPage,
   head: () => ({
     meta: [
-      { title: "Glossary — Zone It" },
+      { title: "Glossary — GRAVITACIO" },
       {
         name: "description",
         content: "Bouldering terminology glossary. Search and browse common climbing terms.",
@@ -69,7 +69,7 @@ function TermsPage() {
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
           <Link to="/" className="font-heading text-lg font-bold tracking-tight text-foreground">
-            Zone it
+            GRAVITACIO
           </Link>
           {!authLoading && user && <UserMenu user={user} onLogout={logout} />}
         </div>

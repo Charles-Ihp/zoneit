@@ -71,7 +71,7 @@ function WorkoutView() {
               to="/"
               className="font-heading text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
             >
-              Zone It
+              GRAVITACIO
             </Link>
             <span className="text-border">/</span>
             <span className="font-heading text-lg font-extrabold tracking-tight text-foreground">

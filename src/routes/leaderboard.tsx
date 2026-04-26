@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/leaderboard")({
   component: LeaderboardPage,
-  head: () => ({ meta: [{ title: "Leaderboard — Zone It" }] }),
+  head: () => ({ meta: [{ title: "Leaderboard — GRAVITACIO" }] }),
 });
 
 function formatTime(seconds: number): string {
@@ -54,7 +54,7 @@ function LeaderboardPage() {
               to="/"
               className="font-heading text-lg font-extrabold tracking-tight text-foreground"
             >
-              🪨 Zone It
+              GRAVITACIO
             </Link>
           </div>
           <div className="flex items-center gap-2">

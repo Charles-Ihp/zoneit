@@ -122,6 +122,10 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
       mainExs = f("dynos", isShort ? 2 : 3);
       mainLabel = "Dynos & Movement";
       break;
+    case "handstand":
+      mainExs = f("handstand", isShort ? 4 : 6);
+      mainLabel = "Handstand Training";
+      break;
   }
   const main = buildBlock("main", mainLabel, mainExs, mainTime);
 
@@ -167,6 +171,8 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
   if (goal === "power") tips.push("Never train power when fatigued. Each rep should be explosive.");
   if (goal === "dynos")
     tips.push("Warm up thoroughly before dynos — cold shoulders and fingers are injury risks.");
+  if (goal === "handstand")
+    tips.push("Warm up wrists thoroughly before handstand work. Stop if you feel any wrist pain.");
 
   const goalLabels: Record<string, string> = {
     technique: "Technique Day",
@@ -176,6 +182,7 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
     volume: "Volume Day",
     recovery: "Recovery Session",
     dynos: "Dynos Session",
+    handstand: "Handstand Session",
   };
 
   const blocks = [warmup, main, ...(addon.exercises.length ? [addon] : []), cooldown];

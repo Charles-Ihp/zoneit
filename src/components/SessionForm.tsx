@@ -20,6 +20,7 @@ const goalOptions: { value: Goal; label: string }[] = [
   { value: "endurance", label: "Endurance" },
   { value: "volume", label: "Volume" },
   { value: "recovery", label: "Recovery" },
+  { value: "handstand", label: "Handstand" },
 ];
 
 const gymOptions: { value: GymType; label: string }[] = [

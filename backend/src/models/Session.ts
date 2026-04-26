@@ -7,7 +7,8 @@ export type Goal =
   | "endurance"
   | "volume"
   | "recovery"
-  | "dynos";
+  | "dynos"
+  | "handstand";
 export type GymType = "slab" | "comp" | "spray" | "moonboard" | "mixed";
 export type Fatigue = "fresh" | "normal" | "tired";
 

@@ -1,0 +1,18 @@
+{
+  "name": "zoneit-bots",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/fake-activity.js",
+    "fake-activity": "ts-node fake-activity.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  }
+}

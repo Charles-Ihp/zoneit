@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Seed ───────────────────────────────────────────────────────────────────
+
+// npx prisma db seed -> ts-node prisma/seed.ts
+
+model Exercise {
+  /// Short stable ID matching the frontend (e.g. 'wm1', 't4')
+  id          String   @id
+  name        String
+  description String
+  category    String
+  wallTypes   String[]
+  levels      String[]
+  durationMin Int
+  durationMax Int
+  /// 1-10 intensity scale
+  intensity   Int
+  equipment   String[]
+  injuryRisk  String[]
+  focus       String[]
+  /// Default number of sets (null = time-based exercise)
+  defaultSets Int?
+  /// Default number of reps per set (null = time-based exercise)
+  defaultReps Int?
+}
+
+model User {
+  id             String   @id @default(cuid())
+  googleId       String   @unique
+  email          String   @unique
+  name           String
+  picture        String?
+  age            Int?
+  weightKg       Float?
+  heightCm       Int?
+  restTimeSeconds Int?    @default(90)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  workouts    Workout[]
+  sessionLogs SessionLog[]
+}
+
+model Workout {
+  id               String   @id @default(cuid())
+  name             String
+  userId           String
+  sessionInput     Json
+  generatedSession Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionLogs SessionLog[]
+
+  @@index([userId])
+}
+
+model SessionLog {
+  id              String   @id @default(cuid())
+  userId          String
+  workoutId       String?
+  sessionTitle    String
+  sessionSubtitle String?
+  startedAt       DateTime
+  durationSeconds Int
+  exerciseCount   Int
+  notes           String   @default("")
+  exercises       Json?
+  createdAt       DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workout Workout? @relation(fields: [workoutId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, startedAt])
+}
+
+/// App-wide configuration stored in the database.
+/// Key-value pairs; known keys: testingMode (bool).
+model AppConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+/// Promo codes for gating sign-in during testing mode.
+model PromoCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  usedAt    DateTime?
+  usedBy    String?
+  createdAt DateTime @default(now())
+}
+
+/// Bouldering glossary terms.
+model Term {
+  id         String @id @default(cuid())
+  term       String @unique
+  definition String
+  letter     String
+}

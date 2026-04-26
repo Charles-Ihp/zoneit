@@ -31,41 +31,50 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { user, loading: authLoading, login, logout } = useAuth();
-  const [session, setSession] = useState<GeneratedSession | null>(() => {
-    const stored = loadActiveSession();
-    return stored ? stored.session : null;
-  });
+  const [session, setSession] = useState<GeneratedSession | null>(null);
   const [lastInput, setLastInput] = useState<SessionInput | null>(null);
 
-  // Keep session restored from localStorage in sync (runs once on mount)
+  // Restore session from localStorage only when user is logged in
   useEffect(() => {
-    const stored = loadActiveSession();
-    if (stored && !session) {
-      setSession(stored.session);
+    if (authLoading) return;
+    if (user) {
+      const stored = loadActiveSession();
+      if (stored && !session) {
+        setSession(stored.session);
+      }
+    } else {
+      setSession(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user, authLoading]);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [generating, setGenerating] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveName, setSaveName] = useState("");
 
-  const handleGenerate = useCallback(async (input: SessionInput) => {
-    setLastInput(input);
-    setGenerating(true);
-    try {
-      const result = await api.sessions.generate(input);
-      setSession(result);
-      setSaveState("idle");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } finally {
-      setGenerating(false);
-    }
-  }, []);
+  const handleGenerate = useCallback(
+    async (input: SessionInput) => {
+      if (!user) {
+        setShowLoginPrompt(true);
+        return;
+      }
+      setLastInput(input);
+      setGenerating(true);
+      try {
+        const result = await api.sessions.generate(input);
+        setSession(result);
+        setSaveState("idle");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } finally {
+        setGenerating(false);
+      }
+    },
+    [user],
+  );
 
   const handleRegenerate = useCallback(async () => {
-    if (!lastInput) return;
+    if (!lastInput || !user) return;
     setGenerating(true);
     try {
       const result = await api.sessions.generate(lastInput);
@@ -75,7 +84,7 @@ function Index() {
     } finally {
       setGenerating(false);
     }
-  }, [lastInput]);
+  }, [lastInput, user]);
 
   const handleBack = useCallback(() => {
     setSession(null);
@@ -272,9 +281,11 @@ function Index() {
               className="w-full max-w-sm rounded border border-border bg-card p-6 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="font-heading text-lg font-bold text-foreground">Save your session</h2>
+              <h2 className="font-heading text-lg font-bold text-foreground">
+                Sign in to continue
+              </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Sign in with Google to save this workout and access it any time.
+                Create an account to generate sessions, track your progress, and save workouts.
               </p>
               <button
                 onClick={login}

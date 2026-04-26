@@ -8,10 +8,20 @@ interface SessionFormProps {
 
 type TrainingType = "climb" | "gym";
 
-const levelOptions: { value: Level; label: string; desc: string }[] = [
-  { value: "beginner", label: "Beginner", desc: "V0–V3 / 5.6–5.10a" },
-  { value: "intermediate", label: "Intermediate", desc: "V3–V6 / 5.10a–5.12a" },
-  { value: "advanced", label: "Advanced", desc: "V6+ / 5.12a+" },
+const levelOptions: { value: Level; label: string; climbDesc: string; gymDesc: string }[] = [
+  {
+    value: "beginner",
+    label: "Beginner",
+    climbDesc: "V0–V3 / 5.6–5.10a",
+    gymDesc: "New to lifting",
+  },
+  {
+    value: "intermediate",
+    label: "Intermediate",
+    climbDesc: "V3–V6 / 5.10a–5.12a",
+    gymDesc: "1–3 years training",
+  },
+  { value: "advanced", label: "Advanced", climbDesc: "V6+ / 5.12a+", gymDesc: "3+ years training" },
 ];
 
 const climbGoalOptions: { value: Goal; label: string }[] = [
@@ -115,31 +125,33 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
         </div>
       </FormSection>
 
-      {/* Level - only for climbing */}
-      {isClimbing && (
-        <FormSection title="Climbing Level" step={++stepNum}>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            {levelOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setLevel(opt.value)}
-                className={`rounded border-2 p-3 text-left transition-all sm:p-4 ${
-                  level === opt.value
-                    ? "border-primary bg-primary/8 shadow-sm"
-                    : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
-                }`}
-              >
-                <span className="block font-heading text-sm font-bold">{opt.label}</span>
-                <span className="mt-0.5 block text-[11px] text-muted-foreground">{opt.desc}</span>
-              </button>
-            ))}
-          </div>
-        </FormSection>
-      )}
+      {/* Level */}
+      <FormSection title={isClimbing ? "Climbing Level" : "Fitness Level"} step={++stepNum}>
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {levelOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setLevel(opt.value)}
+              className={`rounded border-2 p-3 text-left transition-all sm:p-4 ${
+                level === opt.value
+                  ? "border-primary bg-primary/8 shadow-sm"
+                  : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+              }`}
+            >
+              <span className="block font-heading text-sm font-bold">{opt.label}</span>
+              <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                {isClimbing ? opt.climbDesc : opt.gymDesc}
+              </span>
+            </button>
+          ))}
+        </div>
+      </FormSection>
 
       {/* Goal */}
       <FormSection title="Session Goal" step={++stepNum}>
-        <div className={`grid gap-2 sm:gap-3 ${isClimbing ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2"}`}>
+        <div
+          className={`grid gap-2 sm:gap-3 ${isClimbing ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2"}`}
+        >
           {goalOptions.map((opt) => (
             <button
               key={opt.value}

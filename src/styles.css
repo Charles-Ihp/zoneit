@@ -169,3 +169,17 @@
     font-family: var(--font-heading);
   }
 }
+
+/* PWA safe area for iOS status bar and home indicator */
+@supports (padding-top: env(safe-area-inset-top)) {
+  @media (display-mode: standalone) {
+    header {
+      padding-top: env(safe-area-inset-top);
+    }
+    
+    /* Ensure footer/bottom elements don't overlap home indicator */
+    .pb-20 {
+      padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    }
+  }
+}

@@ -80,7 +80,7 @@ export class SessionLogController extends Controller {
         durationSeconds: body.durationSeconds,
         exerciseCount: body.exerciseCount,
         notes: body.notes ?? "",
-        exercises: body.exercises ?? null,
+        ...(body.exercises ? { exercises: body.exercises } : {}),
       },
     });
     this.setStatus(201);

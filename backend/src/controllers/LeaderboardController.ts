@@ -42,7 +42,9 @@ interface LeaderboardResponse {
 function startOfWeek(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
-  d.setDate(d.getDate() - day);
+  // Monday is day 1, Sunday is day 0. Adjust to start from Monday.
+  const diff = day === 0 ? 6 : day - 1;
+  d.setDate(d.getDate() - diff);
   d.setHours(0, 0, 0, 0);
   return d;
 }
@@ -168,10 +170,12 @@ export class LeaderboardController extends Controller {
       activeUsers: uniqueUsers.size,
     };
 
-    // Chart data - weekly (last 7 days)
-    const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const weekChartData = weekDays.map((label, dayIndex) => {
-      const dayLogs = weekLogs.filter((l) => new Date(l.startedAt).getDay() === dayIndex);
+    // Chart data - weekly (Mon-Sun)
+    const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const weekChartData = weekDays.map((label, i) => {
+      // Map index to JS day: Mon=1, Tue=2, ..., Sat=6, Sun=0
+      const jsDay = i === 6 ? 0 : i + 1;
+      const dayLogs = weekLogs.filter((l) => new Date(l.startedAt).getDay() === jsDay);
       return {
         label,
         minutes: Math.round(dayLogs.reduce((s, l) => s + l.durationSeconds, 0) / 60),

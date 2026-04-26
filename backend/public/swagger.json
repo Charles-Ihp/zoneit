@@ -7,6 +7,83 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
+			"Record_string.unknown_": {
+				"properties": {},
+				"additionalProperties": {},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
+			},
+			"WorkoutResponse": {
+				"description": "Saved workout returned by the API",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"sessionInput": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					},
+					"generatedSession": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"sessionInput",
+					"generatedSession",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateWorkoutBody": {
+				"description": "Body for saving a generated workout",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Display name for this workout session"
+					},
+					"sessionInput": {
+						"$ref": "#/components/schemas/Record_string.unknown_",
+						"description": "The inputs used to generate the session (level, goal, etc.)"
+					},
+					"generatedSession": {
+						"$ref": "#/components/schemas/Record_string.unknown_",
+						"description": "The full generated session object"
+					}
+				},
+				"required": [
+					"name",
+					"sessionInput",
+					"generatedSession"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateWorkoutBody": {
+				"description": "Body for renaming a saved workout",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "New display name"
+					}
+				},
+				"required": [
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"UserResponse": {
 				"description": "User profile returned by the API",
 				"properties": {
@@ -88,79 +165,26 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"Record_string.unknown_": {
-				"properties": {},
-				"additionalProperties": {},
-				"type": "object",
-				"description": "Construct a type with a set of properties K of type T"
-			},
-			"WorkoutResponse": {
-				"description": "Saved workout returned by the API",
+			"TermResponse": {
 				"properties": {
 					"id": {
 						"type": "string"
 					},
-					"name": {
+					"term": {
 						"type": "string"
 					},
-					"sessionInput": {
-						"$ref": "#/components/schemas/Record_string.unknown_"
-					},
-					"generatedSession": {
-						"$ref": "#/components/schemas/Record_string.unknown_"
-					},
-					"createdAt": {
+					"definition": {
 						"type": "string"
 					},
-					"updatedAt": {
+					"letter": {
 						"type": "string"
 					}
 				},
 				"required": [
 					"id",
-					"name",
-					"sessionInput",
-					"generatedSession",
-					"createdAt",
-					"updatedAt"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"CreateWorkoutBody": {
-				"description": "Body for saving a generated workout",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "Display name for this workout session"
-					},
-					"sessionInput": {
-						"$ref": "#/components/schemas/Record_string.unknown_",
-						"description": "The inputs used to generate the session (level, goal, etc.)"
-					},
-					"generatedSession": {
-						"$ref": "#/components/schemas/Record_string.unknown_",
-						"description": "The full generated session object"
-					}
-				},
-				"required": [
-					"name",
-					"sessionInput",
-					"generatedSession"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateWorkoutBody": {
-				"description": "Body for renaming a saved workout",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "New display name"
-					}
-				},
-				"required": [
-					"name"
+					"term",
+					"definition",
+					"letter"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -318,55 +342,6 @@
 					"startedAt",
 					"durationSeconds",
 					"exerciseCount"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ExerciseResponse": {
-				"description": "Exercise returned by the API",
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string"
-					},
-					"category": {
-						"type": "string"
-					},
-					"focus": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"intensity": {
-						"type": "number",
-						"format": "double"
-					},
-					"defaultSets": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					},
-					"defaultReps": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					}
-				},
-				"required": [
-					"id",
-					"name",
-					"description",
-					"category",
-					"focus",
-					"intensity",
-					"defaultSets",
-					"defaultReps"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -817,26 +792,51 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"TermResponse": {
+			"ExerciseResponse": {
+				"description": "Exercise returned by the API",
 				"properties": {
 					"id": {
 						"type": "string"
 					},
-					"term": {
+					"name": {
 						"type": "string"
 					},
-					"definition": {
+					"description": {
 						"type": "string"
 					},
-					"letter": {
+					"category": {
 						"type": "string"
+					},
+					"focus": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"intensity": {
+						"type": "number",
+						"format": "double"
+					},
+					"defaultSets": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"defaultReps": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
 					}
 				},
 				"required": [
 					"id",
-					"term",
-					"definition",
-					"letter"
+					"name",
+					"description",
+					"category",
+					"focus",
+					"intensity",
+					"defaultSets",
+					"defaultReps"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -857,68 +857,6 @@
 		"contact": {}
 	},
 	"paths": {
-		"/api/users/me": {
-			"get": {
-				"operationId": "GetMe",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/UserResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Returns the authenticated user's profile.",
-				"tags": [
-					"Users"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": []
-			},
-			"patch": {
-				"operationId": "UpdateMe",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/UserResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update the authenticated user's profile.",
-				"tags": [
-					"Users"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateProfileBody"
-							}
-						}
-					}
-				}
-			}
-		},
 		"/api/workouts": {
 			"get": {
 				"operationId": "ListWorkouts",
@@ -1091,6 +1029,103 @@
 				]
 			}
 		},
+		"/api/users/me": {
+			"get": {
+				"operationId": "GetMe",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Returns the authenticated user's profile.",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": []
+			},
+			"patch": {
+				"operationId": "UpdateMe",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update the authenticated user's profile.",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateProfileBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/terms": {
+			"get": {
+				"operationId": "ListTerms",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/TermResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "List all bouldering glossary terms, optionally filtered by a search query.",
+				"tags": [
+					"Terms"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "q",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/api/session-logs": {
 			"get": {
 				"operationId": "ListSessionLogs",
@@ -1194,41 +1229,6 @@
 				]
 			}
 		},
-		"/api/exercises": {
-			"get": {
-				"operationId": "ListExercises",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/ExerciseResponse"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"description": "List all exercises, optionally filtered by search query.\r\nSearch matches name or category (case-insensitive).",
-				"tags": [
-					"Exercises"
-				],
-				"security": [],
-				"parameters": [
-					{
-						"in": "query",
-						"name": "q",
-						"required": false,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
 		"/api/sessions/generate": {
 			"post": {
 				"operationId": "Generate",
@@ -1285,9 +1285,9 @@
 				"parameters": []
 			}
 		},
-		"/api/terms": {
+		"/api/exercises": {
 			"get": {
-				"operationId": "ListTerms",
+				"operationId": "ListExercises",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -1295,7 +1295,7 @@
 							"application/json": {
 								"schema": {
 									"items": {
-										"$ref": "#/components/schemas/TermResponse"
+										"$ref": "#/components/schemas/ExerciseResponse"
 									},
 									"type": "array"
 								}
@@ -1303,9 +1303,9 @@
 						}
 					}
 				},
-				"description": "List all bouldering glossary terms, optionally filtered by a search query.",
+				"description": "List all exercises, optionally filtered by search query.\r\nSearch matches name or category (case-insensitive).",
 				"tags": [
-					"Terms"
+					"Exercises"
 				],
 				"security": [],
 				"parameters": [

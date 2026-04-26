@@ -2,6 +2,11 @@ import type { GeneratedSession } from "./types";
 
 const KEY = "zoneit_active_session";
 
+export interface StoredSetState {
+  reps: number;
+  completed: boolean;
+}
+
 export interface StoredExerciseState {
   id: string;
   name: string;
@@ -9,6 +14,11 @@ export interface StoredExerciseState {
   elapsed: number;
   isDone: boolean;
   isActive: boolean;
+  /** For set-based exercises */
+  sets: StoredSetState[];
+  /** Whether this exercise uses sets/reps (vs time-based) */
+  isSetBased: boolean;
+  defaultReps: number;
 }
 
 export interface ActiveSessionStore {

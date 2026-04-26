@@ -226,6 +226,7 @@ function Index() {
                 onBack={handleBack}
                 onRegenerate={handleRegenerate}
                 onSave={handleSave}
+                onSessionChange={setSession}
                 saveLabel={user ? saveButtonLabel : "Save Session"}
               />
             </motion.div>

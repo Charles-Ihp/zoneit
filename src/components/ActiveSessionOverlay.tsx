@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { GeneratedSession, ExerciseItem } from "@/lib/types";
-import { api, type CreateSessionLogBody } from "@/lib/api";
+import { api, type CreateSessionLogBody, type ExerciseLogData } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import {
   loadActiveSession,
@@ -15,6 +15,11 @@ interface ActiveSessionOverlayProps {
   onClose: () => void;
 }
 
+interface SetState {
+  reps: number;
+  completed: boolean;
+}
+
 interface ExerciseState {
   id: string;
   name: string;
@@ -22,7 +27,15 @@ interface ExerciseState {
   elapsed: number;
   isDone: boolean;
   isActive: boolean;
+  /** For set-based exercises */
+  sets: SetState[];
+  /** Whether this exercise uses sets/reps (vs time-based) */
+  isSetBased: boolean;
+  defaultReps: number;
 }
+
+const REST_TIME_OPTIONS = [30, 60, 90, 120, 180, 300];
+const DEFAULT_REST_TIME = 90;
 
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -32,18 +45,34 @@ function formatTime(seconds: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function formatRestTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSessionOverlayProps) {
   const { user } = useAuth();
 
   const allExercises: ExerciseState[] = session.blocks.flatMap((block) =>
-    block.exercises.map(({ exercise, duration }) => ({
-      id: exercise.id,
-      name: exercise.name,
-      duration,
-      elapsed: 0,
-      isDone: false,
-      isActive: false,
-    })),
+    block.exercises.map(({ exercise, duration }) => {
+      const isSetBased = exercise.defaultSets !== null && exercise.defaultReps !== null;
+      const numSets = exercise.defaultSets ?? 1;
+      const defaultReps = exercise.defaultReps ?? 0;
+      return {
+        id: exercise.id,
+        name: exercise.name,
+        duration,
+        elapsed: 0,
+        isDone: false,
+        isActive: false,
+        isSetBased,
+        defaultReps,
+        sets: isSetBased
+          ? Array.from({ length: numSets }, () => ({ reps: defaultReps, completed: false }))
+          : [],
+      };
+    }),
   );
 
   // Load any persisted session that matches the current session title
@@ -65,8 +94,30 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
   const [running, setRunning] = useState(false);
   const [notes, setNotes] = useState(isRestore ? storedOnMount!.notes : "");
   const [showFinish, setShowFinish] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Rest timer state
+  const [restTimeSeconds, setRestTimeSeconds] = useState(
+    () => user?.restTimeSeconds ?? DEFAULT_REST_TIME
+  );
+  const [isResting, setIsResting] = useState(false);
+  const [restRemaining, setRestRemaining] = useState(0);
+  const [showRestSettings, setShowRestSettings] = useState(false);
+  const restIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Save rest time to user profile when changed
+  const updateRestTime = useCallback(async (seconds: number) => {
+    setRestTimeSeconds(seconds);
+    if (user) {
+      try {
+        await api.users.updateMe({ restTimeSeconds: seconds });
+      } catch {
+        /* ignore save errors */
+      }
+    }
+  }, [user]);
 
   const startedAt = useRef<string>(isRestore ? storedOnMount!.startedAt : new Date().toISOString());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -154,6 +205,43 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
     });
   }, [exercises, activeIdx, notes, running, saved, session, workoutId]);
 
+  // Rest timer countdown
+  useEffect(() => {
+    if (isResting && restRemaining > 0) {
+      restIntervalRef.current = setInterval(() => {
+        setRestRemaining((prev) => {
+          if (prev <= 1) {
+            setIsResting(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (restIntervalRef.current) {
+        clearInterval(restIntervalRef.current);
+        restIntervalRef.current = null;
+      }
+    }
+    return () => {
+      if (restIntervalRef.current) clearInterval(restIntervalRef.current);
+    };
+  }, [isResting, restRemaining]);
+
+  const startRestTimer = useCallback(() => {
+    setRestRemaining(restTimeSeconds);
+    setIsResting(true);
+  }, [restTimeSeconds]);
+
+  const skipRest = useCallback(() => {
+    setIsResting(false);
+    setRestRemaining(0);
+  }, []);
+
+  const addRestTime = useCallback((seconds: number) => {
+    setRestRemaining((prev) => Math.max(0, prev + seconds));
+  }, []);
+
   const startExercise = (idx: number) => {
     // Reset per-exercise wall-clock when switching to a new exercise
     exerciseBaseElapsed.current = 0;
@@ -195,6 +283,14 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
     }
     setSaving(true);
     try {
+      // Map exercise state to log data
+      const exercisesData: ExerciseLogData[] = exercises.map((ex) => ({
+        id: ex.id,
+        name: ex.name,
+        sets: ex.sets,
+        isSetBased: ex.isSetBased,
+        durationSeconds: ex.elapsed,
+      }));
       const body: CreateSessionLogBody = {
         workoutId: workoutId ?? undefined,
         sessionTitle: session.title,
@@ -203,6 +299,7 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         durationSeconds: sessionElapsed,
         exerciseCount: exercises.length,
         notes: notes.trim(),
+        exercises: exercisesData,
       };
       await api.sessionLogs.create(body);
     } catch {
@@ -211,7 +308,7 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
       setSaving(false);
       setSaved(true);
     }
-  }, [user, workoutId, session, sessionElapsed, exercises.length, notes]);
+  }, [user, workoutId, session, sessionElapsed, exercises, notes]);
 
   const doneCount = exercises.filter((e) => e.isDone).length;
   const allDone = doneCount === exercises.length;
@@ -249,11 +346,22 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border bg-card px-4 py-3">
-        <div>
-          <p className="font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Active Session
-          </p>
-          <h2 className="font-heading text-sm font-bold text-foreground">{session.title}</h2>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowCancel(true)}
+            className="rounded border border-border p-1.5 text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+            title="Cancel session"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+            </svg>
+          </button>
+          <div>
+            <p className="font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Active Session
+            </p>
+            <h2 className="font-heading text-sm font-bold text-foreground">{session.title}</h2>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <span className="font-heading text-xl font-bold tabular-nums text-primary">
@@ -288,6 +396,12 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
                   state={state}
                   onStart={() => startExercise(idx)}
                   onDone={() => markDone(idx)}
+                  onUpdateSets={(sets) => {
+                    setExercises((prev) =>
+                      prev.map((ex, i) => (i === idx ? { ...ex, sets } : ex)),
+                    );
+                  }}
+                  onSetCompleted={startRestTimer}
                 />
               ))}
             </div>
@@ -295,12 +409,74 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         ))}
       </div>
 
+      {/* Rest Timer Banner */}
+      <AnimatePresence>
+        {isResting && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-20 left-0 right-0 z-10 px-4"
+          >
+            <div className="mx-auto max-w-md rounded-lg border border-primary bg-primary/10 p-4 shadow-lg backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Rest</p>
+                    <p className="font-heading text-2xl font-bold tabular-nums text-primary">
+                      {formatRestTime(restRemaining)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => addRestTime(-30)}
+                    className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm font-bold text-muted-foreground transition-colors hover:bg-secondary"
+                  >
+                    -30
+                  </button>
+                  <button
+                    onClick={() => addRestTime(30)}
+                    className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm font-bold text-muted-foreground transition-colors hover:bg-secondary"
+                  >
+                    +30
+                  </button>
+                  <button
+                    onClick={skipRest}
+                    className="rounded bg-primary px-3 py-1.5 font-heading text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
+                  >
+                    Skip
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Bottom bar */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-sm">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
-          <span className="text-sm text-muted-foreground">
-            {doneCount}/{exercises.length} done
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">
+              {doneCount}/{exercises.length} done
+            </span>
+            <button
+              onClick={() => setShowRestSettings(true)}
+              className="flex items-center gap-1 rounded border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary"
+              title="Rest timer settings"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              {restTimeSeconds}s
+            </button>
+          </div>
           <div className="flex gap-2">
             {!allDone && activeIdx !== null && (
               <button
@@ -333,8 +509,109 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         </div>
       </div>
 
+      {/* Rest Settings Modal */}
+      <AnimatePresence>
+        {showRestSettings && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center"
+            onClick={() => setShowRestSettings(false)}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              className="w-full max-w-sm rounded-t border-x border-t border-border bg-card p-6 sm:rounded sm:border"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="font-heading text-lg font-bold text-foreground">Rest Timer</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Set your default rest time between sets
+              </p>
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {REST_TIME_OPTIONS.map((seconds) => (
+                  <button
+                    key={seconds}
+                    onClick={() => {
+                      updateRestTime(seconds);
+                      setShowRestSettings(false);
+                    }}
+                    className={`rounded border py-3 font-heading text-sm font-bold transition-colors ${
+                      restTimeSeconds === seconds
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    {seconds >= 60 ? `${seconds / 60}m` : `${seconds}s`}
+                    {seconds === 90 && (
+                      <span className="ml-1 text-xs text-muted-foreground">(default)</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowRestSettings(false)}
+                className="mt-4 w-full rounded border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Finish modal */}
       <AnimatePresence>
+        {showCancel && !saved && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-end justify-center bg-black/70 sm:items-center"
+            onClick={() => setShowCancel(false)}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              className="w-full max-w-sm rounded-t border-x border-t border-border bg-card p-6 sm:rounded sm:border"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-destructive">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>
+                  <path d="M12 9v4"/><path d="M12 17h.01"/>
+                </svg>
+              </div>
+              <h2 className="font-heading text-lg font-bold text-foreground">Cancel session?</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                You've been working out for {formatTime(sessionElapsed)} and completed {doneCount}/{exercises.length} exercises.
+                <span className="mt-2 block font-medium text-destructive">
+                  This session will not be saved and all progress will be lost.
+                </span>
+              </p>
+              <button
+                onClick={() => {
+                  if (intervalRef.current) clearInterval(intervalRef.current);
+                  clearActiveSession();
+                  onClose();
+                }}
+                className="mt-4 w-full rounded bg-destructive py-3 font-heading text-sm font-bold text-destructive-foreground transition-all hover:bg-destructive/90"
+              >
+                Cancel Session
+              </button>
+              <button
+                onClick={() => setShowCancel(false)}
+                className="mt-2 w-full rounded border border-border py-2.5 text-sm text-foreground transition-colors hover:bg-secondary"
+              >
+                Keep Going
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+
         {showFinish && !saved && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -412,11 +689,15 @@ function ExerciseCard({
   state,
   onStart,
   onDone,
+  onUpdateSets,
+  onSetCompleted,
 }: {
   exercise: ExerciseItem;
   state: ExerciseState;
   onStart: () => void;
   onDone: () => void;
+  onUpdateSets: (sets: SetState[]) => void;
+  onSetCompleted: () => void;
 }) {
   const badgeText =
     state.isDone && state.elapsed > 0
@@ -425,9 +706,37 @@ function ExerciseCard({
         ? formatTime(state.elapsed)
         : `${state.duration}m`;
 
+  const toggleSetComplete = (setIdx: number) => {
+    const wasCompleted = state.sets[setIdx].completed;
+    const newSets = state.sets.map((s, i) =>
+      i === setIdx ? { ...s, completed: !s.completed } : s,
+    );
+    onUpdateSets(newSets);
+    // Start rest timer when marking a set as completed (not uncompleted)
+    if (!wasCompleted) {
+      onSetCompleted();
+    }
+  };
+
+  const updateReps = (setIdx: number, reps: number) => {
+    const newSets = state.sets.map((s, i) => (i === setIdx ? { ...s, reps } : s));
+    onUpdateSets(newSets);
+  };
+
+  const addSet = () => {
+    onUpdateSets([...state.sets, { reps: state.defaultReps, completed: false }]);
+  };
+
+  const removeSet = (setIdx: number) => {
+    if (state.sets.length <= 1) return;
+    onUpdateSets(state.sets.filter((_, i) => i !== setIdx));
+  };
+
+  const allSetsCompleted = state.isSetBased && state.sets.every((s) => s.completed);
+
   return (
     <div
-      className={`flex items-start gap-3 rounded border p-3 transition-colors sm:p-4 ${
+      className={`rounded border p-3 transition-colors sm:p-4 ${
         state.isActive
           ? "border-primary bg-primary/5"
           : state.isDone
@@ -435,52 +744,122 @@ function ExerciseCard({
             : "border-border bg-card"
       }`}
     >
-      <div
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded font-heading text-xs font-bold tabular-nums ${
-          state.isDone || state.isActive
-            ? "bg-primary text-primary-foreground"
-            : "bg-secondary text-secondary-foreground"
-        }`}
-      >
-        {badgeText}
+      {/* Header */}
+      <div className="flex items-start gap-3">
+        <div
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded font-heading text-xs font-bold tabular-nums ${
+            state.isDone || state.isActive
+              ? "bg-primary text-primary-foreground"
+              : "bg-secondary text-secondary-foreground"
+          }`}
+        >
+          {badgeText}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h4 className="font-heading text-sm font-bold text-foreground">{exercise.name}</h4>
+          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+            {exercise.description}
+          </p>
+          {exercise.focus.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {exercise.focus.map((f) => (
+                <span
+                  key={f}
+                  className="rounded bg-secondary px-1.5 py-0.5 font-heading text-[10px] font-bold uppercase tracking-wider text-secondary-foreground"
+                >
+                  {f}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="flex shrink-0 flex-col gap-1.5">
+          {!state.isDone && !state.isActive && (
+            <button
+              onClick={onStart}
+              className="rounded border border-border px-2.5 py-1 font-heading text-xs font-bold text-foreground transition-colors hover:bg-secondary"
+            >
+              Start
+            </button>
+          )}
+          {!state.isDone && (
+            <button
+              onClick={onDone}
+              className="rounded bg-primary px-2.5 py-1 font-heading text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
+            >
+              Done
+            </button>
+          )}
+          {state.isDone && <span className="font-heading text-xs font-bold text-primary">✓</span>}
+        </div>
       </div>
-      <div className="min-w-0 flex-1">
-        <h4 className="font-heading text-sm font-bold text-foreground">{exercise.name}</h4>
-        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-          {exercise.description}
-        </p>
-        {exercise.focus.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {exercise.focus.map((f) => (
-              <span
-                key={f}
-                className="rounded bg-secondary px-1.5 py-0.5 font-heading text-[10px] font-bold uppercase tracking-wider text-secondary-foreground"
-              >
-                {f}
-              </span>
-            ))}
+
+      {/* Sets tracking (for set-based exercises) */}
+      {state.isSetBased && state.sets.length > 0 && (
+        <div className="mt-4 border-t border-border pt-3">
+          {/* Header row */}
+          <div className="mb-2 grid grid-cols-[40px_1fr_60px_40px] gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <span>Set</span>
+            <span></span>
+            <span className="text-center">Reps</span>
+            <span></span>
           </div>
-        )}
-      </div>
-      <div className="flex shrink-0 flex-col gap-1.5">
-        {!state.isDone && !state.isActive && (
-          <button
-            onClick={onStart}
-            className="rounded border border-border px-2.5 py-1 font-heading text-xs font-bold text-foreground transition-colors hover:bg-secondary"
-          >
-            Start
-          </button>
-        )}
-        {!state.isDone && (
-          <button
-            onClick={onDone}
-            className="rounded bg-primary px-2.5 py-1 font-heading text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
-          >
-            Done
-          </button>
-        )}
-        {state.isDone && <span className="font-heading text-xs font-bold text-primary">✓</span>}
-      </div>
+          {/* Set rows */}
+          {state.sets.map((set, idx) => (
+            <div
+              key={idx}
+              className={`grid grid-cols-[40px_1fr_60px_40px] items-center gap-2 rounded py-1.5 ${
+                set.completed ? "bg-primary/10" : ""
+              }`}
+            >
+              <span className="font-heading text-sm font-bold text-foreground">{idx + 1}</span>
+              <span className="text-xs text-muted-foreground">
+                {set.completed ? "✓ completed" : ""}
+              </span>
+              <input
+                type="number"
+                value={set.reps || ""}
+                onChange={(e) => updateReps(idx, parseInt(e.target.value) || 0)}
+                onFocus={(e) => e.target.select()}
+                placeholder="0"
+                className="w-full rounded border border-border bg-background px-2 py-1 text-center text-sm text-foreground focus:border-primary focus:outline-none"
+                min={0}
+                disabled={state.isDone}
+              />
+              <button
+                onClick={() => toggleSetComplete(idx)}
+                disabled={state.isDone}
+                className={`flex h-8 w-8 items-center justify-center rounded border transition-colors ${
+                  set.completed
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted-foreground hover:border-primary hover:text-primary"
+                } disabled:opacity-50`}
+              >
+                {set.completed ? "✓" : "○"}
+              </button>
+            </div>
+          ))}
+          {/* Add/remove set buttons */}
+          {!state.isDone && (
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={addSet}
+                className="flex-1 rounded border border-dashed border-border py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+              >
+                + Add Set
+              </button>
+              {state.sets.length > 1 && (
+                <button
+                  onClick={() => removeSet(state.sets.length - 1)}
+                  className="rounded border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

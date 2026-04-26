@@ -7,6 +7,7 @@ export interface UserResponse {
   age: number | null;
   weightKg: number | null;
   heightCm: number | null;
+  restTimeSeconds: number;
   createdAt: string;
 }
 
@@ -15,4 +16,5 @@ export interface UpdateProfileBody {
   age?: number | null;
   weightKg?: number | null;
   heightCm?: number | null;
+  restTimeSeconds?: number;
 }

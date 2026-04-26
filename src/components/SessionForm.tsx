@@ -6,13 +6,15 @@ interface SessionFormProps {
   loading?: boolean;
 }
 
+type TrainingType = "climb" | "gym";
+
 const levelOptions: { value: Level; label: string; desc: string }[] = [
   { value: "beginner", label: "Beginner", desc: "V0–V3 / 5.6–5.10a" },
   { value: "intermediate", label: "Intermediate", desc: "V3–V6 / 5.10a–5.12a" },
   { value: "advanced", label: "Advanced", desc: "V6+ / 5.12a+" },
 ];
 
-const goalOptions: { value: Goal; label: string }[] = [
+const climbGoalOptions: { value: Goal; label: string }[] = [
   { value: "technique", label: "Technique" },
   { value: "projecting", label: "Projecting" },
   { value: "power", label: "Power" },
@@ -20,6 +22,12 @@ const goalOptions: { value: Goal; label: string }[] = [
   { value: "endurance", label: "Endurance" },
   { value: "volume", label: "Volume" },
   { value: "recovery", label: "Recovery" },
+];
+
+const gymGoalOptions: { value: Goal; label: string }[] = [
+  { value: "gym-push", label: "Push Day" },
+  { value: "gym-pull", label: "Pull Day" },
+  { value: "gym-legs", label: "Leg Day" },
   { value: "handstand", label: "Handstand" },
 ];
 
@@ -49,6 +57,7 @@ const equipmentOptions: { value: Equipment; label: string }[] = [
 ];
 
 export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
+  const [trainingType, setTrainingType] = useState<TrainingType>("climb");
   const [level, setLevel] = useState<Level>("intermediate");
   const [goal, setGoal] = useState<Goal>("technique");
   const [sessionLength, setSessionLength] = useState(60);
@@ -56,6 +65,15 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
   const [fatigue, setFatigue] = useState<Fatigue>("normal");
   const [injuries, setInjuries] = useState<string[]>([]);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
+
+  const isClimbing = trainingType === "climb";
+  const goalOptions = isClimbing ? climbGoalOptions : gymGoalOptions;
+
+  // Reset goal when switching training type
+  const handleTrainingTypeChange = (type: TrainingType) => {
+    setTrainingType(type);
+    setGoal(type === "climb" ? "technique" : "gym-push");
+  };
 
   const toggleInjury = (val: string) =>
     setInjuries((prev) => (prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val]));
@@ -66,31 +84,62 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
     onGenerate({ level, goal, sessionLength, gymType, fatigue, injuries, equipment });
   };
 
+  // Calculate step numbers dynamically based on what's shown
+  let stepNum = 0;
+
   return (
     <div className="space-y-8">
-      {/* Level */}
-      <FormSection title="Climbing Level" step={1}>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          {levelOptions.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setLevel(opt.value)}
-              className={`rounded border-2 p-3 text-left transition-all sm:p-4 ${
-                level === opt.value
-                  ? "border-primary bg-primary/8 shadow-sm"
-                  : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
-              }`}
-            >
-              <span className="block font-heading text-sm font-bold">{opt.label}</span>
-              <span className="mt-0.5 block text-[11px] text-muted-foreground">{opt.desc}</span>
-            </button>
-          ))}
+      {/* Training Type */}
+      <FormSection title="Training Type" step={++stepNum}>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <button
+            onClick={() => handleTrainingTypeChange("climb")}
+            className={`flex flex-col items-center gap-2 rounded border-2 p-4 transition-all ${
+              trainingType === "climb"
+                ? "border-primary bg-primary/8 shadow-sm"
+                : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+            }`}
+          >
+            <span className="font-heading text-sm font-bold">Climbing</span>
+          </button>
+          <button
+            onClick={() => handleTrainingTypeChange("gym")}
+            className={`flex flex-col items-center gap-2 rounded border-2 p-4 transition-all ${
+              trainingType === "gym"
+                ? "border-primary bg-primary/8 shadow-sm"
+                : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+            }`}
+          >
+            <span className="font-heading text-sm font-bold">Gym</span>
+          </button>
         </div>
       </FormSection>
 
+      {/* Level - only for climbing */}
+      {isClimbing && (
+        <FormSection title="Climbing Level" step={++stepNum}>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {levelOptions.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setLevel(opt.value)}
+                className={`rounded border-2 p-3 text-left transition-all sm:p-4 ${
+                  level === opt.value
+                    ? "border-primary bg-primary/8 shadow-sm"
+                    : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                }`}
+              >
+                <span className="block font-heading text-sm font-bold">{opt.label}</span>
+                <span className="mt-0.5 block text-[11px] text-muted-foreground">{opt.desc}</span>
+              </button>
+            ))}
+          </div>
+        </FormSection>
+      )}
+
       {/* Goal */}
-      <FormSection title="Session Goal" step={2}>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
+      <FormSection title="Session Goal" step={++stepNum}>
+        <div className={`grid gap-2 sm:gap-3 ${isClimbing ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2"}`}>
           {goalOptions.map((opt) => (
             <button
               key={opt.value}
@@ -108,7 +157,7 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
       </FormSection>
 
       {/* Time */}
-      <FormSection title="Session Length" step={3}>
+      <FormSection title="Session Length" step={++stepNum}>
         <div className="grid grid-cols-4 gap-2 sm:gap-3">
           {timeOptions.map((t) => (
             <button
@@ -126,27 +175,48 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
         </div>
       </FormSection>
 
-      {/* Gym & Fatigue row */}
-      <div className="grid gap-8 sm:grid-cols-2">
-        <FormSection title="Gym Type" step={4}>
-          <div className="flex flex-wrap gap-2">
-            {gymOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setGymType(opt.value)}
-                className={`rounded border-2 px-3 py-2 text-sm font-medium transition-all ${
-                  gymType === opt.value
-                    ? "border-primary bg-primary/8 font-semibold"
-                    : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </FormSection>
+      {/* Gym & Fatigue row - Gym Type only for climbing */}
+      {isClimbing ? (
+        <div className="grid gap-8 sm:grid-cols-2">
+          <FormSection title="Gym Type" step={++stepNum}>
+            <div className="flex flex-wrap gap-2">
+              {gymOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setGymType(opt.value)}
+                  className={`rounded border-2 px-3 py-2 text-sm font-medium transition-all ${
+                    gymType === opt.value
+                      ? "border-primary bg-primary/8 font-semibold"
+                      : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </FormSection>
 
-        <FormSection title="Energy Level" step={5}>
+          <FormSection title="Energy Level" step={++stepNum}>
+            <div className="grid grid-cols-3 gap-2">
+              {fatigueOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setFatigue(opt.value)}
+                  className={`flex flex-col items-center gap-1 rounded border-2 py-3 text-sm font-medium transition-all ${
+                    fatigue === opt.value
+                      ? "border-primary bg-primary/8 font-semibold shadow-sm"
+                      : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                  }`}
+                >
+                  <span className="text-lg">{opt.emoji}</span>
+                  <span className="text-xs">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </FormSection>
+        </div>
+      ) : (
+        <FormSection title="Energy Level" step={++stepNum}>
           <div className="grid grid-cols-3 gap-2">
             {fatigueOptions.map((opt) => (
               <button
@@ -164,46 +234,48 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
             ))}
           </div>
         </FormSection>
-      </div>
+      )}
 
-      {/* Injuries & Equipment */}
-      <div className="grid gap-8 sm:grid-cols-2">
-        <FormSection title="Injuries / Restrictions" step={6} optional>
-          <div className="flex flex-wrap gap-2">
-            {injuryOptions.map((val) => (
-              <button
-                key={val}
-                onClick={() => toggleInjury(val)}
-                className={`rounded border-2 px-3 py-1.5 text-sm capitalize transition-all ${
-                  injuries.includes(val)
-                    ? "border-destructive bg-destructive/8 font-semibold text-destructive"
-                    : "border-border bg-card hover:border-destructive/30 hover:bg-secondary"
-                }`}
-              >
-                {val}
-              </button>
-            ))}
-          </div>
-        </FormSection>
+      {/* Injuries & Equipment - only for climbing */}
+      {isClimbing && (
+        <div className="grid gap-8 sm:grid-cols-2">
+          <FormSection title="Injuries / Restrictions" step={++stepNum} optional>
+            <div className="flex flex-wrap gap-2">
+              {injuryOptions.map((val) => (
+                <button
+                  key={val}
+                  onClick={() => toggleInjury(val)}
+                  className={`rounded border-2 px-3 py-1.5 text-sm capitalize transition-all ${
+                    injuries.includes(val)
+                      ? "border-destructive bg-destructive/8 font-semibold text-destructive"
+                      : "border-border bg-card hover:border-destructive/30 hover:bg-secondary"
+                  }`}
+                >
+                  {val}
+                </button>
+              ))}
+            </div>
+          </FormSection>
 
-        <FormSection title="Available Equipment" step={7} optional>
-          <div className="flex flex-wrap gap-2">
-            {equipmentOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => toggleEquipment(opt.value)}
-                className={`rounded border-2 px-3 py-1.5 text-sm transition-all ${
-                  equipment.includes(opt.value)
-                    ? "border-primary bg-primary/8 font-semibold"
-                    : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </FormSection>
-      </div>
+          <FormSection title="Available Equipment" step={++stepNum} optional>
+            <div className="flex flex-wrap gap-2">
+              {equipmentOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => toggleEquipment(opt.value)}
+                  className={`rounded border-2 px-3 py-1.5 text-sm transition-all ${
+                    equipment.includes(opt.value)
+                      ? "border-primary bg-primary/8 font-semibold"
+                      : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </FormSection>
+        </div>
+      )}
 
       {/* Generate */}
       <div className="pt-2">

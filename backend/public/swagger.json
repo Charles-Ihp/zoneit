@@ -38,6 +38,10 @@
 						"format": "double",
 						"nullable": true
 					},
+					"restTimeSeconds": {
+						"type": "number",
+						"format": "double"
+					},
 					"createdAt": {
 						"type": "string"
 					}
@@ -50,6 +54,7 @@
 					"age",
 					"weightKg",
 					"heightCm",
+					"restTimeSeconds",
 					"createdAt"
 				],
 				"type": "object",
@@ -74,6 +79,10 @@
 						"type": "number",
 						"format": "double",
 						"nullable": true
+					},
+					"restTimeSeconds": {
+						"type": "number",
+						"format": "double"
 					}
 				},
 				"type": "object",
@@ -156,6 +165,56 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"SetData": {
+				"description": "Set data for a single set within an exercise",
+				"properties": {
+					"reps": {
+						"type": "number",
+						"format": "double"
+					},
+					"completed": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"reps",
+					"completed"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ExerciseLogData": {
+				"description": "Exercise data logged during a session",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"sets": {
+						"items": {
+							"$ref": "#/components/schemas/SetData"
+						},
+						"type": "array"
+					},
+					"isSetBased": {
+						"type": "boolean"
+					},
+					"durationSeconds": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"sets",
+					"isSetBased"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"SessionLogResponse": {
 				"description": "A completed training session log returned by the API",
 				"properties": {
@@ -187,6 +246,13 @@
 					"notes": {
 						"type": "string"
 					},
+					"exercises": {
+						"items": {
+							"$ref": "#/components/schemas/ExerciseLogData"
+						},
+						"type": "array",
+						"nullable": true
+					},
 					"createdAt": {
 						"type": "string"
 					}
@@ -200,6 +266,7 @@
 					"durationSeconds",
 					"exerciseCount",
 					"notes",
+					"exercises",
 					"createdAt"
 				],
 				"type": "object",
@@ -237,6 +304,13 @@
 					"notes": {
 						"type": "string",
 						"description": "Free-form notes"
+					},
+					"exercises": {
+						"items": {
+							"$ref": "#/components/schemas/ExerciseLogData"
+						},
+						"type": "array",
+						"description": "Detailed exercise data with sets/reps"
 					}
 				},
 				"required": [
@@ -244,6 +318,55 @@
 					"startedAt",
 					"durationSeconds",
 					"exerciseCount"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ExerciseResponse": {
+				"description": "Exercise returned by the API",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"category": {
+						"type": "string"
+					},
+					"focus": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"intensity": {
+						"type": "number",
+						"format": "double"
+					},
+					"defaultSets": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"defaultReps": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"description",
+					"category",
+					"focus",
+					"intensity",
+					"defaultSets",
+					"defaultReps"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -272,6 +395,18 @@
 					"intensity": {
 						"type": "number",
 						"format": "double"
+					},
+					"defaultSets": {
+						"type": "number",
+						"format": "double",
+						"nullable": true,
+						"description": "Default number of sets (null = time-based exercise)"
+					},
+					"defaultReps": {
+						"type": "number",
+						"format": "double",
+						"nullable": true,
+						"description": "Default number of reps per set (null = time-based exercise)"
 					}
 				},
 				"required": [
@@ -280,7 +415,9 @@
 					"description",
 					"category",
 					"focus",
-					"intensity"
+					"intensity",
+					"defaultSets",
+					"defaultReps"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -384,7 +521,11 @@
 					"endurance",
 					"volume",
 					"recovery",
-					"dynos"
+					"dynos",
+					"handstand",
+					"gym-push",
+					"gym-pull",
+					"gym-legs"
 				]
 			},
 			"GymType": {
@@ -829,6 +970,41 @@
 						"in": "path",
 						"name": "id",
 						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/exercises": {
+			"get": {
+				"operationId": "ListExercises",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/ExerciseResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "List all exercises, optionally filtered by search query.\r\nSearch matches name or category (case-insensitive).",
+				"tags": [
+					"Exercises"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "q",
+						"required": false,
 						"schema": {
 							"type": "string"
 						}

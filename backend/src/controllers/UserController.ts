@@ -13,6 +13,7 @@ function toResponse(user: User): UserResponse {
     age: user.age ?? null,
     weightKg: user.weightKg ?? null,
     heightCm: user.heightCm ?? null,
+    restTimeSeconds: user.restTimeSeconds ?? 90,
     createdAt: user.createdAt.toISOString(),
   };
 }
@@ -46,6 +47,7 @@ export class UserController extends Controller {
         ...(body.age !== undefined ? { age: body.age } : {}),
         ...(body.weightKg !== undefined ? { weightKg: body.weightKg } : {}),
         ...(body.heightCm !== undefined ? { heightCm: body.heightCm } : {}),
+        ...(body.restTimeSeconds !== undefined ? { restTimeSeconds: body.restTimeSeconds } : {}),
       },
     });
     return toResponse(updated);

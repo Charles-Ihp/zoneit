@@ -29,19 +29,24 @@ model Exercise {
   equipment   String[]
   injuryRisk  String[]
   focus       String[]
+  /// Default number of sets (null = time-based exercise)
+  defaultSets Int?
+  /// Default number of reps per set (null = time-based exercise)
+  defaultReps Int?
 }
 
 model User {
-  id        String   @id @default(cuid())
-  googleId  String   @unique
-  email     String   @unique
-  name      String
-  picture   String?
-  age       Int?
-  weightKg  Float?
-  heightCm  Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  googleId       String   @unique
+  email          String   @unique
+  name           String
+  picture        String?
+  age            Int?
+  weightKg       Float?
+  heightCm       Int?
+  restTimeSeconds Int?    @default(90)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   workouts    Workout[]
   sessionLogs SessionLog[]
@@ -72,6 +77,7 @@ model SessionLog {
   durationSeconds Int
   exerciseCount   Int
   notes           String   @default("")
+  exercises       Json?
   createdAt       DateTime @default(now())
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)

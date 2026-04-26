@@ -10,7 +10,10 @@ export type Goal =
   | "volume"
   | "recovery"
   | "dynos"
-  | "handstand";
+  | "handstand"
+  | "gym-push"
+  | "gym-pull"
+  | "gym-legs";
 export type GymType = "slab" | "comp" | "spray" | "moonboard" | "mixed";
 export type Fatigue = "fresh" | "normal" | "tired";
 
@@ -31,6 +34,10 @@ export interface ExerciseItem {
   category: string;
   focus: string[];
   intensity: number;
+  /** Default number of sets (null = time-based exercise) */
+  defaultSets: number | null;
+  /** Default number of reps per set (null = time-based exercise) */
+  defaultReps: number | null;
 }
 
 export interface SessionBlock {

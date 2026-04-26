@@ -10,6 +10,7 @@ export interface UserResponse {
   age: number | null;
   weightKg: number | null;
   heightCm: number | null;
+  restTimeSeconds: number;
   createdAt: string;
 }
 
@@ -18,6 +19,7 @@ export interface UpdateProfileBody {
   age?: number | null;
   weightKg?: number | null;
   heightCm?: number | null;
+  restTimeSeconds?: number;
 }
 
 export interface WorkoutResponse {
@@ -39,6 +41,19 @@ export interface UpdateWorkoutBody {
   name: string;
 }
 
+export interface SetData {
+  reps: number;
+  completed: boolean;
+}
+
+export interface ExerciseLogData {
+  id: string;
+  name: string;
+  sets: SetData[];
+  isSetBased: boolean;
+  durationSeconds?: number;
+}
+
 export interface SessionLogResponse {
   id: string;
   workoutId: string | null;
@@ -48,6 +63,7 @@ export interface SessionLogResponse {
   durationSeconds: number;
   exerciseCount: number;
   notes: string;
+  exercises: ExerciseLogData[] | null;
   createdAt: string;
 }
 
@@ -59,6 +75,7 @@ export interface CreateSessionLogBody {
   durationSeconds: number;
   exerciseCount: number;
   notes?: string;
+  exercises?: ExerciseLogData[];
 }
 
 export interface TermResponse {
@@ -66,6 +83,17 @@ export interface TermResponse {
   term: string;
   definition: string;
   letter: string;
+}
+
+export interface ExerciseResponse {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  focus: string[];
+  intensity: number;
+  defaultSets: number | null;
+  defaultReps: number | null;
 }
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3001";
@@ -168,5 +196,10 @@ export const api = {
   terms: {
     list: (q?: string) =>
       request<TermResponse[]>(`/api/terms${q ? `?q=${encodeURIComponent(q)}` : ""}`),
+  },
+
+  exercises: {
+    list: (q?: string) =>
+      request<ExerciseResponse[]>(`/api/exercises${q ? `?q=${encodeURIComponent(q)}` : ""}`),
   },
 };

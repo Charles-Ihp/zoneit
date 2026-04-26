@@ -1,3 +1,18 @@
+/** Set data for a single set within an exercise */
+export interface SetData {
+  reps: number;
+  completed: boolean;
+}
+
+/** Exercise data logged during a session */
+export interface ExerciseLogData {
+  id: string;
+  name: string;
+  sets: SetData[];
+  isSetBased: boolean;
+  durationSeconds?: number;
+}
+
 /** A completed training session log returned by the API */
 export interface SessionLogResponse {
   id: string;
@@ -8,6 +23,7 @@ export interface SessionLogResponse {
   durationSeconds: number;
   exerciseCount: number;
   notes: string;
+  exercises: ExerciseLogData[] | null;
   createdAt: string;
 }
 
@@ -27,4 +43,6 @@ export interface CreateSessionLogBody {
   exerciseCount: number;
   /** Free-form notes */
   notes?: string;
+  /** Detailed exercise data with sets/reps */
+  exercises?: ExerciseLogData[];
 }

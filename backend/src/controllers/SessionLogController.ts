@@ -15,7 +15,11 @@ import {
 import type { Request as ExpressRequest } from "express";
 import type { User, SessionLog } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import type { SessionLogResponse, CreateSessionLogBody } from "../models/SessionLog";
+import type {
+  SessionLogResponse,
+  CreateSessionLogBody,
+  ExerciseLogData,
+} from "../models/SessionLog";
 
 function toResponse(log: SessionLog): SessionLogResponse {
   return {
@@ -27,6 +31,7 @@ function toResponse(log: SessionLog): SessionLogResponse {
     durationSeconds: log.durationSeconds,
     exerciseCount: log.exerciseCount,
     notes: log.notes,
+    exercises: log.exercises as ExerciseLogData[] | null,
     createdAt: log.createdAt.toISOString(),
   };
 }
@@ -75,6 +80,7 @@ export class SessionLogController extends Controller {
         durationSeconds: body.durationSeconds,
         exerciseCount: body.exerciseCount,
         notes: body.notes ?? "",
+        exercises: body.exercises ?? null,
       },
     });
     this.setStatus(201);

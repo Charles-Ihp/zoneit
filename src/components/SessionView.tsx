@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { GeneratedSession, SessionBlock } from "@/lib/types";
+import type { GeneratedSession, SessionBlock, ExerciseItem } from "@/lib/types";
 import { ActiveSessionOverlay } from "./ActiveSessionOverlay";
+import { ExerciseSearchModal } from "./ExerciseSearchModal";
 import { loadActiveSession, clearActiveSession } from "@/lib/active-session-store";
 
 interface SessionViewProps {
@@ -12,6 +13,8 @@ interface SessionViewProps {
   onRegenerate?: () => void;
   onSave?: () => void;
   saveLabel?: string;
+  /** If provided, allows editing the session */
+  onSessionChange?: (session: GeneratedSession) => void;
 }
 
 const phaseColors: Record<string, { bg: string; border: string; accent: string; label: string }> = {
@@ -49,11 +52,50 @@ export function SessionView({
   onRegenerate,
   onSave,
   saveLabel = "Save Session",
+  onSessionChange,
 }: SessionViewProps) {
   const [activeSession, setActiveSession] = useState(() => {
     const stored = loadActiveSession();
     return stored !== null && stored.session.title === session.title;
   });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addToBlockIndex, setAddToBlockIndex] = useState<number | null>(null);
+
+  const isEditable = !!onSessionChange;
+
+  // Get all exercise IDs currently in the session
+  const existingIds = session.blocks.flatMap((b) => b.exercises.map((e) => e.exercise.id));
+
+  const handleRemoveExercise = (blockIndex: number, exerciseIndex: number) => {
+    if (!onSessionChange) return;
+    const newBlocks = session.blocks.map((block, bi) => {
+      if (bi !== blockIndex) return block;
+      const newExercises = block.exercises.filter((_, ei) => ei !== exerciseIndex);
+      const newDuration = newExercises.reduce((sum, e) => sum + e.duration, 0);
+      return { ...block, exercises: newExercises, totalDuration: newDuration };
+    });
+    // Filter out empty blocks
+    const filteredBlocks = newBlocks.filter((b) => b.exercises.length > 0);
+    const newTotal = filteredBlocks.reduce((sum, b) => sum + b.totalDuration, 0);
+    onSessionChange({ ...session, blocks: filteredBlocks, totalDuration: newTotal });
+  };
+
+  const handleAddExercise = (exercise: ExerciseItem, duration: number) => {
+    if (!onSessionChange || addToBlockIndex === null) return;
+    const newBlocks = session.blocks.map((block, bi) => {
+      if (bi !== addToBlockIndex) return block;
+      const newExercises = [...block.exercises, { exercise, duration }];
+      const newDuration = newExercises.reduce((sum, e) => sum + e.duration, 0);
+      return { ...block, exercises: newExercises, totalDuration: newDuration };
+    });
+    const newTotal = newBlocks.reduce((sum, b) => sum + b.totalDuration, 0);
+    onSessionChange({ ...session, blocks: newBlocks, totalDuration: newTotal });
+  };
+
+  const openAddModal = (blockIndex: number) => {
+    setAddToBlockIndex(blockIndex);
+    setShowAddModal(true);
+  };
 
   return (
     <>
@@ -97,9 +139,27 @@ export function SessionView({
         {/* Blocks */}
         <div className="divide-y divide-border">
           {session.blocks.map((block, i) => (
-            <BlockSection key={i} block={block} index={i} />
+            <BlockSection
+              key={i}
+              block={block}
+              index={i}
+              editable={isEditable}
+              onRemove={(exIndex) => handleRemoveExercise(i, exIndex)}
+              onAdd={() => openAddModal(i)}
+            />
           ))}
         </div>
+
+        {/* Add Exercise Modal */}
+        <ExerciseSearchModal
+          open={showAddModal}
+          onClose={() => {
+            setShowAddModal(false);
+            setAddToBlockIndex(null);
+          }}
+          onSelect={handleAddExercise}
+          excludeIds={existingIds}
+        />
 
         {/* Tips */}
         {session.tips.length > 0 && (
@@ -163,7 +223,19 @@ export function SessionView({
   );
 }
 
-function BlockSection({ block, index }: { block: SessionBlock; index: number }) {
+function BlockSection({
+  block,
+  index,
+  editable = false,
+  onRemove,
+  onAdd,
+}: {
+  block: SessionBlock;
+  index: number;
+  editable?: boolean;
+  onRemove?: (exerciseIndex: number) => void;
+  onAdd?: () => void;
+}) {
   const colors = phaseColors[block.phase] || phaseColors.main;
 
   return (
@@ -197,7 +269,7 @@ function BlockSection({ block, index }: { block: SessionBlock; index: number }) 
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.08 + j * 0.04 }}
-              className="flex items-start gap-3 rounded border border-border bg-card p-3 sm:p-4"
+              className="group flex items-start gap-3 rounded border border-border bg-card p-3 sm:p-4"
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-secondary font-heading text-xs font-bold text-secondary-foreground">
                 {duration}m
@@ -220,8 +292,42 @@ function BlockSection({ block, index }: { block: SessionBlock; index: number }) 
                   </div>
                 )}
               </div>
+              {editable && onRemove && (
+                <button
+                  onClick={() => onRemove(j)}
+                  className="shrink-0 rounded p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                  title="Remove exercise"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
             </motion.div>
           ))}
+
+          {/* Add Exercise Button */}
+          {editable && onAdd && (
+            <button
+              onClick={onAdd}
+              className="flex w-full items-center justify-center gap-2 rounded border border-dashed border-border py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:bg-secondary hover:text-foreground"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Add Exercise
+            </button>
+          )}
         </div>
       </div>
     </motion.div>

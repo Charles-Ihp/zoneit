@@ -16,6 +16,7 @@ function WorkoutView() {
   const { id } = Route.useParams();
   const { user, loading: authLoading, logout } = useAuth();
   const [workout, setWorkout] = useState<WorkoutResponse | null>(null);
+  const [session, setSession] = useState<GeneratedSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
@@ -31,7 +32,10 @@ function WorkoutView() {
     if (!user) return;
     api.workouts
       .get(id)
-      .then(setWorkout)
+      .then((w) => {
+        setWorkout(w);
+        setSession(w.generatedSession as GeneratedSession);
+      })
       .catch(() => setError("Session not found."))
       .finally(() => setLoading(false));
   }, [id, user, authLoading]);
@@ -57,8 +61,6 @@ function WorkoutView() {
       setEditingName(false);
     }
   };
-
-  const session = workout?.generatedSession as GeneratedSession | undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -102,6 +104,7 @@ function WorkoutView() {
         ) : session ? (
           <SessionView
             session={session}
+            onSessionChange={setSession}
             titleOverride={
               editingName ? (
                 <input

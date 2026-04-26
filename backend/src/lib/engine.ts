@@ -41,6 +41,8 @@ function toItem(ex: Exercise): ExerciseItem {
     category: ex.category,
     focus: ex.focus,
     intensity: ex.intensity,
+    defaultSets: ex.defaultSets,
+    defaultReps: ex.defaultReps,
   };
 }
 
@@ -76,17 +78,20 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
     pick(filter(all, cat, level, gymType, injuries, equipment), n);
 
   const isShort = sessionLength <= 60;
+  const isNonClimbingSession = goal.startsWith("gym-") || goal === "handstand";
   const warmupTime = isShort ? 10 : 15;
   const cooldownTime = isShort ? 5 : 10;
-  const addonTime = isShort ? 0 : goal === "recovery" ? 5 : 15;
+  const addonTime = isShort || isNonClimbingSession ? 0 : goal === "recovery" ? 5 : 15;
   let mainTime = sessionLength - warmupTime - cooldownTime - addonTime;
   if (goal === "recovery") mainTime = Math.round(mainTime * 0.7);
 
-  // WARMUP
+  // WARMUP - for non-climbing sessions, skip climbing warmup
   const warmup = buildBlock(
     "warmup",
     "Warm-up",
-    [...f("warmup-mobility", 2), ...f("warmup-climbing", 1)],
+    isNonClimbingSession
+      ? [...f("warmup-mobility", 3)]
+      : [...f("warmup-mobility", 2), ...f("warmup-climbing", 1)],
     warmupTime,
   );
 
@@ -125,6 +130,18 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
     case "handstand":
       mainExs = f("handstand", isShort ? 4 : 6);
       mainLabel = "Handstand Training";
+      break;
+    case "gym-push":
+      mainExs = f("gym-push", isShort ? 4 : 6);
+      mainLabel = "Push (Chest/Shoulders/Triceps)";
+      break;
+    case "gym-pull":
+      mainExs = f("gym-pull", isShort ? 4 : 6);
+      mainLabel = "Pull (Back/Biceps)";
+      break;
+    case "gym-legs":
+      mainExs = f("gym-legs", isShort ? 4 : 6);
+      mainLabel = "Legs (Quads/Hamstrings/Glutes)";
       break;
   }
   const main = buildBlock("main", mainLabel, mainExs, mainTime);
@@ -173,6 +190,12 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
     tips.push("Warm up thoroughly before dynos — cold shoulders and fingers are injury risks.");
   if (goal === "handstand")
     tips.push("Warm up wrists thoroughly before handstand work. Stop if you feel any wrist pain.");
+  if (goal === "gym-push")
+    tips.push("Focus on controlled negatives. Rest 60-90s between sets for hypertrophy.");
+  if (goal === "gym-pull")
+    tips.push("Squeeze at peak contraction. Don't use momentum — control the weight.");
+  if (goal === "gym-legs")
+    tips.push("Don't skip the warm-up sets. Build up to working weight gradually.");
 
   const goalLabels: Record<string, string> = {
     technique: "Technique Day",
@@ -183,6 +206,9 @@ export async function generateSession(input: SessionInput): Promise<GeneratedSes
     recovery: "Recovery Session",
     dynos: "Dynos Session",
     handstand: "Handstand Session",
+    "gym-push": "Push Day",
+    "gym-pull": "Pull Day",
+    "gym-legs": "Leg Day",
   };
 
   const blocks = [warmup, main, ...(addon.exercises.length ? [addon] : []), cooldown];

@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { user, loading: authLoading, login, logout, testingMode } = useAuth();
+  const { user, loading: authLoading, login, logout } = useAuth();
   const [session, setSession] = useState<GeneratedSession | null>(() => {
     const stored = loadActiveSession();
     return stored ? stored.session : null;
@@ -50,51 +50,6 @@ function Index() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveName, setSaveName] = useState("");
-  const [showCodeGate, setShowCodeGate] = useState(false);
-  const [accessCode, setAccessCode] = useState("");
-  const [codeError, setCodeError] = useState("");
-  const [verifying, setVerifying] = useState(false);
-
-  const handleSignIn = useCallback(async () => {
-    if (!testingMode) {
-      login();
-      return;
-    }
-    const savedCode = localStorage.getItem("promo_code");
-    if (savedCode) {
-      // Silently re-verify the stored code — works on any device as long as the code is still valid
-      try {
-        const { valid } = await api.auth.verifyCode(savedCode);
-        if (valid) {
-          login();
-          return;
-        }
-      } catch {
-        /* fall through to show gate */
-      }
-      localStorage.removeItem("promo_code");
-    }
-    setShowCodeGate(true);
-    setAccessCode("");
-    setCodeError("");
-  }, [testingMode, login]);
-
-  const handleVerifyCode = useCallback(async () => {
-    setVerifying(true);
-    setCodeError("");
-    try {
-      const { valid } = await api.auth.verifyCode(accessCode);
-      if (valid) {
-        localStorage.setItem("promo_code", accessCode);
-        setShowCodeGate(false);
-        login();
-      } else setCodeError("Invalid access code. Please try again.");
-    } catch {
-      setCodeError("Something went wrong. Please try again.");
-    } finally {
-      setVerifying(false);
-    }
-  }, [accessCode, login]);
 
   const handleGenerate = useCallback(async (input: SessionInput) => {
     setLastInput(input);
@@ -181,7 +136,7 @@ function Index() {
                 <UserMenu user={user} onLogout={logout} />
               ) : (
                 <button
-                  onClick={handleSignIn}
+                  onClick={login}
                   className="rounded bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
                 >
                   Sign in
@@ -332,58 +287,6 @@ function Index() {
                 className="mt-2 w-full rounded border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
               >
                 Maybe later
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Access code gate (testing mode) */}
-      <AnimatePresence>
-        {showCodeGate && (
-          <motion.div
-            key="code-gate"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
-            onClick={() => setShowCodeGate(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.97, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.97, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="w-full max-w-sm rounded border border-border bg-card p-6 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="font-heading text-lg font-bold text-foreground">Enter access code</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                This app is in testing mode. Enter your 6-character invite code to continue.
-              </p>
-              <input
-                type="text"
-                value={accessCode}
-                onChange={(e) => setAccessCode(e.target.value.toUpperCase().slice(0, 6))}
-                onKeyDown={(e) => e.key === "Enter" && handleVerifyCode()}
-                placeholder="XXXXXX"
-                maxLength={6}
-                autoFocus
-                className="mt-4 w-full rounded border border-border bg-background px-3 py-2.5 text-center font-heading text-lg font-bold tracking-[0.4em] text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
-              />
-              {codeError && <p className="mt-2 text-xs text-destructive">{codeError}</p>}
-              <button
-                onClick={handleVerifyCode}
-                disabled={verifying || accessCode.length < 6}
-                className="mt-3 w-full rounded bg-primary py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40"
-              >
-                {verifying ? "Checking…" : "Continue"}
-              </button>
-              <button
-                onClick={() => setShowCodeGate(false)}
-                className="mt-2 w-full rounded border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
-              >
-                Cancel
               </button>
             </motion.div>
           </motion.div>

@@ -42,29 +42,7 @@ app.get("/health", (_req: Request, res: Response) => {
 // ─── Auth config + testing mode ─────────────────────────────────────────────
 
 app.get("/api/auth/config", async (_req: Request, res: Response) => {
-  const row = await prisma.appConfig.findUnique({ where: { key: "testingMode" } });
-  const testingMode = row?.value === "true";
-  res.json({ testingMode });
-});
-
-app.post("/api/auth/verify-code", async (req: Request, res: Response) => {
-  const modeRow = await prisma.appConfig.findUnique({ where: { key: "testingMode" } });
-  if (modeRow?.value !== "true") return res.json({ valid: true });
-
-  const { code } = req.body as { code?: string };
-  if (typeof code !== "string" || code.trim().length === 0) return res.json({ valid: false });
-
-  const promo = await prisma.promoCode.findUnique({ where: { code: code.trim().toUpperCase() } });
-  if (!promo) return res.json({ valid: false });
-
-  // Mark as used (first use only — allows re-use if already used by same device)
-  if (!promo.usedAt) {
-    await prisma.promoCode.update({
-      where: { code: promo.code },
-      data: { usedAt: new Date() },
-    });
-  }
-  res.json({ valid: true });
+  res.json({ testingMode: false });
 });
 
 // ─── Google OAuth ────────────────────────────────────────────────────────────

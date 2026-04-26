@@ -4,7 +4,6 @@ import { api, TOKEN_KEY, type UserResponse } from "@/lib/api";
 interface AuthState {
   user: UserResponse | null;
   loading: boolean;
-  testingMode: boolean;
   login: () => void;
   logout: () => void;
   setUser: (user: UserResponse) => void;
@@ -13,7 +12,6 @@ interface AuthState {
 export function useAuth(): AuthState {
   const [user, setUser] = useState<UserResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [testingMode, setTestingMode] = useState(false);
 
   useEffect(() => {
     // Pick up token from OAuth redirect (?token=...)
@@ -28,12 +26,6 @@ export function useAuth(): AuthState {
         : window.location.pathname;
       window.history.replaceState({}, "", newUrl);
     }
-
-    // Fetch auth config (testing mode flag)
-    api.auth
-      .config()
-      .then(({ testingMode }) => setTestingMode(testingMode))
-      .catch(() => {});
 
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
@@ -59,5 +51,5 @@ export function useAuth(): AuthState {
     setUser(null);
   }, []);
 
-  return { user, loading, testingMode, login, logout, setUser };
+  return { user, loading, login, logout, setUser };
 }

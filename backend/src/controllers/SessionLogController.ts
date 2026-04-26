@@ -13,7 +13,7 @@ import {
   Tags,
 } from "tsoa";
 import type { Request as ExpressRequest } from "express";
-import type { User, SessionLog } from "@prisma/client";
+import type { User, SessionLog, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import type {
   SessionLogResponse,
@@ -80,7 +80,9 @@ export class SessionLogController extends Controller {
         durationSeconds: body.durationSeconds,
         exerciseCount: body.exerciseCount,
         notes: body.notes ?? "",
-        ...(body.exercises ? { exercises: body.exercises } : {}),
+        ...(body.exercises
+          ? { exercises: body.exercises as unknown as Prisma.InputJsonValue }
+          : {}),
       },
     });
     this.setStatus(201);

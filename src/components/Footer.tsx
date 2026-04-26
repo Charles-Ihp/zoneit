@@ -8,6 +8,10 @@ export function Footer() {
       <Link to="/terms" className="hover:text-foreground transition-colors">
         Glossary
       </Link>
+      <span className="mx-3 opacity-30">·</span>
+      <Link to="/leaderboard" className="hover:text-foreground transition-colors">
+        Leaderboard
+      </Link>
     </footer>
   );
 }

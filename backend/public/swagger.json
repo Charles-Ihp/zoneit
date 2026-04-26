@@ -600,6 +600,223 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"LeaderboardUser": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"picture": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"picture"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"WeeklyLeader": {
+				"properties": {
+					"user": {
+						"$ref": "#/components/schemas/LeaderboardUser"
+					},
+					"totalSeconds": {
+						"type": "number",
+						"format": "double"
+					},
+					"sessionCount": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"user",
+					"totalSeconds",
+					"sessionCount"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AllTimeLeader": {
+				"properties": {
+					"user": {
+						"$ref": "#/components/schemas/LeaderboardUser"
+					},
+					"totalSeconds": {
+						"type": "number",
+						"format": "double"
+					},
+					"sessionCount": {
+						"type": "number",
+						"format": "double"
+					},
+					"streak": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"user",
+					"totalSeconds",
+					"sessionCount",
+					"streak"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LeaderboardResponse": {
+				"properties": {
+					"weeklyChampion": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/WeeklyLeader"
+							}
+						],
+						"nullable": true
+					},
+					"monthlyChampion": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/WeeklyLeader"
+							}
+						],
+						"nullable": true
+					},
+					"allTimeChampion": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/AllTimeLeader"
+							}
+						],
+						"nullable": true
+					},
+					"weeklyTop": {
+						"items": {
+							"$ref": "#/components/schemas/WeeklyLeader"
+						},
+						"type": "array"
+					},
+					"allTimeTop": {
+						"items": {
+							"$ref": "#/components/schemas/AllTimeLeader"
+						},
+						"type": "array"
+					},
+					"globalStats": {
+						"properties": {
+							"activeUsers": {
+								"type": "number",
+								"format": "double"
+							},
+							"totalMinutes": {
+								"type": "number",
+								"format": "double"
+							},
+							"totalSessions": {
+								"type": "number",
+								"format": "double"
+							}
+						},
+						"required": [
+							"activeUsers",
+							"totalMinutes",
+							"totalSessions"
+						],
+						"type": "object"
+					},
+					"chartData": {
+						"properties": {
+							"year": {
+								"items": {
+									"properties": {
+										"minutes": {
+											"type": "number",
+											"format": "double"
+										},
+										"label": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"minutes",
+										"label"
+									],
+									"type": "object"
+								},
+								"type": "array"
+							},
+							"month": {
+								"items": {
+									"properties": {
+										"minutes": {
+											"type": "number",
+											"format": "double"
+										},
+										"label": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"minutes",
+										"label"
+									],
+									"type": "object"
+								},
+								"type": "array"
+							},
+							"week": {
+								"items": {
+									"properties": {
+										"minutes": {
+											"type": "number",
+											"format": "double"
+										},
+										"label": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"minutes",
+										"label"
+									],
+									"type": "object"
+								},
+								"type": "array"
+							}
+						},
+						"required": [
+							"year",
+							"month",
+							"week"
+						],
+						"type": "object"
+					},
+					"funFacts": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"weeklyChampion",
+					"monthlyChampion",
+					"allTimeChampion",
+					"weeklyTop",
+					"allTimeTop",
+					"globalStats",
+					"chartData",
+					"funFacts"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"TermResponse": {
 				"properties": {
 					"id": {
@@ -1043,6 +1260,29 @@
 						}
 					}
 				}
+			}
+		},
+		"/api/leaderboard": {
+			"get": {
+				"operationId": "GetLeaderboard",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LeaderboardResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get leaderboard stats for all users.",
+				"tags": [
+					"Leaderboard"
+				],
+				"security": [],
+				"parameters": []
 			}
 		},
 		"/api/terms": {

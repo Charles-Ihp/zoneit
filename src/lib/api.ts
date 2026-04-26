@@ -96,6 +96,44 @@ export interface ExerciseResponse {
   defaultReps: number | null;
 }
 
+export interface LeaderboardUser {
+  id: string;
+  name: string;
+  picture: string | null;
+}
+
+export interface WeeklyLeader {
+  user: LeaderboardUser;
+  totalSeconds: number;
+  sessionCount: number;
+}
+
+export interface AllTimeLeader {
+  user: LeaderboardUser;
+  totalSeconds: number;
+  sessionCount: number;
+  streak: number;
+}
+
+export interface LeaderboardResponse {
+  weeklyChampion: WeeklyLeader | null;
+  monthlyChampion: WeeklyLeader | null;
+  allTimeChampion: AllTimeLeader | null;
+  weeklyTop: WeeklyLeader[];
+  allTimeTop: AllTimeLeader[];
+  globalStats: {
+    totalSessions: number;
+    totalMinutes: number;
+    activeUsers: number;
+  };
+  chartData: {
+    week: { label: string; minutes: number }[];
+    month: { label: string; minutes: number }[];
+    year: { label: string; minutes: number }[];
+  };
+  funFacts: string[];
+}
+
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3001";
 
 export const TOKEN_KEY = "auth_token";
@@ -201,5 +239,9 @@ export const api = {
   exercises: {
     list: (q?: string) =>
       request<ExerciseResponse[]>(`/api/exercises${q ? `?q=${encodeURIComponent(q)}` : ""}`),
+  },
+
+  leaderboard: {
+    get: () => request<LeaderboardResponse>("/api/leaderboard"),
   },
 };

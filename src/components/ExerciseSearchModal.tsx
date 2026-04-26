@@ -64,7 +64,7 @@ export function ExerciseSearchModal({
   // Toggle a tag selection
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
     );
   };
 
@@ -73,13 +73,13 @@ export function ExerciseSearchModal({
     const q = query.toLowerCase().trim();
     const results = exercises.filter((ex) => {
       if (excludeIds.includes(ex.id)) return false;
-      
+
       // Filter by selected tags (must match ALL selected tags)
       if (selectedTags.length > 0) {
         const hasAllTags = selectedTags.every((tag) => ex.focus.includes(tag));
         if (!hasAllTags) return false;
       }
-      
+
       // Filter by search query
       if (!q) return true;
       return (
@@ -165,7 +165,7 @@ export function ExerciseSearchModal({
               autoFocus
               className="w-full rounded border border-border bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
             />
-            
+
             {/* Selected tag filters - only show when tags are selected */}
             {selectedTags.length > 0 ? (
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -178,7 +178,12 @@ export function ExerciseSearchModal({
                   >
                     {tag}
                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 ))}
@@ -194,7 +199,7 @@ export function ExerciseSearchModal({
                 Tip: Click tags on exercises to filter by muscle group
               </p>
             )}
-            
+
             <div className="mt-2 flex items-center gap-2">
               <span className="text-xs text-muted-foreground">Duration:</span>
               {[3, 5, 8, 10, 15].map((d) => (

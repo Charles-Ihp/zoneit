@@ -8,151 +8,182 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as IndexRouteImport } from "./routes/index";
-import { Route as StatsRouteImport } from "./routes/stats";
-import { Route as ProfileRouteImport } from "./routes/profile";
-import { Route as TermsRouteImport } from "./routes/terms";
-import { Route as WorkoutsIndexRouteImport } from "./routes/workouts/index";
-import { Route as WorkoutsIdRouteImport } from "./routes/workouts/$id";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as StatsRouteImport } from './routes/stats'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkoutsIndexRouteImport } from './routes/workouts/index'
+import { Route as WorkoutsIdRouteImport } from './routes/workouts/$id'
 
-const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const StatsRoute = StatsRouteImport.update({
-  id: "/stats",
-  path: "/stats",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const ProfileRoute = ProfileRouteImport.update({
-  id: "/profile",
-  path: "/profile",
-  getParentRoute: () => rootRouteImport,
-} as any);
 const TermsRoute = TermsRouteImport.update({
-  id: "/terms",
-  path: "/terms",
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkoutsIndexRoute = WorkoutsIndexRouteImport.update({
-  id: "/workouts/",
-  path: "/workouts/",
+  id: '/workouts/',
+  path: '/workouts/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const WorkoutsIdRoute = WorkoutsIdRouteImport.update({
-  id: "/workouts/$id",
-  path: "/workouts/$id",
+  id: '/workouts/$id',
+  path: '/workouts/$id',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/stats": typeof StatsRoute;
-  "/profile": typeof ProfileRoute;
-  "/terms": typeof TermsRoute;
-  "/workouts/$id": typeof WorkoutsIdRoute;
-  "/workouts/": typeof WorkoutsIndexRoute;
+  '/': typeof IndexRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/profile': typeof ProfileRoute
+  '/stats': typeof StatsRoute
+  '/terms': typeof TermsRoute
+  '/workouts/$id': typeof WorkoutsIdRoute
+  '/workouts/': typeof WorkoutsIndexRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/stats": typeof StatsRoute;
-  "/profile": typeof ProfileRoute;
-  "/terms": typeof TermsRoute;
-  "/workouts/$id": typeof WorkoutsIdRoute;
-  "/workouts": typeof WorkoutsIndexRoute;
+  '/': typeof IndexRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/profile': typeof ProfileRoute
+  '/stats': typeof StatsRoute
+  '/terms': typeof TermsRoute
+  '/workouts/$id': typeof WorkoutsIdRoute
+  '/workouts': typeof WorkoutsIndexRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/stats": typeof StatsRoute;
-  "/profile": typeof ProfileRoute;
-  "/terms": typeof TermsRoute;
-  "/workouts/$id": typeof WorkoutsIdRoute;
-  "/workouts/": typeof WorkoutsIndexRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/profile': typeof ProfileRoute
+  '/stats': typeof StatsRoute
+  '/terms': typeof TermsRoute
+  '/workouts/$id': typeof WorkoutsIdRoute
+  '/workouts/': typeof WorkoutsIndexRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/stats" | "/profile" | "/terms" | "/workouts/$id" | "/workouts/";
-  fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/stats" | "/profile" | "/terms" | "/workouts/$id" | "/workouts";
-  id: "__root__" | "/" | "/stats" | "/profile" | "/terms" | "/workouts/$id" | "/workouts/";
-  fileRoutesById: FileRoutesById;
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths:
+    | '/'
+    | '/leaderboard'
+    | '/profile'
+    | '/stats'
+    | '/terms'
+    | '/workouts/$id'
+    | '/workouts/'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/leaderboard'
+    | '/profile'
+    | '/stats'
+    | '/terms'
+    | '/workouts/$id'
+    | '/workouts'
+  id:
+    | '__root__'
+    | '/'
+    | '/leaderboard'
+    | '/profile'
+    | '/stats'
+    | '/terms'
+    | '/workouts/$id'
+    | '/workouts/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  StatsRoute: typeof StatsRoute;
-  ProfileRoute: typeof ProfileRoute;
-  TermsRoute: typeof TermsRoute;
-  WorkoutsIdRoute: typeof WorkoutsIdRoute;
-  WorkoutsIndexRoute: typeof WorkoutsIndexRoute;
+  IndexRoute: typeof IndexRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  ProfileRoute: typeof ProfileRoute
+  StatsRoute: typeof StatsRoute
+  TermsRoute: typeof TermsRoute
+  WorkoutsIdRoute: typeof WorkoutsIdRoute
+  WorkoutsIndexRoute: typeof WorkoutsIndexRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/stats": {
-      id: "/stats";
-      path: "/stats";
-      fullPath: "/stats";
-      preLoaderRoute: typeof StatsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/profile": {
-      id: "/profile";
-      path: "/profile";
-      fullPath: "/profile";
-      preLoaderRoute: typeof ProfileRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/terms": {
-      id: "/terms";
-      path: "/terms";
-      fullPath: "/terms";
-      preLoaderRoute: typeof TermsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/workouts/": {
-      id: "/workouts/";
-      path: "/workouts";
-      fullPath: "/workouts/";
-      preLoaderRoute: typeof WorkoutsIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/workouts/$id": {
-      id: "/workouts/$id";
-      path: "/workouts/$id";
-      fullPath: "/workouts/$id";
-      preLoaderRoute: typeof WorkoutsIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workouts/': {
+      id: '/workouts/'
+      path: '/workouts'
+      fullPath: '/workouts/'
+      preLoaderRoute: typeof WorkoutsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workouts/$id': {
+      id: '/workouts/$id'
+      path: '/workouts/$id'
+      fullPath: '/workouts/$id'
+      preLoaderRoute: typeof WorkoutsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  StatsRoute: StatsRoute,
+  LeaderboardRoute: LeaderboardRoute,
   ProfileRoute: ProfileRoute,
+  StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
   WorkoutsIdRoute: WorkoutsIdRoute,
   WorkoutsIndexRoute: WorkoutsIndexRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
-
-import type { getRouter } from "./router.tsx";
-import type { createStart } from "@tanstack/react-start";
-declare module "@tanstack/react-start" {
-  interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
-  }
-}
+  ._addFileTypes<FileRouteTypes>()

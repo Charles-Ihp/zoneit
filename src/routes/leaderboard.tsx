@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { api, type LeaderboardResponse, type WeeklyLeader, type AllTimeLeader } from "@/lib/api";
 import { Footer } from "@/components/Footer";
-import { UserMenu } from "@/components/UserMenu";
+import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/leaderboard")({
@@ -47,21 +47,7 @@ function LeaderboardPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/"
-              className="font-heading text-lg font-extrabold tracking-tight text-foreground"
-            >
-              GRAVITACIO
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            {!authLoading && user && <UserMenu user={user} onLogout={logout} />}
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="mx-auto max-w-2xl flex-1 px-4 py-6 sm:px-6">
         <h1 className="mb-6 font-heading text-2xl font-extrabold tracking-tight">Leaderboard</h1>

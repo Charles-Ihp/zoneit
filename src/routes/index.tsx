@@ -5,7 +5,7 @@ import { SessionForm } from "@/components/SessionForm";
 import { SessionView } from "@/components/SessionView";
 import { SessionSelectionPanel } from "@/components/SessionSelectionPanel";
 import { Footer } from "@/components/Footer";
-import { UserMenu } from "@/components/UserMenu";
+import { Header } from "@/components/Header";
 import type { GeneratedSession, SessionInput } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { api, type WorkoutResponse } from "@/lib/api";
@@ -144,111 +144,119 @@ function Index() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/"
-              className="font-heading text-lg font-extrabold tracking-tight gradient-text"
-            >
-              GRAVITACIO
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            {!authLoading &&
-              (user ? (
-                <UserMenu user={user} onLogout={logout} />
-              ) : (
-                <button
-                  onClick={login}
-                  className="glow-button rounded-lg px-4 py-2 text-xs font-bold text-white transition-all"
-                >
-                  Sign in
-                </button>
-              ))}
-          </div>
-        </div>
-      </header>
+      <Header transparent={!session && !showSessionForm} />
 
-      {/* Hero - show different content based on state */}
-      {!session && (
-        <div className="hero-gradient relative border-b border-border/30 px-4 py-12 text-center sm:py-16">
+      {/* Hero - show different content based on state (hide when showing form) */}
+      {!session && !showSessionForm && (
+        <div
+          className={`hero-gradient relative flex flex-col items-center justify-center px-4 pt-20 pb-16 text-center sm:pt-24 sm:pb-20 ${!user && !authLoading ? "flex-1" : "min-h-[60vh] sm:min-h-[70vh]"}`}
+        >
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="relative z-10"
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="relative z-10 mx-auto max-w-3xl"
           >
-            {user && !showSessionForm ? (
+            {user ? (
               <>
-                <h1 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
-                  <span className="gradient-text">Welcome back!</span>
+                <h1 className="font-heading text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
+                  Welcome back,
+                  <br />
+                  <span className="gradient-text">ready to climb?</span>
                 </h1>
-                <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
-                  Ready to climb? Start a new session or continue with a saved one.
+                <p className="mx-auto mt-6 max-w-lg text-base text-white/70 sm:text-lg">
+                  Start a new session or continue with a saved one.
                 </p>
               </>
             ) : (
               <>
-                <h1 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
-                  <span className="text-foreground">Build your </span>
-                  <span className="gradient-text">climb.</span>
+                <h1 className="font-heading text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
+                  Build your perfect
+                  <br />
+                  <span className="gradient-text">climbing session</span>
                 </h1>
-                <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
+                <p className="mx-auto mt-6 max-w-lg text-base text-white/70 sm:text-lg">
                   Tell us about today. We'll generate a session plan you can actually follow at the
                   gym.
                 </p>
+                {/* Show CTA button only for non-logged in users on landing */}
+                {!user && !authLoading && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                    onClick={login}
+                    className="mt-8 inline-flex w-full max-w-md items-center justify-center gap-4 rounded-xl border border-white/20 bg-white/10 px-10 py-5 backdrop-blur-sm transition-all hover:border-white/40 hover:bg-white/20 sm:w-auto"
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/30">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <div className="text-left">
+                      <span className="block font-heading text-lg font-bold text-white">
+                        Generate New Session
+                      </span>
+                      <span className="block text-sm text-white/60">Sign in to get started</span>
+                    </div>
+                  </motion.button>
+                )}
               </>
             )}
           </motion.div>
         </div>
       )}
 
-      {/* Content */}
-      <main className="relative flex-1">
-        <AnimatePresence mode="wait">
-          {session ? (
-            <motion.div
-              key="session"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25 }}
-              className="pb-20"
-            >
-              <SessionView
-                session={session}
-                onBack={handleBack}
-                onRegenerate={handleRegenerate}
-                onSave={handleSave}
-                onSessionChange={setSession}
-                saveLabel={user ? saveButtonLabel : "Save Session"}
-              />
-            </motion.div>
-          ) : user && !showSessionForm ? (
-            <motion.div
-              key="selection"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25 }}
-            >
-              <SessionSelectionPanel
-                onGenerateNew={handleGenerateNew}
-                onSelectWorkout={handleSelectWorkout}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25 }}
-              className="mx-auto max-w-2xl px-4 py-8 sm:px-6"
-            >
-              {user && (
+      {/* Content - only show when user is logged in */}
+      {user && (
+        <main className="relative flex-1">
+          <AnimatePresence mode="wait">
+            {session ? (
+              <motion.div
+                key="session"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25 }}
+                className="pb-20"
+              >
+                <SessionView
+                  session={session}
+                  onBack={handleBack}
+                  onRegenerate={handleRegenerate}
+                  onSave={handleSave}
+                  onSessionChange={setSession}
+                  saveLabel={saveButtonLabel}
+                />
+              </motion.div>
+            ) : !showSessionForm ? (
+              <motion.div
+                key="selection"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25 }}
+              >
+                <SessionSelectionPanel
+                  onGenerateNew={handleGenerateNew}
+                  onSelectWorkout={handleSelectWorkout}
+                />
+              </motion.div>
+            ) : showSessionForm ? (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25 }}
+                className="mx-auto max-w-2xl px-4 py-8 sm:px-6"
+              >
                 <button
                   onClick={() => setShowSessionForm(false)}
                   className="mb-4 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -268,12 +276,12 @@ function Index() {
                   </svg>
                   Back to sessions
                 </button>
-              )}
-              <SessionForm onGenerate={handleGenerate} loading={generating} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+                <SessionForm onGenerate={handleGenerate} loading={generating} />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </main>
+      )}
 
       {/* Footer */}
       <Footer />

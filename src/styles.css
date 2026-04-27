@@ -214,13 +214,15 @@
   transform: translateY(-2px);
 }
 
-/* Hero gradient background */
+/* Hero gradient background - Suno-inspired with purple tones */
 .hero-gradient {
   background: linear-gradient(
-    135deg,
-    oklch(0.2 0.12 290) 0%,
-    oklch(0.28 0.18 285) 50%,
-    oklch(0.22 0.14 275) 100%
+    165deg,
+    oklch(0.25 0.08 285) 0%,
+    oklch(0.35 0.16 290) 25%,
+    oklch(0.4 0.2 295) 50%,
+    oklch(0.35 0.18 280) 75%,
+    oklch(0.22 0.1 270) 100%
   );
   position: relative;
   overflow: hidden;
@@ -229,15 +231,24 @@
 .hero-gradient::before {
   content: "";
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  inset: 0;
   background:
-    radial-gradient(ellipse at 30% 20%, oklch(0.6 0.3 285 / 25%) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, oklch(0.55 0.28 310 / 20%) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, oklch(0.5 0.25 270 / 15%) 0%, transparent 60%);
+    radial-gradient(ellipse 80% 60% at 50% 0%, oklch(0.55 0.25 310 / 35%) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 50%, oklch(0.5 0.22 285 / 25%) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 20% 80%, oklch(0.45 0.2 275 / 20%) 0%, transparent 50%);
   pointer-events: none;
+  animation: heroGlow 8s ease-in-out infinite alternate;
+}
+
+@keyframes heroGlow {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
 /* Subtle border glow */

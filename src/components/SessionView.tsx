@@ -12,6 +12,7 @@ interface SessionViewProps {
   onBack?: () => void;
   onRegenerate?: () => void;
   onSave?: () => void;
+  onDelete?: () => void;
   saveLabel?: string;
   /** If provided, allows editing the session */
   onSessionChange?: (session: GeneratedSession) => void;
@@ -51,6 +52,7 @@ export function SessionView({
   onBack,
   onRegenerate,
   onSave,
+  onDelete,
   saveLabel = "Save Session",
   onSessionChange,
 }: SessionViewProps) {
@@ -60,6 +62,7 @@ export function SessionView({
   });
   const [showAddModal, setShowAddModal] = useState(false);
   const [addToBlockIndex, setAddToBlockIndex] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -155,8 +158,8 @@ export function SessionView({
       <div>
         {/* Session Header */}
         <div className="border-b border-border bg-card px-4 py-6 text-center sm:py-8">
-          {titleOverride ?? (
-            isEditing ? (
+          {titleOverride ??
+            (isEditing ? (
               <input
                 type="text"
                 value={draftSession.title}
@@ -168,8 +171,7 @@ export function SessionView({
               <h1 className="font-heading text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
                 {currentSession.title}
               </h1>
-            )
-          )}
+            ))}
           <p className="mt-1.5 text-sm text-muted-foreground">{currentSession.subtitle}</p>
           <div className="mt-3 inline-flex items-center gap-1.5 rounded bg-primary px-3 py-1">
             <span className="text-xs font-bold text-primary-foreground">
@@ -191,6 +193,14 @@ export function SessionView({
                 className="rounded border border-border px-4 py-2.5 font-heading text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
               >
                 Edit
+              </button>
+            )}
+            {onDelete && !isEditing && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="rounded border border-destructive/30 px-4 py-2.5 font-heading text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
+              >
+                Delete
               </button>
             )}
             {isEditing && (
@@ -296,6 +306,51 @@ export function SessionView({
           </div>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            key="delete-confirm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-md"
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.97, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.97, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="font-heading text-lg font-bold text-foreground">Delete Session?</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                This will permanently delete "{currentSession.title}". This action cannot be undone.
+              </p>
+              <div className="mt-6 flex gap-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 rounded border border-border py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    onDelete?.();
+                  }}
+                  className="flex-1 rounded bg-destructive py-2.5 text-sm font-bold text-destructive-foreground transition-all hover:bg-destructive/90"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

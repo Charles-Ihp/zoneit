@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { api, type TermResponse } from "@/lib/api";
 import { Footer } from "@/components/Footer";
-import { UserMenu } from "@/components/UserMenu";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -65,15 +65,7 @@ function TermsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link to="/" className="font-heading text-lg font-bold tracking-tight text-foreground">
-            GRAVITACIO
-          </Link>
-          {!authLoading && user && <UserMenu user={user} onLogout={logout} />}
-        </div>
-      </header>
+      <Header />
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
         <motion.div

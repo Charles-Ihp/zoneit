@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { api, type SessionLogResponse } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
-import { UserMenu } from "@/components/UserMenu";
+import { Header } from "@/components/Header";
 
 export const Route = createFileRoute("/stats")({
   component: StatsPage,
@@ -129,26 +129,7 @@ export function StatsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="font-heading text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
-            >
-              GRAVITACIO
-            </Link>
-            <span className="text-border">/</span>
-            <span className="font-heading text-lg font-extrabold tracking-tight text-foreground">
-              Stats
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {!authLoading && user && <UserMenu user={user} onLogout={logout} />}
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
         {!user && !authLoading ? (

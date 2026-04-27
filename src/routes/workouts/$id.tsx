@@ -1,11 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { api, type WorkoutResponse } from "@/lib/api";
 import { SessionView } from "@/components/SessionView";
 import type { GeneratedSession } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
-import { UserMenu } from "@/components/UserMenu";
+import { Header } from "@/components/Header";
 
 export const Route = createFileRoute("/workouts/$id")({
   component: WorkoutView,
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/workouts/$id")({
 
 function WorkoutView() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const { user, loading: authLoading, logout } = useAuth();
   const [workout, setWorkout] = useState<WorkoutResponse | null>(null);
   const [session, setSession] = useState<GeneratedSession | null>(null);
@@ -62,27 +63,19 @@ function WorkoutView() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!workout) return;
+    try {
+      await api.workouts.delete(workout.id);
+      navigate({ to: "/" });
+    } catch {
+      // Handle error silently or show a toast
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="font-heading text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
-            >
-              GRAVITACIO
-            </Link>
-            <span className="text-border">/</span>
-            <span className="font-heading text-lg font-extrabold tracking-tight text-foreground">
-              My Sessions
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {!authLoading && user && <UserMenu user={user} onLogout={logout} />}
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="pb-16">
         {authLoading || loading ? (
@@ -105,6 +98,7 @@ function WorkoutView() {
           <SessionView
             session={session}
             onSessionChange={setSession}
+            onDelete={handleDelete}
             titleOverride={
               editingName ? (
                 <input

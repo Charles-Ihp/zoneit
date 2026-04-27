@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { api, type WorkoutResponse } from "@/lib/api";
 import type { GeneratedSession, SessionInput } from "@/lib/types";
+
+const ITEMS_PER_PAGE = 5;
 
 interface SessionSelectionPanelProps {
   onGenerateNew: () => void;
@@ -14,6 +16,7 @@ export function SessionSelectionPanel({
 }: SessionSelectionPanelProps) {
   const [workouts, setWorkouts] = useState<WorkoutResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     api.workouts
@@ -22,6 +25,10 @@ export function SessionSelectionPanel({
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const totalPages = Math.ceil(workouts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const visibleWorkouts = workouts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
@@ -44,10 +51,10 @@ export function SessionSelectionPanel({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.3 }}
           onClick={onGenerateNew}
-          className="mt-6 w-full rounded-xl border border-primary/30 bg-primary/10 p-6 text-left transition-all hover:border-primary/60 hover:bg-primary/20 hover:shadow-[0_0_30px_rgba(147,51,234,0.15)] animate-border-glow"
+          className="mt-6 w-full rounded-xl border border-primary/30 bg-primary/10 p-6 text-left transition-all hover:border-primary/60 hover:bg-primary/20 hover:shadow-[0_0_30px_rgba(0,200,255,0.15)] animate-border-glow"
         >
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 to-accent/20 shadow-[0_0_20px_rgba(147,51,234,0.2)]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 to-accent/20 shadow-[0_0_20px_rgba(0,200,255,0.2)]">
               <svg
                 className="h-6 w-6 text-primary"
                 fill="none"
@@ -76,7 +83,7 @@ export function SessionSelectionPanel({
 
           {loading ? (
             <div className="mt-6 flex items-center justify-center py-8">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent shadow-[0_0_10px_rgba(147,51,234,0.3)]" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent shadow-[0_0_10px_rgba(0,200,255,0.3)]" />
             </div>
           ) : workouts.length === 0 ? (
             <motion.div
@@ -106,30 +113,100 @@ export function SessionSelectionPanel({
             </motion.div>
           ) : (
             <div className="mt-4 space-y-2">
-              {workouts.map((workout, i) => (
-                <motion.button
-                  key={workout.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 + i * 0.05, duration: 0.3 }}
-                  onClick={() => onSelectWorkout(workout)}
-                  className="glass-card card-hover-glow w-full rounded-xl p-4 text-left"
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentPage}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-2"
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <h4 className="truncate font-heading text-sm font-bold text-foreground">
-                        {workout.name}
-                      </h4>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {new Date(workout.createdAt).toLocaleDateString(undefined, {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </div>
+                  {visibleWorkouts.map((workout, i) => (
+                    <motion.button
+                      key={workout.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03, duration: 0.2 }}
+                      onClick={() => onSelectWorkout(workout)}
+                      className="glass-card card-hover-glow w-full rounded-xl p-4 text-left"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="truncate font-heading text-sm font-bold text-foreground">
+                            {workout.name}
+                          </h4>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {new Date(workout.createdAt).toLocaleDateString(undefined, {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </p>
+                        </div>
+                        <svg
+                          className="h-5 w-5 shrink-0 text-primary/60"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                          />
+                        </svg>
+                      </div>
+                    </motion.button>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Pagination controls */}
+              {totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
+                  >
                     <svg
-                      className="h-5 w-5 shrink-0 text-primary/60"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 19.5 8.25 12l7.5-7.5"
+                      />
+                    </svg>
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                          currentPage === page
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
+                  >
+                    <svg
+                      className="h-4 w-4"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -141,9 +218,14 @@ export function SessionSelectionPanel({
                         d="m8.25 4.5 7.5 7.5-7.5 7.5"
                       />
                     </svg>
-                  </div>
-                </motion.button>
-              ))}
+                  </button>
+                </div>
+              )}
+
+              {/* Session count */}
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                {workouts.length} session{workouts.length !== 1 ? "s" : ""} saved
+              </p>
             </div>
           )}
         </div>

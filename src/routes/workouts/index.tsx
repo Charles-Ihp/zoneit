@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { api, type WorkoutResponse } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
-import { UserMenu } from "@/components/UserMenu";
+import { Header } from "@/components/Header";
 
 export const Route = createFileRoute("/workouts/")({
   component: WorkoutsList,
@@ -16,6 +16,7 @@ function WorkoutsList() {
   const [workouts, setWorkouts] = useState<WorkoutResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirmWorkout, setDeleteConfirmWorkout] = useState<WorkoutResponse | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -28,8 +29,10 @@ function WorkoutsList() {
       .finally(() => setLoading(false));
   }, [user]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this session?")) return;
+  const handleDelete = async () => {
+    if (!deleteConfirmWorkout) return;
+    const id = deleteConfirmWorkout.id;
+    setDeleteConfirmWorkout(null);
     setDeletingId(id);
     try {
       await api.workouts.delete(id);
@@ -41,25 +44,7 @@ function WorkoutsList() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="font-heading text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
-            >
-              GRAVITACIO
-            </Link>
-            <span className="text-border">/</span>
-            <span className="font-heading text-lg font-extrabold tracking-tight text-foreground">
-              My Sessions
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {!authLoading && user && <UserMenu user={user} onLogout={logout} />}
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
         <h1 className="font-heading text-3xl font-extrabold tracking-tight text-foreground">
@@ -120,7 +105,7 @@ function WorkoutsList() {
                     View
                   </Link>
                   <button
-                    onClick={() => handleDelete(w.id)}
+                    onClick={() => setDeleteConfirmWorkout(w)}
                     disabled={deletingId === w.id}
                     className="rounded-lg px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-40"
                   >
@@ -133,6 +118,49 @@ function WorkoutsList() {
         )}
       </main>
       <Footer />
+
+      {/* Delete confirmation dialog */}
+      <AnimatePresence>
+        {deleteConfirmWorkout && (
+          <motion.div
+            key="delete-confirm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-md"
+            onClick={() => setDeleteConfirmWorkout(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.97, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.97, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="font-heading text-lg font-bold text-foreground">Delete Session?</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                This will permanently delete "{deleteConfirmWorkout.name}". This action cannot be
+                undone.
+              </p>
+              <div className="mt-6 flex gap-2">
+                <button
+                  onClick={() => setDeleteConfirmWorkout(null)}
+                  className="flex-1 rounded border border-border py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 rounded bg-destructive py-2.5 text-sm font-bold text-destructive-foreground transition-all hover:bg-destructive/90"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

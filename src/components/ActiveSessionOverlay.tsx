@@ -608,7 +608,7 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 flex items-end justify-center bg-black/70 sm:items-center"
+            className="absolute inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center"
             onClick={() => setShowCancel(false)}
           >
             <motion.div
@@ -669,7 +669,7 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 flex items-end justify-center bg-black/70 sm:items-center"
+            className="absolute inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center"
             onClick={() => setShowFinish(false)}
           >
             <motion.div

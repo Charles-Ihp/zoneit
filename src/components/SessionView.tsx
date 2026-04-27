@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import type { GeneratedSession, SessionBlock, ExerciseItem } from "@/lib/types";
 import { ActiveSessionOverlay } from "./ActiveSessionOverlay";
 import { ExerciseSearchModal } from "./ExerciseSearchModal";
@@ -92,6 +92,16 @@ export function SessionView({
     onSessionChange({ ...session, blocks: newBlocks, totalDuration: newTotal });
   };
 
+  const handleReorderExercises = (blockIndex: number, newExercises: { exercise: ExerciseItem; duration: number }[]) => {
+    if (!onSessionChange) return;
+    const newBlocks = session.blocks.map((block, bi) => {
+      if (bi !== blockIndex) return block;
+      const newDuration = newExercises.reduce((sum, e) => sum + e.duration, 0);
+      return { ...block, exercises: newExercises, totalDuration: newDuration };
+    });
+    onSessionChange({ ...session, blocks: newBlocks });
+  };
+
   const openAddModal = (blockIndex: number) => {
     setAddToBlockIndex(blockIndex);
     setShowAddModal(true);
@@ -146,6 +156,7 @@ export function SessionView({
               editable={isEditable}
               onRemove={(exIndex) => handleRemoveExercise(i, exIndex)}
               onAdd={() => openAddModal(i)}
+              onReorder={(newExercises) => handleReorderExercises(i, newExercises)}
             />
           ))}
         </div>
@@ -229,14 +240,27 @@ function BlockSection({
   editable = false,
   onRemove,
   onAdd,
+  onReorder,
 }: {
   block: SessionBlock;
   index: number;
   editable?: boolean;
   onRemove?: (exerciseIndex: number) => void;
   onAdd?: () => void;
+  onReorder?: (exercises: { exercise: ExerciseItem; duration: number }[]) => void;
 }) {
   const colors = phaseColors[block.phase] || phaseColors.main;
+  const [exercises, setExercises] = useState(block.exercises);
+
+  // Keep local state in sync with props
+  React.useEffect(() => {
+    setExercises(block.exercises);
+  }, [block.exercises]);
+
+  const handleReorder = (newExercises: { exercise: ExerciseItem; duration: number }[]) => {
+    setExercises(newExercises);
+    onReorder?.(newExercises);
+  };
 
   return (
     <motion.div
@@ -262,74 +286,158 @@ function BlockSection({
           </span>
         </div>
 
-        <div className="space-y-2">
-          {block.exercises.map(({ exercise, duration }, j) => (
-            <motion.div
-              key={exercise.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.08 + j * 0.04 }}
-              className="group flex items-start gap-3 rounded border border-border bg-card p-3 sm:p-4"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-secondary font-heading text-xs font-bold text-secondary-foreground">
-                {duration}m
-              </div>
-              <div className="min-w-0 flex-1">
-                <h4 className="font-heading text-sm font-bold text-foreground">{exercise.name}</h4>
-                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                  {exercise.description}
-                </p>
-                {exercise.focus.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {exercise.focus.map((f) => (
-                      <span
-                        key={f}
-                        className="rounded bg-secondary px-1.5 py-0.5 font-heading text-[10px] font-bold uppercase tracking-wider text-secondary-foreground"
-                      >
-                        {f}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {editable && onRemove && (
-                <button
-                  onClick={() => onRemove(j)}
-                  className="shrink-0 rounded p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                  title="Remove exercise"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
-            </motion.div>
-          ))}
+        {editable ? (
+          <Reorder.Group
+            axis="y"
+            values={exercises}
+            onReorder={handleReorder}
+            className="space-y-2"
+          >
+            {exercises.map((item, j) => (
+              <ExerciseCard
+                key={item.exercise.id}
+                item={item}
+                index={j}
+                blockIndex={index}
+                editable={editable}
+                onRemove={() => onRemove?.(j)}
+              />
+            ))}
+          </Reorder.Group>
+        ) : (
+          <div className="space-y-2">
+            {exercises.map(({ exercise, duration }, j) => (
+              <motion.div
+                key={exercise.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.08 + j * 0.04 }}
+                className="flex items-start gap-3 rounded border border-border bg-card p-3 sm:p-4"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-secondary font-heading text-xs font-bold text-secondary-foreground">
+                  {duration}m
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-heading text-sm font-bold text-foreground">{exercise.name}</h4>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                    {exercise.description}
+                  </p>
+                  {exercise.focus.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {exercise.focus.map((f) => (
+                        <span
+                          key={f}
+                          className="rounded bg-secondary px-1.5 py-0.5 font-heading text-[10px] font-bold uppercase tracking-wider text-secondary-foreground"
+                        >
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-          {/* Add Exercise Button */}
-          {editable && onAdd && (
-            <button
-              onClick={onAdd}
-              className="flex w-full items-center justify-center gap-2 rounded border border-dashed border-border py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:bg-secondary hover:text-foreground"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Add Exercise
-            </button>
-          )}
-        </div>
+        {/* Add Exercise Button */}
+        {editable && onAdd && (
+          <button
+            onClick={onAdd}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded border border-dashed border-border py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:bg-secondary hover:text-foreground"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Exercise
+          </button>
+        )}
       </div>
     </motion.div>
+  );
+}
+
+function ExerciseCard({
+  item,
+  index,
+  blockIndex,
+  editable,
+  onRemove,
+}: {
+  item: { exercise: ExerciseItem; duration: number };
+  index: number;
+  blockIndex: number;
+  editable: boolean;
+  onRemove: () => void;
+}) {
+  const dragControls = useDragControls();
+  const { exercise, duration } = item;
+
+  return (
+    <Reorder.Item
+      value={item}
+      dragListener={false}
+      dragControls={dragControls}
+      className="group flex items-start gap-3 rounded-xl border border-border bg-card p-3 sm:p-4"
+    >
+      {/* Drag handle */}
+      {editable && (
+        <div
+          onPointerDown={(e) => dragControls.start(e)}
+          className="flex cursor-grab touch-none items-center text-muted-foreground active:cursor-grabbing"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="8" cy="6" r="2" />
+            <circle cx="16" cy="6" r="2" />
+            <circle cx="8" cy="12" r="2" />
+            <circle cx="16" cy="12" r="2" />
+            <circle cx="8" cy="18" r="2" />
+            <circle cx="16" cy="18" r="2" />
+          </svg>
+        </div>
+      )}
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-secondary font-heading text-xs font-bold text-secondary-foreground">
+        {duration}m
+      </div>
+      <div className="min-w-0 flex-1">
+        <h4 className="font-heading text-sm font-bold text-foreground">{exercise.name}</h4>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+          {exercise.description}
+        </p>
+        {exercise.focus.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {exercise.focus.map((f) => (
+              <span
+                key={f}
+                className="rounded bg-secondary px-1.5 py-0.5 font-heading text-[10px] font-bold uppercase tracking-wider text-secondary-foreground"
+              >
+                {f}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      {editable && (
+        <button
+          onClick={onRemove}
+          className="shrink-0 rounded p-1.5 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive"
+          title="Remove exercise"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      )}
+    </Reorder.Item>
   );
 }

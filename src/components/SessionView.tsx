@@ -61,14 +61,41 @@ export function SessionView({
   const [showAddModal, setShowAddModal] = useState(false);
   const [addToBlockIndex, setAddToBlockIndex] = useState<number | null>(null);
 
-  const isEditable = !!onSessionChange;
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftSession, setDraftSession] = useState<GeneratedSession>(session);
+
+  // Sync draft when session prop changes (and not editing)
+  React.useEffect(() => {
+    if (!isEditing) {
+      setDraftSession(session);
+    }
+  }, [session, isEditing]);
+
+  const canEdit = !!onSessionChange;
+  const currentSession = isEditing ? draftSession : session;
+
+  const handleStartEditing = () => {
+    setDraftSession(session);
+    setIsEditing(true);
+  };
+
+  const handleCancelEditing = () => {
+    setDraftSession(session);
+    setIsEditing(false);
+  };
+
+  const handleSaveEditing = () => {
+    onSessionChange?.(draftSession);
+    setIsEditing(false);
+  };
 
   // Get all exercise IDs currently in the session
-  const existingIds = session.blocks.flatMap((b) => b.exercises.map((e) => e.exercise.id));
+  const existingIds = currentSession.blocks.flatMap((b) => b.exercises.map((e) => e.exercise.id));
 
   const handleRemoveExercise = (blockIndex: number, exerciseIndex: number) => {
-    if (!onSessionChange) return;
-    const newBlocks = session.blocks.map((block, bi) => {
+    if (!isEditing) return;
+    const newBlocks = draftSession.blocks.map((block, bi) => {
       if (bi !== blockIndex) return block;
       const newExercises = block.exercises.filter((_, ei) => ei !== exerciseIndex);
       const newDuration = newExercises.reduce((sum, e) => sum + e.duration, 0);
@@ -77,32 +104,32 @@ export function SessionView({
     // Filter out empty blocks
     const filteredBlocks = newBlocks.filter((b) => b.exercises.length > 0);
     const newTotal = filteredBlocks.reduce((sum, b) => sum + b.totalDuration, 0);
-    onSessionChange({ ...session, blocks: filteredBlocks, totalDuration: newTotal });
+    setDraftSession({ ...draftSession, blocks: filteredBlocks, totalDuration: newTotal });
   };
 
   const handleAddExercise = (exercise: ExerciseItem, duration: number) => {
-    if (!onSessionChange || addToBlockIndex === null) return;
-    const newBlocks = session.blocks.map((block, bi) => {
+    if (!isEditing || addToBlockIndex === null) return;
+    const newBlocks = draftSession.blocks.map((block, bi) => {
       if (bi !== addToBlockIndex) return block;
       const newExercises = [...block.exercises, { exercise, duration }];
       const newDuration = newExercises.reduce((sum, e) => sum + e.duration, 0);
       return { ...block, exercises: newExercises, totalDuration: newDuration };
     });
     const newTotal = newBlocks.reduce((sum, b) => sum + b.totalDuration, 0);
-    onSessionChange({ ...session, blocks: newBlocks, totalDuration: newTotal });
+    setDraftSession({ ...draftSession, blocks: newBlocks, totalDuration: newTotal });
   };
 
   const handleReorderExercises = (
     blockIndex: number,
     newExercises: { exercise: ExerciseItem; duration: number }[],
   ) => {
-    if (!onSessionChange) return;
-    const newBlocks = session.blocks.map((block, bi) => {
+    if (!isEditing) return;
+    const newBlocks = draftSession.blocks.map((block, bi) => {
       if (bi !== blockIndex) return block;
       const newDuration = newExercises.reduce((sum, e) => sum + e.duration, 0);
       return { ...block, exercises: newExercises, totalDuration: newDuration };
     });
-    onSessionChange({ ...session, blocks: newBlocks });
+    setDraftSession({ ...draftSession, blocks: newBlocks });
   };
 
   const openAddModal = (blockIndex: number) => {
@@ -130,33 +157,59 @@ export function SessionView({
         <div className="border-b border-border bg-card px-4 py-6 text-center sm:py-8">
           {titleOverride ?? (
             <h1 className="font-heading text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-              {session.title}
+              {currentSession.title}
             </h1>
           )}
-          <p className="mt-1.5 text-sm text-muted-foreground">{session.subtitle}</p>
+          <p className="mt-1.5 text-sm text-muted-foreground">{currentSession.subtitle}</p>
           <div className="mt-3 inline-flex items-center gap-1.5 rounded bg-primary px-3 py-1">
             <span className="text-xs font-bold text-primary-foreground">
-              {session.totalDuration} min total
+              {currentSession.totalDuration} min total
             </span>
           </div>
-          <div className="mt-4">
-            <button
-              onClick={() => setActiveSession(true)}
-              className="rounded bg-primary px-6 py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]"
-            >
-              Start Session
-            </button>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {!isEditing && (
+              <button
+                onClick={() => setActiveSession(true)}
+                className="rounded bg-primary px-6 py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]"
+              >
+                Start Session
+              </button>
+            )}
+            {canEdit && !isEditing && (
+              <button
+                onClick={handleStartEditing}
+                className="rounded border border-border px-4 py-2.5 font-heading text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+              >
+                Edit
+              </button>
+            )}
+            {isEditing && (
+              <>
+                <button
+                  onClick={handleCancelEditing}
+                  className="rounded border border-border px-4 py-2.5 font-heading text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEditing}
+                  className="rounded bg-primary px-6 py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]"
+                >
+                  Save Changes
+                </button>
+              </>
+            )}
           </div>
         </div>
 
         {/* Blocks */}
         <div className="divide-y divide-border">
-          {session.blocks.map((block, i) => (
+          {currentSession.blocks.map((block, i) => (
             <BlockSection
               key={i}
               block={block}
               index={i}
-              editable={isEditable}
+              editable={isEditing}
               onRemove={(exIndex) => handleRemoveExercise(i, exIndex)}
               onAdd={() => openAddModal(i)}
               onReorder={(newExercises) => handleReorderExercises(i, newExercises)}
@@ -176,7 +229,7 @@ export function SessionView({
         />
 
         {/* Tips */}
-        {session.tips.length > 0 && (
+        {currentSession.tips.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -188,7 +241,7 @@ export function SessionView({
                 Coach Tips
               </h3>
               <ul className="space-y-2">
-                {session.tips.map((tip, i) => (
+                {currentSession.tips.map((tip, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
                     <span className="mt-0.5 shrink-0 font-bold text-primary">–</span>
                     {tip}

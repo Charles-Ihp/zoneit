@@ -11,3 +11,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <RouterProvider router={router} />
   </StrictMode>,
 );
+
+// Hide splash screen after app mounts
+requestAnimationFrame(() => {
+  const splash = document.getElementById("splash-screen");
+  if (splash) {
+    splash.classList.add("hidden");
+    setTimeout(() => splash.remove(), 300);
+  }
+});

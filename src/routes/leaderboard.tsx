@@ -46,8 +46,8 @@ function LeaderboardPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-4">
             <Link
@@ -63,7 +63,7 @@ function LeaderboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
+      <main className="mx-auto max-w-2xl flex-1 px-4 py-6 sm:px-6">
         <h1 className="mb-6 font-heading text-2xl font-extrabold tracking-tight">Leaderboard</h1>
 
         {loading ? (

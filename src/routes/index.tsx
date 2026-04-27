@@ -3,11 +3,12 @@ import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SessionForm } from "@/components/SessionForm";
 import { SessionView } from "@/components/SessionView";
+import { SessionSelectionPanel } from "@/components/SessionSelectionPanel";
 import { Footer } from "@/components/Footer";
 import { UserMenu } from "@/components/UserMenu";
 import type { GeneratedSession, SessionInput } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
-import { api } from "@/lib/api";
+import { api, type WorkoutResponse } from "@/lib/api";
 import { loadActiveSession } from "@/lib/active-session-store";
 
 export const Route = createFileRoute("/")({
@@ -33,6 +34,7 @@ function Index() {
   const { user, loading: authLoading, login, logout } = useAuth();
   const [session, setSession] = useState<GeneratedSession | null>(null);
   const [lastInput, setLastInput] = useState<SessionInput | null>(null);
+  const [showSessionForm, setShowSessionForm] = useState(false);
 
   // Restore session from localStorage only when user is logged in
   useEffect(() => {
@@ -44,6 +46,7 @@ function Index() {
       }
     } else {
       setSession(null);
+      setShowSessionForm(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
@@ -89,6 +92,19 @@ function Index() {
   const handleBack = useCallback(() => {
     setSession(null);
     setSaveState("idle");
+    setShowSessionForm(false);
+  }, []);
+
+  const handleGenerateNew = useCallback(() => {
+    setShowSessionForm(true);
+  }, []);
+
+  const handleSelectWorkout = useCallback((workout: WorkoutResponse) => {
+    const generatedSession = workout.generatedSession as unknown as GeneratedSession;
+    const sessionInput = workout.sessionInput as unknown as SessionInput;
+    setSession(generatedSession);
+    setLastInput(sessionInput);
+    setSaveState("saved"); // Already saved workout
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -127,14 +143,14 @@ function Index() {
           : "Save Session";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-4">
             <Link
               to="/"
-              className="font-heading text-lg font-extrabold tracking-tight text-foreground"
+              className="font-heading text-lg font-extrabold tracking-tight gradient-text"
             >
               GRAVITACIO
             </Link>
@@ -146,7 +162,7 @@ function Index() {
               ) : (
                 <button
                   onClick={login}
-                  className="rounded bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
+                  className="glow-button rounded-lg px-4 py-2 text-xs font-bold text-white transition-all"
                 >
                   Sign in
                 </button>
@@ -155,26 +171,42 @@ function Index() {
         </div>
       </header>
 
-      {/* Hero */}
+      {/* Hero - show different content based on state */}
       {!session && (
-        <div className="border-b border-border bg-foreground px-4 py-8 text-center sm:py-12">
+        <div className="hero-gradient relative border-b border-border/30 px-4 py-12 text-center sm:py-16">
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
+            className="relative z-10"
           >
-            <h1 className="font-heading text-4xl font-extrabold tracking-tight text-background sm:text-5xl">
-              Build your climb.
-            </h1>
-            <p className="mx-auto mt-3 max-w-md text-sm text-background/60">
-              Tell us about today. We'll generate a session plan you can actually follow at the gym.
-            </p>
+            {user && !showSessionForm ? (
+              <>
+                <h1 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
+                  <span className="gradient-text">Welcome back!</span>
+                </h1>
+                <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
+                  Ready to climb? Start a new session or continue with a saved one.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl">
+                  <span className="text-foreground">Build your </span>
+                  <span className="gradient-text">climb.</span>
+                </h1>
+                <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground">
+                  Tell us about today. We'll generate a session plan you can actually follow at the
+                  gym.
+                </p>
+              </>
+            )}
           </motion.div>
         </div>
       )}
 
       {/* Content */}
-      <main className="relative">
+      <main className="relative flex-1">
         <AnimatePresence mode="wait">
           {session ? (
             <motion.div
@@ -194,6 +226,19 @@ function Index() {
                 saveLabel={user ? saveButtonLabel : "Save Session"}
               />
             </motion.div>
+          ) : user && !showSessionForm ? (
+            <motion.div
+              key="selection"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+            >
+              <SessionSelectionPanel
+                onGenerateNew={handleGenerateNew}
+                onSelectWorkout={handleSelectWorkout}
+              />
+            </motion.div>
           ) : (
             <motion.div
               key="form"
@@ -203,6 +248,27 @@ function Index() {
               transition={{ duration: 0.25 }}
               className="mx-auto max-w-2xl px-4 py-8 sm:px-6"
             >
+              {user && (
+                <button
+                  onClick={() => setShowSessionForm(false)}
+                  className="mb-4 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 19.5 8.25 12l7.5-7.5"
+                    />
+                  </svg>
+                  Back to sessions
+                </button>
+              )}
               <SessionForm onGenerate={handleGenerate} loading={generating} />
             </motion.div>
           )}
@@ -220,7 +286,7 @@ function Index() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-md"
             onClick={() => setShowSaveDialog(false)}
           >
             <motion.div
@@ -228,10 +294,10 @@ function Index() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.97, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-sm rounded border border-border bg-card p-6 shadow-2xl"
+              className="glass-card w-full max-w-sm rounded-xl p-6 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="font-heading text-lg font-bold text-foreground">Name this session</h2>
+              <h2 className="font-heading text-lg font-bold gradient-text">Name this session</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Give it a name so you can find it later.
               </p>
@@ -241,19 +307,19 @@ function Index() {
                 onChange={(e) => setSaveName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleConfirmSave()}
                 placeholder="e.g. Tuesday overhang session"
-                className="mt-4 w-full rounded border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="mt-4 w-full rounded-lg border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 autoFocus
               />
               <button
                 onClick={handleConfirmSave}
                 disabled={!saveName.trim()}
-                className="mt-3 w-full rounded bg-primary py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40"
+                className="glow-button mt-4 w-full rounded-lg py-2.5 font-heading text-sm font-bold text-white transition-all disabled:opacity-40 disabled:shadow-none"
               >
                 Save Session
               </button>
               <button
                 onClick={() => setShowSaveDialog(false)}
-                className="mt-2 w-full rounded border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
+                className="mt-2 w-full rounded-lg border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
               >
                 Cancel
               </button>
@@ -270,7 +336,7 @@ function Index() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-md"
             onClick={() => setShowLoginPrompt(false)}
           >
             <motion.div
@@ -278,24 +344,22 @@ function Index() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.97, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-sm rounded border border-border bg-card p-6 shadow-2xl"
+              className="glass-card w-full max-w-sm rounded-xl p-6 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="font-heading text-lg font-bold text-foreground">
-                Sign in to continue
-              </h2>
+              <h2 className="font-heading text-lg font-bold gradient-text">Sign in to continue</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Create an account to generate sessions, track your progress, and save workouts.
               </p>
               <button
                 onClick={login}
-                className="mt-5 w-full rounded bg-primary py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90"
+                className="glow-button mt-5 w-full rounded-lg py-2.5 font-heading text-sm font-bold text-white transition-all"
               >
                 Sign in with Google
               </button>
               <button
                 onClick={() => setShowLoginPrompt(false)}
-                className="mt-2 w-full rounded border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
+                className="mt-2 w-full rounded-lg border border-border py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary"
               >
                 Maybe later
               </button>

@@ -104,20 +104,20 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
         <div className="grid grid-cols-2 gap-2 sm:gap-3">
           <button
             onClick={() => handleTrainingTypeChange("climb")}
-            className={`flex flex-col items-center gap-2 rounded border-2 p-4 transition-all ${
+            className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
               trainingType === "climb"
-                ? "border-primary bg-primary/8 shadow-sm"
-                : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(147,51,234,0.15)]"
+                : "border-border/50 bg-card/50 hover:border-primary/40 hover:bg-secondary/50"
             }`}
           >
             <span className="font-heading text-sm font-bold">Climbing</span>
           </button>
           <button
             onClick={() => handleTrainingTypeChange("gym")}
-            className={`flex flex-col items-center gap-2 rounded border-2 p-4 transition-all ${
+            className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
               trainingType === "gym"
-                ? "border-primary bg-primary/8 shadow-sm"
-                : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(147,51,234,0.15)]"
+                : "border-border/50 bg-card/50 hover:border-primary/40 hover:bg-secondary/50"
             }`}
           >
             <span className="font-heading text-sm font-bold">Gym</span>
@@ -132,10 +132,10 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
             <button
               key={opt.value}
               onClick={() => setLevel(opt.value)}
-              className={`rounded border-2 p-3 text-left transition-all sm:p-4 ${
+              className={`rounded-lg border-2 p-3 text-left transition-all sm:p-4 ${
                 level === opt.value
-                  ? "border-primary bg-primary/8 shadow-sm"
-                  : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                  ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(147,51,234,0.15)]"
+                  : "border-border/50 bg-card/50 hover:border-primary/40 hover:bg-secondary/50"
               }`}
             >
               <span className="block font-heading text-sm font-bold">{opt.label}</span>
@@ -156,10 +156,10 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
             <button
               key={opt.value}
               onClick={() => setGoal(opt.value)}
-              className={`flex items-center gap-2.5 rounded border-2 px-3 py-3 transition-all sm:gap-3 sm:p-4 ${
+              className={`flex items-center gap-2.5 rounded-lg border-2 px-3 py-3 transition-all sm:gap-3 sm:p-4 ${
                 goal === opt.value
-                  ? "border-primary bg-primary/8 shadow-sm"
-                  : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                  ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(147,51,234,0.15)]"
+                  : "border-border/50 bg-card/50 hover:border-primary/40 hover:bg-secondary/50"
               }`}
             >
               <span className="font-heading text-sm font-bold">{opt.label}</span>
@@ -175,10 +175,10 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
             <button
               key={t}
               onClick={() => setSessionLength(t)}
-              className={`rounded border-2 py-3 font-heading text-sm font-bold transition-all ${
+              className={`rounded-lg border-2 py-3 font-heading text-sm font-bold transition-all ${
                 sessionLength === t
-                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                  : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                  ? "border-primary bg-gradient-to-br from-primary to-accent text-white shadow-[0_0_15px_rgba(147,51,234,0.3)]"
+                  : "border-border/50 bg-card/50 hover:border-primary/40 hover:bg-secondary/50"
               }`}
             >
               {t}m
@@ -196,10 +196,10 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
                 <button
                   key={opt.value}
                   onClick={() => setGymType(opt.value)}
-                  className={`rounded border-2 px-3 py-2 text-sm font-medium transition-all ${
+                  className={`rounded-lg border-2 px-3 py-2 text-sm font-medium transition-all ${
                     gymType === opt.value
-                      ? "border-primary bg-primary/8 font-semibold"
-                      : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                      ? "border-primary bg-primary/10 font-semibold shadow-[0_0_10px_rgba(147,51,234,0.15)]"
+                      : "border-border/50 bg-card/50 hover:border-primary/40 hover:bg-secondary/50"
                   }`}
                 >
                   {opt.label}
@@ -214,10 +214,10 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
                 <button
                   key={opt.value}
                   onClick={() => setFatigue(opt.value)}
-                  className={`flex flex-col items-center gap-1 rounded border-2 py-3 text-sm font-medium transition-all ${
+                  className={`flex flex-col items-center gap-1 rounded-lg border-2 py-3 text-sm font-medium transition-all ${
                     fatigue === opt.value
-                      ? "border-primary bg-primary/8 font-semibold shadow-sm"
-                      : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                      ? "border-primary bg-primary/10 font-semibold shadow-[0_0_10px_rgba(147,51,234,0.15)]"
+                      : "border-border/50 bg-card/50 hover:border-primary/40 hover:bg-secondary/50"
                   }`}
                 >
                   <span className="text-lg">{opt.emoji}</span>
@@ -234,10 +234,10 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
               <button
                 key={opt.value}
                 onClick={() => setFatigue(opt.value)}
-                className={`flex flex-col items-center gap-1 rounded border-2 py-3 text-sm font-medium transition-all ${
+                className={`flex flex-col items-center gap-1 rounded-lg border-2 py-3 text-sm font-medium transition-all ${
                   fatigue === opt.value
-                    ? "border-primary bg-primary/8 font-semibold shadow-sm"
-                    : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                    ? "border-primary bg-primary/10 font-semibold shadow-[0_0_10px_rgba(147,51,234,0.15)]"
+                    : "border-border/50 bg-card/50 hover:border-primary/40 hover:bg-secondary/50"
                 }`}
               >
                 <span className="text-lg">{opt.emoji}</span>
@@ -257,10 +257,10 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
                 <button
                   key={val}
                   onClick={() => toggleInjury(val)}
-                  className={`rounded border-2 px-3 py-1.5 text-sm capitalize transition-all ${
+                  className={`rounded-lg border-2 px-3 py-1.5 text-sm capitalize transition-all ${
                     injuries.includes(val)
-                      ? "border-destructive bg-destructive/8 font-semibold text-destructive"
-                      : "border-border bg-card hover:border-destructive/30 hover:bg-secondary"
+                      ? "border-destructive bg-destructive/10 font-semibold text-destructive"
+                      : "border-border/50 bg-card/50 hover:border-destructive/30 hover:bg-secondary/50"
                   }`}
                 >
                   {val}
@@ -275,10 +275,10 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
                 <button
                   key={opt.value}
                   onClick={() => toggleEquipment(opt.value)}
-                  className={`rounded border-2 px-3 py-1.5 text-sm transition-all ${
+                  className={`rounded-lg border-2 px-3 py-1.5 text-sm transition-all ${
                     equipment.includes(opt.value)
-                      ? "border-primary bg-primary/8 font-semibold"
-                      : "border-border bg-card hover:border-primary/40 hover:bg-secondary"
+                      ? "border-primary bg-primary/10 font-semibold shadow-[0_0_10px_rgba(147,51,234,0.15)]"
+                      : "border-border/50 bg-card/50 hover:border-primary/40 hover:bg-secondary/50"
                   }`}
                 >
                   {opt.label}
@@ -294,7 +294,7 @@ export function SessionForm({ onGenerate, loading = false }: SessionFormProps) {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full rounded bg-primary py-4 font-heading text-base font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+          className="glow-button w-full rounded-xl py-4 font-heading text-base font-bold text-white transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
         >
           {loading ? "Generating…" : "Generate Session →"}
         </button>
@@ -317,7 +317,7 @@ function FormSection({
   return (
     <div>
       <div className="mb-2.5 flex items-center gap-2.5">
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-foreground font-heading text-[10px] font-bold text-background">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-gradient-to-br from-primary to-accent font-heading text-[10px] font-bold text-white shadow-[0_0_10px_rgba(147,51,234,0.3)]">
           {step}
         </span>
         <h3 className="font-heading text-sm font-bold uppercase tracking-wide text-foreground">

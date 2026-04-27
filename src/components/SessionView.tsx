@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import React, { useState, useCallback } from "react";
+import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import type { GeneratedSession, SessionBlock, ExerciseItem } from "@/lib/types";
 import { ActiveSessionOverlay } from "./ActiveSessionOverlay";
 import { ExerciseSearchModal } from "./ExerciseSearchModal";
@@ -58,15 +58,16 @@ export function SessionView({
     const stored = loadActiveSession();
     return stored !== null && stored.session.title === session.title;
   });
+  const [isEditing, setIsEditing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addToBlockIndex, setAddToBlockIndex] = useState<number | null>(null);
 
-  const isEditable = !!onSessionChange;
+  const canEdit = !!onSessionChange;
 
   // Get all exercise IDs currently in the session
   const existingIds = session.blocks.flatMap((b) => b.exercises.map((e) => e.exercise.id));
 
-  const handleRemoveExercise = (blockIndex: number, exerciseIndex: number) => {
+  const handleRemoveExercise = useCallback((blockIndex: number, exerciseIndex: number) => {
     if (!onSessionChange) return;
     const newBlocks = session.blocks.map((block, bi) => {
       if (bi !== blockIndex) return block;
@@ -78,9 +79,9 @@ export function SessionView({
     const filteredBlocks = newBlocks.filter((b) => b.exercises.length > 0);
     const newTotal = filteredBlocks.reduce((sum, b) => sum + b.totalDuration, 0);
     onSessionChange({ ...session, blocks: filteredBlocks, totalDuration: newTotal });
-  };
+  }, [onSessionChange, session]);
 
-  const handleAddExercise = (exercise: ExerciseItem, duration: number) => {
+  const handleAddExercise = useCallback((exercise: ExerciseItem, duration: number) => {
     if (!onSessionChange || addToBlockIndex === null) return;
     const newBlocks = session.blocks.map((block, bi) => {
       if (bi !== addToBlockIndex) return block;
@@ -90,17 +91,16 @@ export function SessionView({
     });
     const newTotal = newBlocks.reduce((sum, b) => sum + b.totalDuration, 0);
     onSessionChange({ ...session, blocks: newBlocks, totalDuration: newTotal });
-  };
+  }, [onSessionChange, session, addToBlockIndex]);
 
-  const handleReorderExercises = (blockIndex: number, newExercises: { exercise: ExerciseItem; duration: number }[]) => {
+  const handleReorderExercises = useCallback((blockIndex: number, newExercises: { exercise: ExerciseItem; duration: number }[]) => {
     if (!onSessionChange) return;
     const newBlocks = session.blocks.map((block, bi) => {
       if (bi !== blockIndex) return block;
-      const newDuration = newExercises.reduce((sum, e) => sum + e.duration, 0);
-      return { ...block, exercises: newExercises, totalDuration: newDuration };
+      return { ...block, exercises: newExercises };
     });
     onSessionChange({ ...session, blocks: newBlocks });
-  };
+  }, [onSessionChange, session]);
 
   const openAddModal = (blockIndex: number) => {
     setAddToBlockIndex(blockIndex);
@@ -136,13 +136,25 @@ export function SessionView({
               {session.totalDuration} min total
             </span>
           </div>
-          <div className="mt-4">
+          <div className="mt-4 flex items-center justify-center gap-3">
             <button
               onClick={() => setActiveSession(true)}
               className="rounded bg-primary px-6 py-2.5 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]"
             >
               Start Session
             </button>
+            {canEdit && (
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className={`rounded border px-4 py-2.5 font-heading text-sm font-bold transition-all ${
+                  isEditing
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-foreground hover:bg-secondary"
+                }`}
+              >
+                {isEditing ? "Done Editing" : "Edit Session"}
+              </button>
+            )}
           </div>
         </div>
 
@@ -150,10 +162,10 @@ export function SessionView({
         <div className="divide-y divide-border">
           {session.blocks.map((block, i) => (
             <BlockSection
-              key={i}
+              key={\`\${block.phase}-\${i}\`}
               block={block}
-              index={i}
-              editable={isEditable}
+              blockIndex={i}
+              isEditing={isEditing}
               onRemove={(exIndex) => handleRemoveExercise(i, exIndex)}
               onAdd={() => openAddModal(i)}
               onReorder={(newExercises) => handleReorderExercises(i, newExercises)}
@@ -234,31 +246,39 @@ export function SessionView({
   );
 }
 
+// Wrapper type with stable key for reordering
+interface ExerciseWithKey {
+  key: string;
+  exercise: ExerciseItem;
+  duration: number;
+}
+
 function BlockSection({
   block,
-  index,
-  editable = false,
+  blockIndex,
+  isEditing,
   onRemove,
   onAdd,
   onReorder,
 }: {
   block: SessionBlock;
-  index: number;
-  editable?: boolean;
+  blockIndex: number;
+  isEditing: boolean;
   onRemove?: (exerciseIndex: number) => void;
   onAdd?: () => void;
   onReorder?: (exercises: { exercise: ExerciseItem; duration: number }[]) => void;
 }) {
   const colors = phaseColors[block.phase] || phaseColors.main;
-  const [exercises, setExercises] = useState(block.exercises);
+  
+  // Create stable keys for exercises based on their position
+  const exercisesWithKeys: ExerciseWithKey[] = block.exercises.map((item, idx) => ({
+    key: \`\${item.exercise.id}-\${idx}\`,
+    ...item,
+  }));
 
-  // Keep local state in sync with props
-  React.useEffect(() => {
-    setExercises(block.exercises);
-  }, [block.exercises]);
-
-  const handleReorder = (newExercises: { exercise: ExerciseItem; duration: number }[]) => {
-    setExercises(newExercises);
+  const handleReorder = (reordered: ExerciseWithKey[]) => {
+    // Convert back to original format without keys
+    const newExercises = reordered.map(({ exercise, duration }) => ({ exercise, duration }));
     onReorder?.(newExercises);
   };
 
@@ -266,14 +286,14 @@ function BlockSection({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.3 }}
-      className={`${colors.bg} border-l-4 ${colors.border}`}
+      transition={{ delay: blockIndex * 0.08, duration: 0.3 }}
+      className={\`\${colors.bg} border-l-4 \${colors.border}\`}
     >
       <div className="mx-auto max-w-2xl px-4 py-5 sm:px-6">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <span
-              className={`rounded px-2 py-0.5 font-heading text-[10px] font-bold tracking-widest ${colors.accent}`}
+              className={\`rounded px-2 py-0.5 font-heading text-[10px] font-bold tracking-widest \${colors.accent}\`}
             >
               {colors.label}
             </span>
@@ -286,31 +306,30 @@ function BlockSection({
           </span>
         </div>
 
-        {editable ? (
+        {isEditing ? (
           <Reorder.Group
             axis="y"
-            values={exercises}
+            values={exercisesWithKeys}
             onReorder={handleReorder}
             className="space-y-2"
           >
-            {exercises.map((item, j) => (
-              <ExerciseCard
-                key={item.exercise.id}
+            {exercisesWithKeys.map((item, idx) => (
+              <EditableExerciseCard
+                key={item.key}
                 item={item}
-                editable={editable}
-                onRemove={() => onRemove?.(j)}
+                onRemove={() => onRemove?.(idx)}
               />
             ))}
           </Reorder.Group>
         ) : (
           <div className="space-y-2">
-            {exercises.map(({ exercise, duration }, j) => (
+            {block.exercises.map(({ exercise, duration }, j) => (
               <motion.div
-                key={exercise.id}
+                key={\`\${exercise.id}-\${j}\`}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.08 + j * 0.04 }}
-                className="flex items-start gap-3 rounded border border-border bg-card p-3 sm:p-4"
+                transition={{ delay: blockIndex * 0.08 + j * 0.04 }}
+                className="flex items-start gap-3 rounded-xl border border-border bg-card p-3 sm:p-4"
               >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-secondary font-heading text-xs font-bold text-secondary-foreground">
                   {duration}m
@@ -338,8 +357,8 @@ function BlockSection({
           </div>
         )}
 
-        {/* Add Exercise Button */}
-        {editable && onAdd && (
+        {/* Add Exercise Button - only in edit mode */}
+        {isEditing && onAdd && (
           <button
             onClick={onAdd}
             className="mt-2 flex w-full items-center justify-center gap-2 rounded border border-dashed border-border py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:bg-secondary hover:text-foreground"
@@ -360,22 +379,37 @@ function BlockSection({
   );
 }
 
-function ExerciseCard({
+function EditableExerciseCard({
   item,
-  editable,
   onRemove,
 }: {
-  item: { exercise: ExerciseItem; duration: number };
-  editable: boolean;
+  item: ExerciseWithKey;
   onRemove: () => void;
 }) {
+  const dragControls = useDragControls();
   const { exercise, duration } = item;
 
   return (
     <Reorder.Item
       value={item}
-      className="group flex cursor-grab touch-none items-start gap-3 rounded-xl border border-border bg-card p-3 active:cursor-grabbing sm:p-4"
+      dragListener={false}
+      dragControls={dragControls}
+      className="flex items-start gap-3 rounded-xl border border-border bg-card p-3 sm:p-4"
     >
+      {/* Drag handle */}
+      <div
+        onPointerDown={(e) => dragControls.start(e)}
+        className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded bg-secondary text-muted-foreground active:cursor-grabbing"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="8" cy="5" r="2" />
+          <circle cx="16" cy="5" r="2" />
+          <circle cx="8" cy="12" r="2" />
+          <circle cx="16" cy="12" r="2" />
+          <circle cx="8" cy="19" r="2" />
+          <circle cx="16" cy="19" r="2" />
+        </svg>
+      </div>
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-secondary font-heading text-xs font-bold text-secondary-foreground">
         {duration}m
       </div>
@@ -397,22 +431,20 @@ function ExerciseCard({
           </div>
         )}
       </div>
-      {editable && (
-        <button
-          onClick={onRemove}
-          className="shrink-0 rounded p-1.5 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive"
-          title="Remove exercise"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-      )}
+      <button
+        onClick={onRemove}
+        className="shrink-0 rounded p-1.5 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive"
+        title="Remove exercise"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
     </Reorder.Item>
   );
 }

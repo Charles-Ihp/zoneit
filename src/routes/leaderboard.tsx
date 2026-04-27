@@ -141,29 +141,11 @@ function LeaderboardPage() {
               </h3>
               <div className="grid gap-3 sm:grid-cols-3">
                 {/* Weekly MVP */}
-                <MvpCard
-                  title="This Week"
-                  champion={data.weeklyChampion}
-                  borderColor="border-yellow-500"
-                  bgColor="from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30"
-                  accentColor="text-yellow-700 dark:text-yellow-400"
-                />
+                <MvpCard title="This Week" champion={data.weeklyChampion} icon="🏆" />
                 {/* Monthly MVP */}
-                <MvpCard
-                  title="This Month"
-                  champion={data.monthlyChampion}
-                  borderColor="border-blue-500"
-                  bgColor="from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30"
-                  accentColor="text-blue-700 dark:text-blue-400"
-                />
+                <MvpCard title="This Month" champion={data.monthlyChampion} icon="🥇" />
                 {/* All-Time MVP */}
-                <MvpCard
-                  title="All Time"
-                  champion={data.allTimeChampion}
-                  borderColor="border-purple-500"
-                  bgColor="from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30"
-                  accentColor="text-purple-700 dark:text-purple-400"
-                />
+                <MvpCard title="All Time" champion={data.allTimeChampion} icon="👑" />
               </div>
             </motion.div>
 
@@ -278,15 +260,11 @@ function TrainingChart({ data }: { data: { label: string; minutes: number }[] })
 function MvpCard({
   title,
   champion,
-  borderColor,
-  bgColor,
-  accentColor,
+  icon,
 }: {
   title: string;
   champion: WeeklyLeader | AllTimeLeader | null;
-  borderColor: string;
-  bgColor: string;
-  accentColor: string;
+  icon: string;
 }) {
   const formatMinutes = (seconds: number): string => {
     const minutes = Math.round(seconds / 60);
@@ -298,13 +276,12 @@ function MvpCard({
 
   if (!champion) {
     return (
-      <div
-        className={`overflow-hidden rounded-xl border-2 ${borderColor} bg-gradient-to-br ${bgColor} p-4`}
-      >
-        <div
-          className={`font-heading text-[10px] font-bold uppercase tracking-widest ${accentColor}`}
-        >
-          {title}
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{icon}</span>
+          <span className="font-heading text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            {title}
+          </span>
         </div>
         <div className="mt-2 text-sm text-muted-foreground">No data yet</div>
       </div>
@@ -312,19 +289,20 @@ function MvpCard({
   }
 
   return (
-    <div
-      className={`overflow-hidden rounded-xl border-2 ${borderColor} bg-gradient-to-br ${bgColor} p-4`}
-    >
-      <div
-        className={`font-heading text-[10px] font-bold uppercase tracking-widest ${accentColor}`}
-      >
-        {title}
+    <div className="rounded-xl border border-border bg-card p-4">
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{icon}</span>
+        <span className="font-heading text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {title}
+        </span>
       </div>
       <div className="mt-3">
-        <div className="truncate font-heading text-sm font-bold">{champion.user.name}</div>
-        <div className="mt-1 text-lg font-bold text-primary">
-          {formatMinutes(champion.totalSeconds)}{" "}
-          <span className="text-xs font-normal text-muted-foreground">min</span>
+        <div className="truncate font-heading text-sm font-bold text-foreground">
+          {champion.user.name}
+        </div>
+        <div className="mt-1 text-2xl font-bold text-primary">
+          {formatMinutes(champion.totalSeconds)}
+          <span className="ml-1 text-xs font-normal text-muted-foreground">min</span>
         </div>
       </div>
     </div>

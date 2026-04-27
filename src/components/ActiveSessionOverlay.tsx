@@ -105,8 +105,8 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
     });
   };
 
-  const [exercises, setExercises] = useState<ExerciseState[]>(
-    () => (isRestore ? migrateExercises(storedOnMount!.exercises as ExerciseState[]) : allExercises),
+  const [exercises, setExercises] = useState<ExerciseState[]>(() =>
+    isRestore ? migrateExercises(storedOnMount!.exercises as ExerciseState[]) : allExercises,
   );
   const [activeIdx, setActiveIdx] = useState<number | null>(
     isRestore ? storedOnMount!.activeIdx : null,
@@ -799,15 +799,23 @@ function ExerciseCard({
             : "border-border bg-card"
       }`}
     >
-      {/* Header - draggable area */}
-      <div 
-        onPointerDown={(e) => {
-          // Don't start drag if clicking on buttons
-          if ((e.target as HTMLElement).closest('button')) return;
-          dragControls.start(e);
-        }}
-        className="flex cursor-grab touch-none items-center gap-3 p-4 pb-2 active:cursor-grabbing"
-      >
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 pb-2">
+        {/* Drag handle */}
+        <div
+          onPointerDown={(e) => dragControls.start(e)}
+          className="flex h-10 w-10 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg bg-secondary text-muted-foreground active:cursor-grabbing"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="8" cy="5" r="2" />
+            <circle cx="16" cy="5" r="2" />
+            <circle cx="8" cy="12" r="2" />
+            <circle cx="16" cy="12" r="2" />
+            <circle cx="8" cy="19" r="2" />
+            <circle cx="16" cy="19" r="2" />
+          </svg>
+        </div>
+
         {/* Exercise info */}
         <div className="min-w-0 flex-1">
           <h4

@@ -164,7 +164,7 @@ export function ExerciseSearchModal({
               placeholder="Search by name, category, or muscle..."
               autoFocus
               className="w-full rounded border border-border bg-secondary px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-              style={{ fontSize: '16px' }}
+              style={{ fontSize: "16px" }}
             />
 
             {/* Selected tag filters - only show when tags are selected */}

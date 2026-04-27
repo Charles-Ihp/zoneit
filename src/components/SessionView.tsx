@@ -162,7 +162,7 @@ export function SessionView({
         <div className="divide-y divide-border">
           {session.blocks.map((block, i) => (
             <BlockSection
-              key={\`\${block.phase}-\${i}\`}
+              key={`${block.phase}-${i}`}
               block={block}
               blockIndex={i}
               isEditing={isEditing}
@@ -272,7 +272,7 @@ function BlockSection({
   
   // Create stable keys for exercises based on their position
   const exercisesWithKeys: ExerciseWithKey[] = block.exercises.map((item, idx) => ({
-    key: \`\${item.exercise.id}-\${idx}\`,
+    key: `${item.exercise.id}-${idx}`,
     ...item,
   }));
 
@@ -287,13 +287,13 @@ function BlockSection({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: blockIndex * 0.08, duration: 0.3 }}
-      className={\`\${colors.bg} border-l-4 \${colors.border}\`}
+      className={`${colors.bg} border-l-4 ${colors.border}`}
     >
       <div className="mx-auto max-w-2xl px-4 py-5 sm:px-6">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <span
-              className={\`rounded px-2 py-0.5 font-heading text-[10px] font-bold tracking-widest \${colors.accent}\`}
+              className={`rounded px-2 py-0.5 font-heading text-[10px] font-bold tracking-widest ${colors.accent}`}
             >
               {colors.label}
             </span>
@@ -325,7 +325,7 @@ function BlockSection({
           <div className="space-y-2">
             {block.exercises.map(({ exercise, duration }, j) => (
               <motion.div
-                key={\`\${exercise.id}-\${j}\`}
+                key={`${exercise.id}-${j}`}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: blockIndex * 0.08 + j * 0.04 }}

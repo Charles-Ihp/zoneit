@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
 import type { GeneratedSession, SessionBlock, ExerciseItem } from "@/lib/types";
 import { ActiveSessionOverlay } from "./ActiveSessionOverlay";
 import { ExerciseSearchModal } from "./ExerciseSearchModal";
@@ -297,8 +297,6 @@ function BlockSection({
               <ExerciseCard
                 key={item.exercise.id}
                 item={item}
-                index={j}
-                blockIndex={index}
                 editable={editable}
                 onRemove={() => onRemove?.(j)}
               />
@@ -364,43 +362,20 @@ function BlockSection({
 
 function ExerciseCard({
   item,
-  index,
-  blockIndex,
   editable,
   onRemove,
 }: {
   item: { exercise: ExerciseItem; duration: number };
-  index: number;
-  blockIndex: number;
   editable: boolean;
   onRemove: () => void;
 }) {
-  const dragControls = useDragControls();
   const { exercise, duration } = item;
 
   return (
     <Reorder.Item
       value={item}
-      dragListener={false}
-      dragControls={dragControls}
-      className="group flex items-start gap-3 rounded-xl border border-border bg-card p-3 sm:p-4"
+      className="group flex cursor-grab touch-none items-start gap-3 rounded-xl border border-border bg-card p-3 active:cursor-grabbing sm:p-4"
     >
-      {/* Drag handle */}
-      {editable && (
-        <div
-          onPointerDown={(e) => dragControls.start(e)}
-          className="flex cursor-grab touch-none items-center text-muted-foreground active:cursor-grabbing"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="8" cy="6" r="2" />
-            <circle cx="16" cy="6" r="2" />
-            <circle cx="8" cy="12" r="2" />
-            <circle cx="16" cy="12" r="2" />
-            <circle cx="8" cy="18" r="2" />
-            <circle cx="16" cy="18" r="2" />
-          </svg>
-        </div>
-      )}
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-secondary font-heading text-xs font-bold text-secondary-foreground">
         {duration}m
       </div>

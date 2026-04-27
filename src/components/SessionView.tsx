@@ -156,9 +156,19 @@ export function SessionView({
         {/* Session Header */}
         <div className="border-b border-border bg-card px-4 py-6 text-center sm:py-8">
           {titleOverride ?? (
-            <h1 className="font-heading text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-              {currentSession.title}
-            </h1>
+            isEditing ? (
+              <input
+                type="text"
+                value={draftSession.title}
+                onChange={(e) => setDraftSession({ ...draftSession, title: e.target.value })}
+                className="w-full max-w-md bg-transparent text-center font-heading text-2xl font-extrabold tracking-tight text-foreground outline-none border-b-2 border-primary/50 focus:border-primary sm:text-4xl"
+                placeholder="Session name"
+              />
+            ) : (
+              <h1 className="font-heading text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                {currentSession.title}
+              </h1>
+            )
           )}
           <p className="mt-1.5 text-sm text-muted-foreground">{currentSession.subtitle}</p>
           <div className="mt-3 inline-flex items-center gap-1.5 rounded bg-primary px-3 py-1">

@@ -28,7 +28,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 transition-colors hover:bg-secondary"
+        className="flex items-center gap-2 rounded-full border border-border/50 bg-white/10 px-3 py-1.5 backdrop-blur-sm transition-colors hover:bg-white/20"
       >
         <span className="hidden max-w-32 truncate text-sm font-medium text-foreground sm:block">
           {user.name}
@@ -56,37 +56,37 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ duration: 0.12 }}
-            className="absolute right-0 mt-2 w-44 overflow-hidden rounded-xl border border-border bg-card shadow-lg"
+            className="glass-card absolute right-0 mt-2 w-44 overflow-hidden rounded-xl shadow-lg"
           >
-            <div className="border-b border-border px-4 py-2.5">
+            <div className="border-b border-border/50 px-4 py-2.5">
               <p className="truncate text-xs font-medium text-foreground">{user.name}</p>
               <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
             </div>
             <Link
               to="/workouts/"
               onClick={() => setOpen(false)}
-              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-secondary"
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-white/10"
             >
               My Sessions
             </Link>
             <Link
               to="/stats"
               onClick={() => setOpen(false)}
-              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-secondary"
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-white/10"
             >
               Stats
             </Link>
             <Link
               to="/profile"
               onClick={() => setOpen(false)}
-              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-secondary"
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-white/10"
             >
               Profile
             </Link>
-            <div className="border-t border-border">
+            <div className="border-t border-border/50">
               <button
                 onClick={toggle}
-                className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-secondary"
+                className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-white/10"
               >
                 <span>{dark ? "Light mode" : "Dark mode"}</span>
                 <span className="text-muted-foreground">
@@ -127,7 +127,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
                   setOpen(false);
                   onLogout();
                 }}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:bg-white/10"
               >
                 Sign out
               </button>
@@ -138,4 +138,3 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
     </div>
   );
 }
-

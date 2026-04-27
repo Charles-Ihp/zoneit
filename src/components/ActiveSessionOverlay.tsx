@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import type { GeneratedSession, ExerciseItem } from "@/lib/types";
+import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
+import type { GeneratedSession } from "@/lib/types";
 import { api, type CreateSessionLogBody, type ExerciseLogData } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -21,8 +21,11 @@ interface SetState {
 }
 
 interface ExerciseState {
+  key: string; // Unique key for reordering
   id: string;
   name: string;
+  description: string;
+  focus: string[];
   duration: number;
   elapsed: number;
   isDone: boolean;
@@ -32,6 +35,7 @@ interface ExerciseState {
   /** Whether this exercise uses sets/reps (vs time-based) */
   isSetBased: boolean;
   defaultReps: number;
+  notes: string;
 }
 
 const REST_TIME_OPTIONS = [30, 60, 90, 120, 180, 300];
@@ -54,20 +58,25 @@ function formatRestTime(seconds: number): string {
 export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSessionOverlayProps) {
   const { user } = useAuth();
 
+  let exKeyCounter = 0;
   const allExercises: ExerciseState[] = session.blocks.flatMap((block) =>
     block.exercises.map(({ exercise, duration }) => {
       const isSetBased = exercise.defaultSets !== null && exercise.defaultReps !== null;
       const numSets = exercise.defaultSets ?? 1;
       const defaultReps = exercise.defaultReps ?? 0;
       return {
+        key: `${exercise.id}-${exKeyCounter++}`,
         id: exercise.id,
         name: exercise.name,
+        description: exercise.description,
+        focus: exercise.focus,
         duration,
         elapsed: 0,
         isDone: false,
         isActive: false,
         isSetBased,
         defaultReps,
+        notes: "",
         sets: isSetBased
           ? Array.from({ length: numSets }, () => ({ reps: defaultReps, completed: false }))
           : [],
@@ -82,8 +91,22 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
   })();
   const isRestore = storedOnMount !== null;
 
+  // Migrate old stored exercises to include new fields
+  const migrateExercises = (stored: ExerciseState[]): ExerciseState[] => {
+    return stored.map((ex, idx) => {
+      const original = allExercises.find((a) => a.id === ex.id) ?? allExercises[idx];
+      return {
+        ...ex,
+        key: ex.key ?? `${ex.id}-${idx}`,
+        description: ex.description ?? original?.description ?? "",
+        focus: ex.focus ?? original?.focus ?? [],
+        notes: ex.notes ?? "",
+      };
+    });
+  };
+
   const [exercises, setExercises] = useState<ExerciseState[]>(
-    () => (isRestore ? storedOnMount!.exercises : allExercises) as ExerciseState[],
+    () => (isRestore ? migrateExercises(storedOnMount!.exercises as ExerciseState[]) : allExercises),
   );
   const [activeIdx, setActiveIdx] = useState<number | null>(
     isRestore ? storedOnMount!.activeIdx : null,
@@ -100,7 +123,7 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
 
   // Rest timer state
   const [restTimeSeconds, setRestTimeSeconds] = useState(
-    () => user?.restTimeSeconds ?? DEFAULT_REST_TIME
+    () => user?.restTimeSeconds ?? DEFAULT_REST_TIME,
   );
   const [isResting, setIsResting] = useState(false);
   const [restRemaining, setRestRemaining] = useState(0);
@@ -108,16 +131,19 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
   const restIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Save rest time to user profile when changed
-  const updateRestTime = useCallback(async (seconds: number) => {
-    setRestTimeSeconds(seconds);
-    if (user) {
-      try {
-        await api.users.updateMe({ restTimeSeconds: seconds });
-      } catch {
-        /* ignore save errors */
+  const updateRestTime = useCallback(
+    async (seconds: number) => {
+      setRestTimeSeconds(seconds);
+      if (user) {
+        try {
+          await api.users.updateMe({ restTimeSeconds: seconds });
+        } catch {
+          /* ignore save errors */
+        }
       }
-    }
-  }, [user]);
+    },
+    [user],
+  );
 
   const startedAt = useRef<string>(isRestore ? storedOnMount!.startedAt : new Date().toISOString());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -313,36 +339,13 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
   const doneCount = exercises.filter((e) => e.isDone).length;
   const allDone = doneCount === exercises.length;
 
-  // Group back into blocks for display
-  let exIdx = 0;
-  const blocks = session.blocks.map((block) => {
-    const items = block.exercises.map(({ exercise }) => {
-      const state = exercises[exIdx];
-      const idx = exIdx++;
-      return { exercise, state, idx };
-    });
-    return { block, items };
-  });
-
-  const phaseBorder: Record<string, string> = {
-    warmup: "border-l-warm",
-    main: "border-l-primary",
-    addon: "border-l-accent",
-    cooldown: "border-l-muted-foreground/40",
-  };
-  const phaseLabel: Record<string, string> = {
-    warmup: "WARM-UP",
-    main: "MAIN",
-    addon: "SUPPLEMENTARY",
-    cooldown: "COOL DOWN",
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex flex-col bg-background"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border bg-card px-4 py-3">
@@ -352,8 +355,19 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
             className="rounded border border-border p-1.5 text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
             title="Cancel session"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
             </svg>
           </button>
           <div>
@@ -376,37 +390,34 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         </div>
       </div>
 
-      {/* Exercise list */}
-      <div className="flex-1 overflow-y-auto pb-24">
-        {blocks.map(({ block, items }) => (
-          <div
-            key={block.phase}
-            className={`border-l-4 ${phaseBorder[block.phase] ?? "border-l-border"}`}
-          >
-            <div className="px-4 pt-4 pb-1">
-              <span className="font-heading text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                {phaseLabel[block.phase] ?? block.phase} · {block.phaseLabel}
-              </span>
-            </div>
-            <div className="space-y-2 px-4 pb-4">
-              {items.map(({ exercise, state, idx }) => (
-                <ExerciseCard
-                  key={exercise.id}
-                  exercise={exercise}
-                  state={state}
-                  onStart={() => startExercise(idx)}
-                  onDone={() => markDone(idx)}
-                  onUpdateSets={(sets) => {
-                    setExercises((prev) =>
-                      prev.map((ex, i) => (i === idx ? { ...ex, sets } : ex)),
-                    );
-                  }}
-                  onSetCompleted={startRestTimer}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+      {/* Exercise list - Reorderable */}
+      <div
+        className="flex-1 overflow-y-auto"
+        style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom))" }}
+      >
+        <Reorder.Group
+          axis="y"
+          values={exercises}
+          onReorder={setExercises}
+          className="space-y-3 px-4 py-4"
+        >
+          {exercises.map((state, idx) => (
+            <ExerciseCard
+              key={state.key}
+              state={state}
+              restTimeSeconds={restTimeSeconds}
+              onStart={() => startExercise(idx)}
+              onDone={() => markDone(idx)}
+              onUpdateSets={(sets) => {
+                setExercises((prev) => prev.map((ex, i) => (i === idx ? { ...ex, sets } : ex)));
+              }}
+              onUpdateNotes={(notes) => {
+                setExercises((prev) => prev.map((ex, i) => (i === idx ? { ...ex, notes } : ex)));
+              }}
+              onSetCompleted={startRestTimer}
+            />
+          ))}
+        </Reorder.Group>
       </div>
 
       {/* Rest Timer Banner */}
@@ -416,18 +427,32 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-20 left-0 right-0 z-10 px-4"
+            className="fixed left-0 right-0 z-10 px-4"
+            style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
           >
             <div className="mx-auto max-w-md rounded-lg border border-primary bg-primary/10 p-4 shadow-lg backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Rest</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Rest
+                    </p>
                     <p className="font-heading text-2xl font-bold tabular-nums text-primary">
                       {formatRestTime(restRemaining)}
                     </p>
@@ -460,7 +485,10 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
       </AnimatePresence>
 
       {/* Bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-sm">
+      <div
+        className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-sm"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground">
@@ -471,8 +499,19 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
               className="flex items-center gap-1 rounded border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary"
               title="Rest timer settings"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
               </svg>
               {restTimeSeconds}s
             </button>
@@ -580,14 +619,27 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-destructive">
-                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>
-                  <path d="M12 9v4"/><path d="M12 17h.01"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-destructive"
+                >
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+                  <path d="M12 9v4" />
+                  <path d="M12 17h.01" />
                 </svg>
               </div>
               <h2 className="font-heading text-lg font-bold text-foreground">Cancel session?</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                You've been working out for {formatTime(sessionElapsed)} and completed {doneCount}/{exercises.length} exercises.
+                You've been working out for {formatTime(sessionElapsed)} and completed {doneCount}/
+                {exercises.length} exercises.
                 <span className="mt-2 block font-medium text-destructive">
                   This session will not be saved and all progress will be lost.
                 </span>
@@ -685,26 +737,23 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
 }
 
 function ExerciseCard({
-  exercise,
   state,
+  restTimeSeconds,
   onStart,
   onDone,
   onUpdateSets,
+  onUpdateNotes,
   onSetCompleted,
 }: {
-  exercise: ExerciseItem;
   state: ExerciseState;
+  restTimeSeconds: number;
   onStart: () => void;
   onDone: () => void;
   onUpdateSets: (sets: SetState[]) => void;
+  onUpdateNotes: (notes: string) => void;
   onSetCompleted: () => void;
 }) {
-  const badgeText =
-    state.isDone && state.elapsed > 0
-      ? formatTime(state.elapsed)
-      : state.isActive
-        ? formatTime(state.elapsed)
-        : `${state.duration}m`;
+  const dragControls = useDragControls();
 
   const toggleSetComplete = (setIdx: number) => {
     const wasCompleted = state.sets[setIdx].completed;
@@ -712,7 +761,6 @@ function ExerciseCard({
       i === setIdx ? { ...s, completed: !s.completed } : s,
     );
     onUpdateSets(newSets);
-    // Start rest timer when marking a set as completed (not uncompleted)
     if (!wasCompleted) {
       onSetCompleted();
     }
@@ -732,52 +780,57 @@ function ExerciseCard({
     onUpdateSets(state.sets.filter((_, i) => i !== setIdx));
   };
 
-  const allSetsCompleted = state.isSetBased && state.sets.every((s) => s.completed);
+  const formatRestTime = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return secs > 0 ? `${mins}min ${secs}s` : `${mins}min`;
+  };
 
   return (
-    <div
-      className={`rounded border p-3 transition-colors sm:p-4 ${
+    <Reorder.Item
+      value={state}
+      dragListener={false}
+      dragControls={dragControls}
+      className={`rounded-xl border transition-colors ${
         state.isActive
           ? "border-primary bg-primary/5"
           : state.isDone
-            ? "border-border bg-muted/30 opacity-60"
+            ? "border-border bg-muted/20 opacity-70"
             : "border-border bg-card"
       }`}
     >
       {/* Header */}
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3 p-4 pb-2">
+        {/* Drag handle */}
         <div
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded font-heading text-xs font-bold tabular-nums ${
-            state.isDone || state.isActive
-              ? "bg-primary text-primary-foreground"
-              : "bg-secondary text-secondary-foreground"
-          }`}
+          onPointerDown={(e) => dragControls.start(e)}
+          className="flex cursor-grab touch-none flex-col gap-0.5 text-muted-foreground active:cursor-grabbing"
         >
-          {badgeText}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="8" cy="6" r="2" />
+            <circle cx="16" cy="6" r="2" />
+            <circle cx="8" cy="12" r="2" />
+            <circle cx="16" cy="12" r="2" />
+            <circle cx="8" cy="18" r="2" />
+            <circle cx="16" cy="18" r="2" />
+          </svg>
         </div>
+
+        {/* Exercise info */}
         <div className="min-w-0 flex-1">
-          <h4 className="font-heading text-sm font-bold text-foreground">{exercise.name}</h4>
-          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-            {exercise.description}
-          </p>
-          {exercise.focus.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {exercise.focus.map((f) => (
-                <span
-                  key={f}
-                  className="rounded bg-secondary px-1.5 py-0.5 font-heading text-[10px] font-bold uppercase tracking-wider text-secondary-foreground"
-                >
-                  {f}
-                </span>
-              ))}
-            </div>
-          )}
+          <h4
+            className={`font-heading text-sm font-bold ${state.isDone ? "text-muted-foreground line-through" : "text-primary"}`}
+          >
+            {state.name}
+          </h4>
         </div>
-        <div className="flex shrink-0 flex-col gap-1.5">
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2">
           {!state.isDone && !state.isActive && (
             <button
               onClick={onStart}
-              className="rounded border border-border px-2.5 py-1 font-heading text-xs font-bold text-foreground transition-colors hover:bg-secondary"
+              className="rounded-lg border border-border px-3 py-1.5 font-heading text-xs font-bold text-foreground transition-colors hover:bg-secondary"
             >
               Start
             </button>
@@ -785,73 +838,135 @@ function ExerciseCard({
           {!state.isDone && (
             <button
               onClick={onDone}
-              className="rounded bg-primary px-2.5 py-1 font-heading text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
+              className="rounded-lg bg-primary px-3 py-1.5 font-heading text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
             >
               Done
             </button>
           )}
-          {state.isDone && <span className="font-heading text-xs font-bold text-primary">✓</span>}
+          {state.isDone && (
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Sets tracking (for set-based exercises) */}
+      {/* Notes input */}
+      <div className="px-4 pb-2">
+        <input
+          type="text"
+          value={state.notes}
+          onChange={(e) => onUpdateNotes(e.target.value)}
+          placeholder="Add notes here..."
+          className="w-full bg-transparent text-base text-muted-foreground placeholder:text-muted-foreground/50 focus:outline-none"
+          style={{ fontSize: "16px" }}
+          disabled={state.isDone}
+        />
+      </div>
+
+      {/* Rest timer indicator */}
+      {state.isSetBased && (
+        <div className="flex items-center gap-2 px-4 pb-3 text-primary">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span className="text-sm font-medium">Rest Timer: {formatRestTime(restTimeSeconds)}</span>
+        </div>
+      )}
+
+      {/* Sets tracking */}
       {state.isSetBased && state.sets.length > 0 && (
-        <div className="mt-4 border-t border-border pt-3">
+        <div className="border-t border-border">
           {/* Header row */}
-          <div className="mb-2 grid grid-cols-[40px_1fr_60px_40px] gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <div className="grid grid-cols-[48px_1fr_80px_48px] items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
             <span>Set</span>
-            <span></span>
+            <span>Previous</span>
             <span className="text-center">Reps</span>
             <span></span>
           </div>
+
           {/* Set rows */}
           {state.sets.map((set, idx) => (
             <div
               key={idx}
-              className={`grid grid-cols-[40px_1fr_60px_40px] items-center gap-2 rounded py-1.5 ${
-                set.completed ? "bg-primary/10" : ""
+              className={`grid grid-cols-[48px_1fr_80px_48px] items-center gap-2 px-4 py-2 ${
+                set.completed ? "bg-primary/5" : idx % 2 === 1 ? "bg-muted/20" : ""
               }`}
             >
-              <span className="font-heading text-sm font-bold text-foreground">{idx + 1}</span>
-              <span className="text-xs text-muted-foreground">
-                {set.completed ? "✓ completed" : ""}
-              </span>
+              <span className="font-heading text-base font-bold text-foreground">{idx + 1}</span>
+              <span className="text-sm text-muted-foreground">× {state.defaultReps}</span>
               <input
                 type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={set.reps || ""}
                 onChange={(e) => updateReps(idx, parseInt(e.target.value) || 0)}
                 onFocus={(e) => e.target.select()}
-                placeholder="0"
-                className="w-full rounded border border-border bg-background px-2 py-1 text-center text-sm text-foreground focus:border-primary focus:outline-none"
+                placeholder={String(state.defaultReps)}
+                className="w-full rounded-lg border border-border bg-background py-2 text-center text-foreground focus:border-primary focus:outline-none disabled:opacity-50"
+                style={{ fontSize: "16px" }}
                 min={0}
                 disabled={state.isDone}
               />
               <button
                 onClick={() => toggleSetComplete(idx)}
                 disabled={state.isDone}
-                className={`flex h-8 w-8 items-center justify-center rounded border transition-colors ${
+                className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors ${
                   set.completed
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-muted-foreground hover:border-primary hover:text-primary"
+                    : "border-muted-foreground/30 text-muted-foreground/50 hover:border-primary hover:text-primary"
                 } disabled:opacity-50`}
               >
-                {set.completed ? "✓" : "○"}
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
               </button>
             </div>
           ))}
+
           {/* Add/remove set buttons */}
           {!state.isDone && (
-            <div className="mt-2 flex gap-2">
+            <div className="flex gap-2 p-4 pt-2">
               <button
                 onClick={addSet}
-                className="flex-1 rounded border border-dashed border-border py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                className="flex-1 rounded-lg border border-dashed border-border py-2 text-sm font-bold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
               >
                 + Add Set
               </button>
               {state.sets.length > 1 && (
                 <button
                   onClick={() => removeSet(state.sets.length - 1)}
-                  className="rounded border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                  className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                 >
                   Remove
                 </button>
@@ -860,6 +975,20 @@ function ExerciseCard({
           )}
         </div>
       )}
-    </div>
+
+      {/* Focus tags - collapsed when done */}
+      {!state.isDone && state.focus?.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 px-4 pb-4">
+          {state.focus.map((f) => (
+            <span
+              key={f}
+              className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-secondary-foreground"
+            >
+              {f}
+            </span>
+          ))}
+        </div>
+      )}
+    </Reorder.Item>
   );
 }

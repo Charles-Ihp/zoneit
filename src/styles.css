@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300..800&family=Manrope:wght@300..800&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
@@ -176,11 +175,11 @@
 
 /* Glassmorphism card effect */
 .glass-card {
-  background: oklch(0.25 0.12 285 / 40%);
+  background: oklch(0.2 0.1 285 / 85%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid oklch(0.6 0.18 285 / 25%);
-  box-shadow: 0 8px 32px oklch(0.3 0.2 285 / 20%);
+  border: 1px solid oklch(0.5 0.15 285 / 35%);
+  box-shadow: 0 8px 32px oklch(0.1 0.1 285 / 40%);
 }
 
 /* Gradient text */

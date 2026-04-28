@@ -13,6 +13,7 @@ interface SessionViewProps {
   onRegenerate?: () => void;
   onSave?: () => void;
   onDelete?: () => void;
+  onShare?: () => void;
   saveLabel?: string;
   /** If provided, allows editing the session */
   onSessionChange?: (session: GeneratedSession) => void;
@@ -53,6 +54,7 @@ export function SessionView({
   onRegenerate,
   onSave,
   onDelete,
+  onShare,
   saveLabel = "Save Session",
   onSessionChange,
 }: SessionViewProps) {
@@ -178,7 +180,7 @@ export function SessionView({
               {currentSession.totalDuration} min total
             </span>
           </div>
-          <div className="mt-4 flex items-center justify-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             {!isEditing && (
               <button
                 onClick={() => setActiveSession(true)}
@@ -193,6 +195,21 @@ export function SessionView({
                 className="rounded border border-border px-4 py-2.5 font-heading text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
               >
                 Edit
+              </button>
+            )}
+            {onShare && !isEditing && (
+              <button
+                onClick={onShare}
+                className="rounded border border-border px-4 py-2.5 font-heading text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+                title="Share workout"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block">
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
+                  <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
+                </svg>
               </button>
             )}
             {onDelete && !isEditing && (

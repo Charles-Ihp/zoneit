@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SessionForm } from "@/components/SessionForm";
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const navigate = useNavigate();
   const { user, loading: authLoading, login, logout } = useAuth();
   const [session, setSession] = useState<GeneratedSession | null>(null);
   const [lastInput, setLastInput] = useState<SessionInput | null>(null);
@@ -108,13 +109,8 @@ function Index() {
   }, []);
 
   const handleSelectWorkout = useCallback((workout: WorkoutResponse) => {
-    const generatedSession = workout.generatedSession as unknown as GeneratedSession;
-    const sessionInput = workout.sessionInput as unknown as SessionInput;
-    setSession(generatedSession);
-    setLastInput(sessionInput);
-    setCurrentWorkoutId(workout.id);
-    setSaveState("saved"); // Already saved workout
-  }, []);
+    navigate({ to: "/workouts/$id", params: { id: workout.id } });
+  }, [navigate]);
 
   // Handle session changes from editing - mark as modified so it can be re-saved
   const handleSessionChange = useCallback(

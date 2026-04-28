@@ -35,6 +35,7 @@ function Index() {
   const [session, setSession] = useState<GeneratedSession | null>(null);
   const [lastInput, setLastInput] = useState<SessionInput | null>(null);
   const [showSessionForm, setShowSessionForm] = useState(false);
+  const [currentWorkoutId, setCurrentWorkoutId] = useState<string | null>(null);
 
   // Restore session from localStorage only when user is logged in
   useEffect(() => {
@@ -43,10 +44,14 @@ function Index() {
       const stored = loadActiveSession();
       if (stored && !session) {
         setSession(stored.session);
+        if (stored.workoutId) {
+          setCurrentWorkoutId(stored.workoutId);
+        }
       }
     } else {
       setSession(null);
       setShowSessionForm(false);
+      setCurrentWorkoutId(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
@@ -68,6 +73,7 @@ function Index() {
         const result = await api.sessions.generate(input);
         setSession(result);
         setSaveState("idle");
+        setCurrentWorkoutId(null); // New session, not saved yet
         window.scrollTo({ top: 0, behavior: "smooth" });
       } finally {
         setGenerating(false);
@@ -83,6 +89,7 @@ function Index() {
       const result = await api.sessions.generate(lastInput);
       setSession(result);
       setSaveState("idle");
+      setCurrentWorkoutId(null); // Regenerated session, not saved yet
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setGenerating(false);
@@ -93,6 +100,7 @@ function Index() {
     setSession(null);
     setSaveState("idle");
     setShowSessionForm(false);
+    setCurrentWorkoutId(null);
   }, []);
 
   const handleGenerateNew = useCallback(() => {
@@ -104,8 +112,21 @@ function Index() {
     const sessionInput = workout.sessionInput as unknown as SessionInput;
     setSession(generatedSession);
     setLastInput(sessionInput);
+    setCurrentWorkoutId(workout.id);
     setSaveState("saved"); // Already saved workout
   }, []);
+
+  // Handle session changes from editing - mark as modified so it can be re-saved
+  const handleSessionChange = useCallback(
+    (newSession: GeneratedSession) => {
+      setSession(newSession);
+      // If this is an existing workout, mark as modified so user can save changes
+      if (currentWorkoutId) {
+        setSaveState("idle"); // Allow re-saving
+      }
+    },
+    [currentWorkoutId],
+  );
 
   const handleSave = useCallback(async () => {
     if (!session || !lastInput || saveState === "saving" || saveState === "saved") return;
@@ -122,16 +143,26 @@ function Index() {
     setSaveState("saving");
     setShowSaveDialog(false);
     try {
-      await api.workouts.create({
-        name: saveName.trim() || session.title,
-        sessionInput: lastInput as unknown as Record<string, unknown>,
-        generatedSession: session as unknown as Record<string, unknown>,
-      });
+      if (currentWorkoutId) {
+        // Update existing workout
+        await api.workouts.update(currentWorkoutId, {
+          name: saveName.trim() || session.title,
+          generatedSession: session as unknown as Record<string, unknown>,
+        });
+      } else {
+        // Create new workout
+        const created = await api.workouts.create({
+          name: saveName.trim() || session.title,
+          sessionInput: lastInput as unknown as Record<string, unknown>,
+          generatedSession: session as unknown as Record<string, unknown>,
+        });
+        setCurrentWorkoutId(created.id);
+      }
       setSaveState("saved");
     } catch {
       setSaveState("error");
     }
-  }, [session, lastInput, saveName]);
+  }, [session, lastInput, saveName, currentWorkoutId]);
 
   const saveButtonLabel =
     saveState === "saving"
@@ -140,7 +171,9 @@ function Index() {
         ? "Saved"
         : saveState === "error"
           ? "Retry Save"
-          : "Save Session";
+          : currentWorkoutId
+            ? "Update Session"
+            : "Save Session";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -231,7 +264,7 @@ function Index() {
                   onBack={handleBack}
                   onRegenerate={handleRegenerate}
                   onSave={handleSave}
-                  onSessionChange={setSession}
+                  onSessionChange={handleSessionChange}
                   saveLabel={saveButtonLabel}
                 />
               </motion.div>

@@ -53,7 +53,7 @@ function ProfilePage() {
       const height = form.heightCm === "" ? null : parseInt(form.heightCm, 10);
       if (!isNaN(height as number) || height === null) body.heightCm = height;
 
-      const updated = await api.users.updateProfile(body);
+      const updated = await api.users.updateMe(body);
       setUser(updated);
       setSaved(true);
     } catch {

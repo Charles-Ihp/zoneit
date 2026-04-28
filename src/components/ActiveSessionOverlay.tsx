@@ -17,7 +17,10 @@ interface ActiveSessionOverlayProps {
 
 interface SetState {
   reps: number;
+  weight?: number;
   completed: boolean;
+  previousReps?: number;
+  previousWeight?: number;
 }
 
 interface ExerciseState {
@@ -36,6 +39,8 @@ interface ExerciseState {
   isSetBased: boolean;
   defaultReps: number;
   notes: string;
+  /** Previous notes from last session */
+  previousNotes?: string;
 }
 
 const REST_TIME_OPTIONS = [30, 60, 90, 120, 180, 300];
@@ -58,30 +63,50 @@ function formatRestTime(seconds: number): string {
 export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSessionOverlayProps) {
   const { user } = useAuth();
 
-  let exKeyCounter = 0;
-  const allExercises: ExerciseState[] = session.blocks.flatMap((block) =>
-    block.exercises.map(({ exercise, duration }) => {
-      const isSetBased = exercise.defaultSets !== null && exercise.defaultReps !== null;
-      const numSets = exercise.defaultSets ?? 1;
-      const defaultReps = exercise.defaultReps ?? 0;
-      return {
-        key: `${exercise.id}-${exKeyCounter++}`,
-        id: exercise.id,
-        name: exercise.name,
-        description: exercise.description,
-        focus: exercise.focus,
-        duration,
-        elapsed: 0,
-        isDone: false,
-        isActive: false,
-        isSetBased,
-        defaultReps,
-        notes: "",
-        sets: isSetBased
-          ? Array.from({ length: numSets }, () => ({ reps: defaultReps, completed: false }))
-          : [],
-      };
-    }),
+  // Build initial exercises list from session blocks
+  const buildInitialExercises = useCallback(
+    (previousData?: Record<string, ExerciseLogData>): ExerciseState[] => {
+      let exKeyCounter = 0;
+      return session.blocks.flatMap((block) =>
+        block.exercises.map(({ exercise, duration }) => {
+          const isSetBased = exercise.defaultSets !== null && exercise.defaultReps !== null;
+          const numSets = exercise.defaultSets ?? 1;
+          const defaultReps = exercise.defaultReps ?? 0;
+          const prevExercise = previousData?.[exercise.id];
+
+          // Build sets with previous data if available
+          const sets: SetState[] = isSetBased
+            ? Array.from({ length: numSets }, (_, i) => {
+                const prevSet = prevExercise?.sets?.[i];
+                return {
+                  reps: prevSet?.reps ?? defaultReps,
+                  weight: prevSet?.weight,
+                  completed: false,
+                  previousReps: prevSet?.reps,
+                  previousWeight: prevSet?.weight,
+                };
+              })
+            : [];
+
+          return {
+            key: `${exercise.id}-${exKeyCounter++}`,
+            id: exercise.id,
+            name: exercise.name,
+            description: exercise.description,
+            focus: exercise.focus,
+            duration,
+            elapsed: 0,
+            isDone: false,
+            isActive: false,
+            isSetBased,
+            defaultReps,
+            notes: "",
+            sets,
+          };
+        }),
+      );
+    },
+    [session],
   );
 
   // Load any persisted session that matches the current session title
@@ -93,6 +118,7 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
 
   // Migrate old stored exercises to include new fields
   const migrateExercises = (stored: ExerciseState[]): ExerciseState[] => {
+    const allExercises = buildInitialExercises();
     return stored.map((ex, idx) => {
       const original = allExercises.find((a) => a.id === ex.id) ?? allExercises[idx];
       return {
@@ -101,13 +127,23 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         description: ex.description ?? original?.description ?? "",
         focus: ex.focus ?? original?.focus ?? [],
         notes: ex.notes ?? "",
+        sets:
+          ex.sets?.map((s, i) => ({
+            ...s,
+            weight: s.weight,
+            previousReps: s.previousReps,
+            previousWeight: s.previousWeight,
+          })) ?? [],
       };
     });
   };
 
   const [exercises, setExercises] = useState<ExerciseState[]>(() =>
-    isRestore ? migrateExercises(storedOnMount!.exercises as ExerciseState[]) : allExercises,
+    isRestore
+      ? migrateExercises(storedOnMount!.exercises as ExerciseState[])
+      : buildInitialExercises(),
   );
+  const [previousDataLoaded, setPreviousDataLoaded] = useState(isRestore);
   const [activeIdx, setActiveIdx] = useState<number | null>(
     isRestore ? storedOnMount!.activeIdx : null,
   );
@@ -120,6 +156,29 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
   const [showCancel, setShowCancel] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Fetch previous exercise data on mount (only for new sessions, not restores)
+  useEffect(() => {
+    if (isRestore || !user || previousDataLoaded) return;
+    const exerciseIds = session.blocks.flatMap((b) =>
+      b.exercises.filter((e) => e.exercise.defaultSets !== null).map((e) => e.exercise.id),
+    );
+    if (exerciseIds.length === 0) {
+      setPreviousDataLoaded(true);
+      return;
+    }
+    api.sessionLogs
+      .getPreviousExerciseData(exerciseIds)
+      .then((prevData) => {
+        if (Object.keys(prevData).length > 0) {
+          setExercises(buildInitialExercises(prevData));
+        }
+        setPreviousDataLoaded(true);
+      })
+      .catch(() => {
+        setPreviousDataLoaded(true);
+      });
+  }, [isRestore, user, session, previousDataLoaded, buildInitialExercises]);
 
   // Rest timer state
   const [restTimeSeconds, setRestTimeSeconds] = useState(
@@ -154,23 +213,31 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
   const exerciseBaseElapsed = useRef<number>(isRestore ? storedOnMount!.exerciseBaseElapsed : 0);
 
   // On mount: if restoring a running session, catch up elapsed time and auto-resume
+  // Otherwise, auto-start the session with the first exercise
   useEffect(() => {
-    if (!isRestore || !storedOnMount) return;
-    if (storedOnMount.runningAt !== null) {
-      const extra = (Date.now() - storedOnMount.runningAt) / 1000;
-      sessionBaseElapsed.current = storedOnMount.sessionBaseElapsed + extra;
-      exerciseBaseElapsed.current = storedOnMount.exerciseBaseElapsed + extra;
-      setSessionElapsed(Math.floor(sessionBaseElapsed.current));
-      // Update the active exercise's elapsed to include the time since the page closed
-      if (storedOnMount.activeIdx !== null) {
-        const extraFloor = Math.floor(extra);
-        setExercises((prev) =>
-          prev.map((ex, i) =>
-            i === storedOnMount.activeIdx ? { ...ex, elapsed: ex.elapsed + extraFloor } : ex,
-          ),
-        );
+    if (isRestore && storedOnMount) {
+      if (storedOnMount.runningAt !== null) {
+        const extra = (Date.now() - storedOnMount.runningAt) / 1000;
+        sessionBaseElapsed.current = storedOnMount.sessionBaseElapsed + extra;
+        exerciseBaseElapsed.current = storedOnMount.exerciseBaseElapsed + extra;
+        setSessionElapsed(Math.floor(sessionBaseElapsed.current));
+        // Update the active exercise's elapsed to include the time since the page closed
+        if (storedOnMount.activeIdx !== null) {
+          const extraFloor = Math.floor(extra);
+          setExercises((prev) =>
+            prev.map((ex, i) =>
+              i === storedOnMount.activeIdx ? { ...ex, elapsed: ex.elapsed + extraFloor } : ex,
+            ),
+          );
+        }
+        setRunning(true);
       }
-      setRunning(true);
+    } else {
+      // Auto-start the first exercise when session opens (not restoring)
+      const firstIdx = exercises.findIndex((e) => !e.isDone);
+      if (firstIdx !== -1) {
+        startExercise(firstIdx);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -231,30 +298,44 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
     });
   }, [exercises, activeIdx, notes, running, saved, session, workoutId]);
 
-  // Rest timer countdown
+  // Wall-clock reference for rest timer
+  const restStartWall = useRef<number | null>(null);
+  const restBaseRemaining = useRef<number>(0);
+
+  // Rest timer countdown using wall-clock time
   useEffect(() => {
     if (isResting && restRemaining > 0) {
+      if (restStartWall.current === null) {
+        restStartWall.current = Date.now();
+        restBaseRemaining.current = restRemaining;
+      }
       restIntervalRef.current = setInterval(() => {
-        setRestRemaining((prev) => {
-          if (prev <= 1) {
-            setIsResting(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+        const wall = Date.now();
+        const elapsed = (wall - (restStartWall.current ?? wall)) / 1000;
+        const remaining = Math.max(0, Math.ceil(restBaseRemaining.current - elapsed));
+        if (remaining <= 0) {
+          setIsResting(false);
+          setRestRemaining(0);
+          restStartWall.current = null;
+        } else {
+          setRestRemaining(remaining);
+        }
+      }, 500);
     } else {
       if (restIntervalRef.current) {
         clearInterval(restIntervalRef.current);
         restIntervalRef.current = null;
       }
+      restStartWall.current = null;
     }
     return () => {
       if (restIntervalRef.current) clearInterval(restIntervalRef.current);
     };
-  }, [isResting, restRemaining]);
+  }, [isResting]);
 
   const startRestTimer = useCallback(() => {
+    restStartWall.current = null; // Reset wall-clock reference
+    restBaseRemaining.current = restTimeSeconds;
     setRestRemaining(restTimeSeconds);
     setIsResting(true);
   }, [restTimeSeconds]);
@@ -265,6 +346,7 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
   }, []);
 
   const addRestTime = useCallback((seconds: number) => {
+    restBaseRemaining.current = Math.max(0, restBaseRemaining.current + seconds);
     setRestRemaining((prev) => Math.max(0, prev + seconds));
   }, []);
 
@@ -309,11 +391,15 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
     }
     setSaving(true);
     try {
-      // Map exercise state to log data
+      // Map exercise state to log data (strip internal fields like previousReps/previousWeight)
       const exercisesData: ExerciseLogData[] = exercises.map((ex) => ({
         id: ex.id,
         name: ex.name,
-        sets: ex.sets,
+        sets: ex.sets.map((s) => ({
+          reps: s.reps,
+          weight: s.weight,
+          completed: s.completed,
+        })),
         isSetBased: ex.isSetBased,
         durationSeconds: ex.elapsed,
       }));
@@ -406,10 +492,13 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
               key={state.key}
               state={state}
               restTimeSeconds={restTimeSeconds}
-              onStart={() => startExercise(idx)}
-              onDone={() => markDone(idx)}
               onUpdateSets={(sets) => {
                 setExercises((prev) => prev.map((ex, i) => (i === idx ? { ...ex, sets } : ex)));
+                // Auto-complete exercise if all sets are done
+                const allSetsComplete = sets.length > 0 && sets.every((s) => s.completed);
+                if (allSetsComplete && !state.isDone) {
+                  markDone(idx);
+                }
               }}
               onUpdateNotes={(notes) => {
                 setExercises((prev) => prev.map((ex, i) => (i === idx ? { ...ex, notes } : ex)));
@@ -517,23 +606,12 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
             </button>
           </div>
           <div className="flex gap-2">
-            {!allDone && activeIdx !== null && (
+            {!allDone && (
               <button
                 onClick={() => setRunning((r) => !r)}
                 className="rounded border border-border px-4 py-2 font-heading text-sm font-bold text-foreground transition-colors hover:bg-secondary"
               >
                 {running ? "Pause" : "Resume"}
-              </button>
-            )}
-            {!allDone && activeIdx === null && (
-              <button
-                onClick={() => {
-                  const first = exercises.findIndex((e) => !e.isDone);
-                  if (first !== -1) startExercise(first);
-                }}
-                className="rounded bg-primary px-5 py-2 font-heading text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90"
-              >
-                Start
               </button>
             )}
             {allDone && (
@@ -739,16 +817,12 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
 function ExerciseCard({
   state,
   restTimeSeconds,
-  onStart,
-  onDone,
   onUpdateSets,
   onUpdateNotes,
   onSetCompleted,
 }: {
   state: ExerciseState;
   restTimeSeconds: number;
-  onStart: () => void;
-  onDone: () => void;
   onUpdateSets: (sets: SetState[]) => void;
   onUpdateNotes: (notes: string) => void;
   onSetCompleted: () => void;
@@ -771,8 +845,23 @@ function ExerciseCard({
     onUpdateSets(newSets);
   };
 
+  const updateWeight = (setIdx: number, weight: number | undefined) => {
+    const newSets = state.sets.map((s, i) => (i === setIdx ? { ...s, weight } : s));
+    onUpdateSets(newSets);
+  };
+
   const addSet = () => {
-    onUpdateSets([...state.sets, { reps: state.defaultReps, completed: false }]);
+    const lastSet = state.sets[state.sets.length - 1];
+    onUpdateSets([
+      ...state.sets,
+      {
+        reps: lastSet?.reps ?? state.defaultReps,
+        weight: lastSet?.weight,
+        completed: false,
+        previousReps: lastSet?.previousReps,
+        previousWeight: lastSet?.previousWeight,
+      },
+    ]);
   };
 
   const removeSet = (setIdx: number) => {
@@ -784,6 +873,14 @@ function ExerciseCard({
     const mins = Math.floor(s / 60);
     const secs = s % 60;
     return secs > 0 ? `${mins}min ${secs}s` : `${mins}min`;
+  };
+
+  const formatPrevious = (set: SetState) => {
+    if (set.previousReps == null) return "—";
+    const parts = [];
+    if (set.previousWeight != null) parts.push(`${set.previousWeight}kg`);
+    parts.push(`×${set.previousReps}`);
+    return parts.join(" ");
   };
 
   return (
@@ -825,24 +922,8 @@ function ExerciseCard({
           </h4>
         </div>
 
-        {/* Action buttons */}
+        {/* Status indicator */}
         <div className="flex items-center gap-2">
-          {!state.isDone && !state.isActive && (
-            <button
-              onClick={onStart}
-              className="rounded-lg border border-border px-3 py-1.5 font-heading text-xs font-bold text-foreground transition-colors hover:bg-secondary"
-            >
-              Start
-            </button>
-          )}
-          {!state.isDone && (
-            <button
-              onClick={onDone}
-              className="rounded-lg bg-primary px-3 py-1.5 font-heading text-xs font-bold text-primary-foreground transition-all hover:bg-primary/90"
-            >
-              Done
-            </button>
-          )}
           {state.isDone && (
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <svg
@@ -858,6 +939,9 @@ function ExerciseCard({
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
+          )}
+          {state.isActive && !state.isDone && (
+            <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-primary" />
           )}
         </div>
       </div>
@@ -899,9 +983,10 @@ function ExerciseCard({
       {state.isSetBased && state.sets.length > 0 && (
         <div className="border-t border-border">
           {/* Header row */}
-          <div className="grid grid-cols-[48px_1fr_80px_48px] items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <div className="grid grid-cols-[40px_1fr_70px_70px_40px] items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
             <span>Set</span>
             <span>Previous</span>
+            <span className="text-center">kg</span>
             <span className="text-center">Reps</span>
             <span></span>
           </div>
@@ -910,12 +995,27 @@ function ExerciseCard({
           {state.sets.map((set, idx) => (
             <div
               key={idx}
-              className={`grid grid-cols-[48px_1fr_80px_48px] items-center gap-2 px-4 py-2 ${
+              className={`grid grid-cols-[40px_1fr_70px_70px_40px] items-center gap-2 px-4 py-2 ${
                 set.completed ? "bg-primary/5" : idx % 2 === 1 ? "bg-muted/20" : ""
               }`}
             >
               <span className="font-heading text-base font-bold text-foreground">{idx + 1}</span>
-              <span className="text-sm text-muted-foreground">× {state.defaultReps}</span>
+              <span className="text-sm text-muted-foreground">{formatPrevious(set)}</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.5"
+                value={set.weight ?? ""}
+                onChange={(e) =>
+                  updateWeight(idx, e.target.value ? parseFloat(e.target.value) : undefined)
+                }
+                onFocus={(e) => e.target.select()}
+                placeholder={set.previousWeight != null ? String(set.previousWeight) : "—"}
+                className="w-full rounded-lg border border-border bg-background py-2 text-center text-foreground focus:border-primary focus:outline-none disabled:opacity-50"
+                style={{ fontSize: "16px" }}
+                min={0}
+                disabled={state.isDone}
+              />
               <input
                 type="number"
                 inputMode="numeric"

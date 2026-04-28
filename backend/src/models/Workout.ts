@@ -18,8 +18,10 @@ export interface CreateWorkoutBody {
   generatedSession: Record<string, unknown>;
 }
 
-/** Body for renaming a saved workout */
+/** Body for updating a saved workout */
 export interface UpdateWorkoutBody {
   /** New display name */
-  name: string;
+  name?: string;
+  /** Updated generated session (when exercises are edited) */
+  generatedSession?: Record<string, unknown>;
 }

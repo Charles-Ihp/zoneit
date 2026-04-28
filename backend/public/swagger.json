@@ -172,6 +172,10 @@
 						"type": "number",
 						"format": "double"
 					},
+					"weight": {
+						"type": "number",
+						"format": "double"
+					},
 					"completed": {
 						"type": "boolean"
 					}
@@ -321,6 +325,14 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"Record_string.ExerciseLogData_": {
+				"properties": {},
+				"additionalProperties": {
+					"$ref": "#/components/schemas/ExerciseLogData"
+				},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
 			},
 			"ExerciseResponse": {
 				"description": "Exercise returned by the API",
@@ -1192,6 +1204,54 @@
 						}
 					}
 				]
+			}
+		},
+		"/api/session-logs/previous-exercises": {
+			"post": {
+				"operationId": "GetPreviousExerciseData",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Record_string.ExerciseLogData_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get the most recent exercise data for given exercise IDs.\r\nReturns a map of exerciseId -> most recent exercise data from past sessions.",
+				"tags": [
+					"SessionLogs"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"exerciseIds": {
+										"items": {
+											"type": "string"
+										},
+										"type": "array"
+									}
+								},
+								"required": [
+									"exerciseIds"
+								],
+								"type": "object"
+							}
+						}
+					}
+				}
 			}
 		},
 		"/api/exercises": {

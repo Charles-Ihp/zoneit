@@ -102,4 +102,44 @@ export class SessionLogController extends Controller {
     await prisma.sessionLog.deleteMany({ where: { id, userId: user.id } });
     this.setStatus(204);
   }
+
+  /**
+   * Get the most recent exercise data for given exercise IDs.
+   * Returns a map of exerciseId -> most recent exercise data from past sessions.
+   */
+  @Post("/previous-exercises")
+  public async getPreviousExerciseData(
+    @Request() request: ExpressRequest,
+    @Body() body: { exerciseIds: string[] },
+  ): Promise<Record<string, ExerciseLogData>> {
+    const user = (request as ExpressRequest & { user: User }).user;
+
+    // Get all session logs with exercise data, ordered by most recent
+    const logs = await prisma.sessionLog.findMany({
+      where: {
+        userId: user.id,
+        exercises: { not: Prisma.JsonNull },
+      },
+      orderBy: { startedAt: "desc" },
+      take: 50, // Look through last 50 sessions
+    });
+
+    const result: Record<string, ExerciseLogData> = {};
+
+    // For each exercise ID, find the most recent occurrence
+    for (const exerciseId of body.exerciseIds) {
+      for (const log of logs) {
+        const exercises = log.exercises as ExerciseLogData[] | null;
+        if (!exercises) continue;
+
+        const found = exercises.find((e) => e.id === exerciseId);
+        if (found) {
+          result[exerciseId] = found;
+          break; // Found most recent, move to next exercise
+        }
+      }
+    }
+
+    return result;
+  }
 }

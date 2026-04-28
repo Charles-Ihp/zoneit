@@ -38,11 +38,13 @@ export interface CreateWorkoutBody {
 }
 
 export interface UpdateWorkoutBody {
-  name: string;
+  name?: string;
+  generatedSession?: Record<string, unknown>;
 }
 
 export interface SetData {
   reps: number;
+  weight?: number;
   completed: boolean;
 }
 
@@ -189,7 +191,7 @@ export const api = {
 
   users: {
     me: () => request<UserResponse>("/api/users/me"),
-    updateProfile: (body: UpdateProfileBody) =>
+    updateMe: (body: UpdateProfileBody) =>
       request<UserResponse>("/api/users/me", {
         method: "PATCH",
         body: JSON.stringify(body),
@@ -223,6 +225,11 @@ export const api = {
         body: JSON.stringify(body),
       }),
     delete: (id: string) => request<void>(`/api/session-logs/${id}`, { method: "DELETE" }),
+    getPreviousExerciseData: (exerciseIds: string[]) =>
+      request<Record<string, ExerciseLogData>>("/api/session-logs/previous-exercises", {
+        method: "POST",
+        body: JSON.stringify({ exerciseIds }),
+      }),
   },
 
   terms: {

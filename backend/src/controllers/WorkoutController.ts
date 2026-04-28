@@ -75,7 +75,7 @@ export class WorkoutController extends Controller {
   }
 
   /**
-   * Rename a saved workout.
+   * Update a saved workout (name and/or exercises).
    */
   @Put("{id}")
   public async updateWorkout(
@@ -89,7 +89,12 @@ export class WorkoutController extends Controller {
       this.setStatus(404);
       throw Object.assign(new Error("Workout not found"), { status: 404 });
     }
-    const workout = await prisma.workout.update({ where: { id }, data: { name: body.name } });
+    const updateData: Prisma.WorkoutUpdateInput = {};
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.generatedSession !== undefined) {
+      updateData.generatedSession = body.generatedSession as Prisma.InputJsonValue;
+    }
+    const workout = await prisma.workout.update({ where: { id }, data: updateData });
     return toResponse(workout);
   }
 

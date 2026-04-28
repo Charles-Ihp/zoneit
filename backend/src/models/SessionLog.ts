@@ -1,6 +1,7 @@
 /** Set data for a single set within an exercise */
 export interface SetData {
   reps: number;
+  weight?: number;
   completed: boolean;
 }
 

@@ -4,6 +4,7 @@ const KEY = "zoneit_active_session";
 
 export interface StoredSetState {
   reps: number;
+  weight?: number;
   completed: boolean;
 }
 

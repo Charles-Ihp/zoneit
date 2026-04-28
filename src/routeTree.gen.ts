@@ -16,6 +16,7 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WorkoutsIndexRouteImport } from './routes/workouts/index'
 import { Route as WorkoutsIdRouteImport } from './routes/workouts/$id'
+import { Route as WCodeRouteImport } from './routes/w/$code'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -52,6 +53,11 @@ const WorkoutsIdRoute = WorkoutsIdRouteImport.update({
   path: '/workouts/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WCodeRoute = WCodeRouteImport.update({
+  id: '/w/$code',
+  path: '/w/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/w/$code': typeof WCodeRoute
   '/workouts/$id': typeof WorkoutsIdRoute
   '/workouts/': typeof WorkoutsIndexRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/w/$code': typeof WCodeRoute
   '/workouts/$id': typeof WorkoutsIdRoute
   '/workouts': typeof WorkoutsIndexRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/w/$code': typeof WCodeRoute
   '/workouts/$id': typeof WorkoutsIdRoute
   '/workouts/': typeof WorkoutsIndexRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/stats'
     | '/terms'
+    | '/w/$code'
     | '/workouts/$id'
     | '/workouts/'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/stats'
     | '/terms'
+    | '/w/$code'
     | '/workouts/$id'
     | '/workouts'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/stats'
     | '/terms'
+    | '/w/$code'
     | '/workouts/$id'
     | '/workouts/'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   StatsRoute: typeof StatsRoute
   TermsRoute: typeof TermsRoute
+  WCodeRoute: typeof WCodeRoute
   WorkoutsIdRoute: typeof WorkoutsIdRoute
   WorkoutsIndexRoute: typeof WorkoutsIndexRoute
 }
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkoutsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/w/$code': {
+      id: '/w/$code'
+      path: '/w/$code'
+      fullPath: '/w/$code'
+      preLoaderRoute: typeof WCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
+  WCodeRoute: WCodeRoute,
   WorkoutsIdRoute: WorkoutsIdRoute,
   WorkoutsIndexRoute: WorkoutsIndexRoute,
 }

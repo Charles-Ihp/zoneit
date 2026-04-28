@@ -108,9 +108,12 @@ function Index() {
     setShowSessionForm(true);
   }, []);
 
-  const handleSelectWorkout = useCallback((workout: WorkoutResponse) => {
-    navigate({ to: "/workouts/$id", params: { id: workout.id } });
-  }, [navigate]);
+  const handleSelectWorkout = useCallback(
+    (workout: WorkoutResponse) => {
+      navigate({ to: "/workouts/$id", params: { id: workout.id } });
+    },
+    [navigate],
+  );
 
   // Handle session changes from editing - mark as modified so it can be re-saved
   const handleSessionChange = useCallback(

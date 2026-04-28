@@ -19,7 +19,7 @@ export function Header({ transparent = false }: HeaderProps) {
       } z-40`}
     >
       <div className="flex w-full items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-center">
+        <div className="flex items-center gap-6">
           <Link
             to="/"
             className={`font-heading text-lg font-bold tracking-tight transition-colors sm:text-xl ${
@@ -28,6 +28,28 @@ export function Header({ transparent = false }: HeaderProps) {
           >
             GRAVITACIO
           </Link>
+          <nav className="flex items-center gap-2 sm:gap-4">
+            <Link
+              to="/leaderboard"
+              className={`text-xs sm:text-sm font-medium transition-colors ${
+                transparent
+                  ? "text-white/70 hover:text-white"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Leaderboard
+            </Link>
+            <Link
+              to="/terms"
+              className={`text-xs sm:text-sm font-medium transition-colors ${
+                transparent
+                  ? "text-white/70 hover:text-white"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Glossary
+            </Link>
+          </nav>
         </div>
         <div className="flex items-center gap-3">
           {!authLoading &&

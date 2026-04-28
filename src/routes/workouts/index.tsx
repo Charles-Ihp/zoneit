@@ -12,11 +12,14 @@ export const Route = createFileRoute("/workouts/")({
 });
 
 function WorkoutsList() {
-  const { user, loading: authLoading, login, logout } = useAuth();
+  const { user, loading: authLoading, login } = useAuth();
   const [workouts, setWorkouts] = useState<WorkoutResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteConfirmWorkout, setDeleteConfirmWorkout] = useState<WorkoutResponse | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -39,6 +42,37 @@ function WorkoutsList() {
       setWorkouts((prev) => prev.filter((w) => w.id !== id));
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleShare = async (workoutId: string) => {
+    setSharingId(workoutId);
+    try {
+      const result = await api.shared.createShareLink(workoutId);
+      setShareUrl(result.shareUrl);
+    } catch (err) {
+      console.error("Failed to create share link:", err);
+    } finally {
+      setSharingId(null);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const input = document.createElement("input");
+      input.value = shareUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
     }
   };
 
@@ -97,6 +131,34 @@ function WorkoutsList() {
                   </p>
                 </div>
                 <div className="ml-4 flex shrink-0 items-center gap-2">
+                  <button
+                    onClick={() => handleShare(w.id)}
+                    disabled={sharingId === w.id}
+                    className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:opacity-40"
+                    title="Share workout"
+                  >
+                    {sharingId === w.id ? (
+                      "…"
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
+                        <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
+                      </svg>
+                    )}
+                  </button>
                   <Link
                     to="/workouts/$id"
                     params={{ id: w.id }}
@@ -155,6 +217,56 @@ function WorkoutsList() {
                   className="flex-1 rounded bg-destructive py-2.5 text-sm font-bold text-destructive-foreground transition-all hover:bg-destructive/90"
                 >
                   Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Share link dialog */}
+      <AnimatePresence>
+        {shareUrl && (
+          <motion.div
+            key="share-dialog"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-md"
+            onClick={() => setShareUrl(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.97, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.97, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="font-heading text-lg font-bold text-foreground">Share Workout</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Anyone with this link can add a copy of this workout to their library.
+              </p>
+              <div className="mt-4 flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={shareUrl}
+                  className="flex-1 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground"
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90"
+                >
+                  {copySuccess ? "Copied!" : "Copy"}
+                </button>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={() => setShareUrl(null)}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Done
                 </button>
               </div>
             </motion.div>

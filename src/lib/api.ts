@@ -136,6 +136,21 @@ export interface LeaderboardResponse {
   funFacts: string[];
 }
 
+export interface SharedWorkoutResponse {
+  id: string;
+  code: string;
+  workoutName: string;
+  sessionInput: Record<string, unknown>;
+  generatedSession: Record<string, unknown>;
+  createdBy: {
+    name: string;
+    picture?: string;
+  };
+  importCount: number;
+  expiresAt?: string;
+  createdAt: string;
+}
+
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3001";
 
 export const TOKEN_KEY = "auth_token";
@@ -244,5 +259,23 @@ export const api = {
 
   leaderboard: {
     get: () => request<LeaderboardResponse>("/api/leaderboard"),
+  },
+
+  shared: {
+    /** Create a share link for a workout */
+    createShareLink: (workoutId: string) =>
+      request<{ code: string; shareUrl: string }>(`/api/shared/workouts/${workoutId}/share`, {
+        method: "POST",
+      }),
+    /** Get shared workout details by code (no auth required) */
+    get: (code: string) => request<SharedWorkoutResponse>(`/api/shared/${code}`),
+    /** Import a shared workout to user's library */
+    import: (code: string, name?: string) =>
+      request<{ workoutId: string; name: string }>(`/api/shared/${code}/import`, {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      }),
+    /** List share links created by the user */
+    listMyLinks: () => request<SharedWorkoutResponse[]>("/api/shared/my/links"),
   },
 };

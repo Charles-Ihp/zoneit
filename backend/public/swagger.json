@@ -88,11 +88,112 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"CreateShareLinkResponse": {
+				"description": "Response when creating a share link",
+				"properties": {
+					"code": {
+						"type": "string"
+					},
+					"shareUrl": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"code",
+					"shareUrl"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Record_string.unknown_": {
 				"properties": {},
 				"additionalProperties": {},
 				"type": "object",
 				"description": "Construct a type with a set of properties K of type T"
+			},
+			"SharedWorkoutResponse": {
+				"description": "Shared workout response returned by the API",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					},
+					"workoutName": {
+						"type": "string"
+					},
+					"sessionInput": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					},
+					"generatedSession": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					},
+					"createdBy": {
+						"properties": {
+							"picture": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"name"
+						],
+						"type": "object"
+					},
+					"importCount": {
+						"type": "number",
+						"format": "double"
+					},
+					"expiresAt": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"code",
+					"workoutName",
+					"sessionInput",
+					"generatedSession",
+					"createdBy",
+					"importCount",
+					"createdAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ImportSharedWorkoutResponse": {
+				"description": "Response after importing a shared workout",
+				"properties": {
+					"workoutId": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"workoutId",
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ImportSharedWorkoutBody": {
+				"description": "Body for importing a shared workout",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Optional custom name for the imported workout"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
 			},
 			"WorkoutResponse": {
 				"description": "Saved workout returned by the API",
@@ -152,16 +253,17 @@
 				"additionalProperties": false
 			},
 			"UpdateWorkoutBody": {
-				"description": "Body for renaming a saved workout",
+				"description": "Body for updating a saved workout",
 				"properties": {
 					"name": {
 						"type": "string",
 						"description": "New display name"
+					},
+					"generatedSession": {
+						"$ref": "#/components/schemas/Record_string.unknown_",
+						"description": "Updated generated session (when exercises are edited)"
 					}
 				},
-				"required": [
-					"name"
-				],
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -931,6 +1033,150 @@
 				}
 			}
 		},
+		"/api/shared/workouts/{workoutId}/share": {
+			"post": {
+				"operationId": "CreateShareLink",
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateShareLinkResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a share link for a workout. Requires authentication.\r\nThe workout must belong to the authenticated user.",
+				"tags": [
+					"Shared Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "workoutId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/shared/{code}": {
+			"get": {
+				"operationId": "GetSharedWorkout",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SharedWorkoutResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get details of a shared workout by code. No authentication required.",
+				"tags": [
+					"Shared Workouts"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "code",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/shared/{code}/import": {
+			"post": {
+				"operationId": "ImportSharedWorkout",
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ImportSharedWorkoutResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Import a shared workout to the authenticated user's library.\r\nCreates a copy of the workout - doesn't link to the original.",
+				"tags": [
+					"Shared Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "code",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ImportSharedWorkoutBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/shared/my/links": {
+			"get": {
+				"operationId": "ListMyShareLinks",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/SharedWorkoutResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "List all share links created by the authenticated user.",
+				"tags": [
+					"Shared Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": []
+			}
+		},
 		"/api/workouts": {
 			"get": {
 				"operationId": "ListWorkouts",
@@ -1045,7 +1291,7 @@
 						}
 					}
 				},
-				"description": "Rename a saved workout.",
+				"description": "Update a saved workout (name and/or exercises).",
 				"tags": [
 					"Workouts"
 				],

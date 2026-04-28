@@ -13,7 +13,8 @@ import {
   Tags,
 } from "tsoa";
 import type { Request as ExpressRequest } from "express";
-import type { User, SessionLog, Prisma } from "@prisma/client";
+import type { User, SessionLog } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import type {
   SessionLogResponse,

@@ -56,13 +56,35 @@ export class SharedWorkoutController extends Controller {
       throw Object.assign(new Error("Workout not found"), { status: 404 });
     }
 
+    const baseUrl = process.env.APP_URL || "https://gravitacio.com";
+
+    // Check if a share link already exists for this workout
+    const existing = await prisma.sharedWorkout.findFirst({
+      where: { workoutId, createdById: user.id },
+    });
+    if (existing) {
+      // Update the snapshot in case workout was edited
+      await prisma.sharedWorkout.update({
+        where: { id: existing.id },
+        data: {
+          workoutName: workout.name,
+          sessionInput: workout.sessionInput as Prisma.InputJsonValue,
+          generatedSession: workout.generatedSession as Prisma.InputJsonValue,
+        },
+      });
+      return {
+        code: existing.code,
+        shareUrl: `${baseUrl}/w/${existing.code}`,
+      };
+    }
+
     // Generate unique code (retry if collision)
     let code: string;
     let attempts = 0;
     do {
       code = generateShareCode();
-      const existing = await prisma.sharedWorkout.findUnique({ where: { code } });
-      if (!existing) break;
+      const codeExists = await prisma.sharedWorkout.findUnique({ where: { code } });
+      if (!codeExists) break;
       attempts++;
     } while (attempts < 5);
 
@@ -76,6 +98,7 @@ export class SharedWorkoutController extends Controller {
       data: {
         code,
         createdById: user.id,
+        workoutId,
         workoutName: workout.name,
         sessionInput: workout.sessionInput as Prisma.InputJsonValue,
         generatedSession: workout.generatedSession as Prisma.InputJsonValue,
@@ -83,7 +106,6 @@ export class SharedWorkoutController extends Controller {
     });
 
     this.setStatus(201);
-    const baseUrl = process.env.APP_URL || "gravitacio.com";
     return {
       code,
       shareUrl: `${baseUrl}/w/${code}`,

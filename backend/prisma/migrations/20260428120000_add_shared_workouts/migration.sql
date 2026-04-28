@@ -3,6 +3,7 @@ CREATE TABLE "SharedWorkout" (
     "id" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "createdById" TEXT NOT NULL,
+    "workoutId" TEXT,
     "workoutName" TEXT NOT NULL,
     "sessionInput" JSONB NOT NULL,
     "generatedSession" JSONB NOT NULL,
@@ -15,6 +16,9 @@ CREATE TABLE "SharedWorkout" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SharedWorkout_code_key" ON "SharedWorkout"("code");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SharedWorkout_workoutId_createdById_key" ON "SharedWorkout"("workoutId", "createdById");
 
 -- CreateIndex
 CREATE INDEX "SharedWorkout_code_idx" ON "SharedWorkout"("code");

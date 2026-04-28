@@ -95,6 +95,8 @@ model SharedWorkout {
   code          String    @unique
   /// User who created the share link
   createdById   String
+  /// Original workout ID (to reuse existing share links)
+  workoutId     String?
   /// Name of the workout at time of sharing
   workoutName   String
   /// Snapshot of sessionInput
@@ -109,6 +111,7 @@ model SharedWorkout {
 
   createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
+  @@unique([workoutId, createdById])
   @@index([code])
   @@index([createdById])
 }

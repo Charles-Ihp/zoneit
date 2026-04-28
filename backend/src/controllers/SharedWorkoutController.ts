@@ -83,7 +83,7 @@ export class SharedWorkoutController extends Controller {
     });
 
     this.setStatus(201);
-    const baseUrl = process.env.APP_URL || "https://zoneit.app";
+    const baseUrl = process.env.APP_URL || "gravitacio.com";
     return {
       code,
       shareUrl: `${baseUrl}/w/${code}`,

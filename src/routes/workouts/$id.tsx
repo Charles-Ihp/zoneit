@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { api, type WorkoutResponse } from "@/lib/api";
 import { SessionView } from "@/components/SessionView";
 import type { GeneratedSession } from "@/lib/types";
@@ -28,6 +28,23 @@ function WorkoutView() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+
+  // Handle session changes - update local state AND persist to backend
+  const handleSessionChange = useCallback(
+    async (newSession: GeneratedSession) => {
+      setSession(newSession);
+      // Persist changes to backend
+      try {
+        const updated = await api.workouts.update(id, {
+          generatedSession: newSession as unknown as Record<string, unknown>,
+        });
+        setWorkout(updated);
+      } catch (err) {
+        console.error("Failed to save session changes:", err);
+      }
+    },
+    [id],
+  );
 
   useEffect(() => {
     if (!user && !authLoading) {
@@ -133,7 +150,7 @@ function WorkoutView() {
           <SessionView
             session={session}
             workoutId={id}
-            onSessionChange={setSession}
+            onSessionChange={handleSessionChange}
             onDelete={handleDelete}
             onShare={handleShare}
             titleOverride={

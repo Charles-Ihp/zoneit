@@ -47,9 +47,12 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
       let exKeyCounter = 0;
       return session.blocks.flatMap((block) =>
         block.exercises.map(({ exercise, duration }) => {
-          const isSetBased = exercise.defaultSets !== null && exercise.defaultReps !== null;
+          // Warmup exercises default to 1 set if not explicitly set-based
+          const isWarmup = block.phase === "warmup";
+          const isSetBased =
+            (exercise.defaultSets !== null && exercise.defaultReps !== null) || isWarmup;
           const numSets = exercise.defaultSets ?? 1;
-          const defaultReps = exercise.defaultReps ?? 0;
+          const defaultReps = exercise.defaultReps ?? (isWarmup ? 1 : 0);
           const prevExercise = previousData?.[exercise.id];
 
           const sets: SetState[] = isSetBased
@@ -270,6 +273,22 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
   const restStartWall = useRef<number | null>(null);
   const restBaseRemaining = useRef<number>(0);
 
+  // Recalculate rest time based on wall clock
+  const recalculateRestTime = useCallback(() => {
+    if (!isResting || restStartWall.current === null) return;
+    const wall = Date.now();
+    const elapsed = (wall - restStartWall.current) / 1000;
+    const remaining = Math.max(0, Math.ceil(restBaseRemaining.current - elapsed));
+    if (remaining <= 0) {
+      setIsResting(false);
+      setRestRemaining(0);
+      restStartWall.current = null;
+      sendRestCompleteNotification();
+    } else {
+      setRestRemaining(remaining);
+    }
+  }, [isResting]);
+
   // Rest timer countdown
   useEffect(() => {
     if (isResting && restRemaining > 0) {
@@ -277,19 +296,7 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         restStartWall.current = Date.now();
         restBaseRemaining.current = restRemaining;
       }
-      restIntervalRef.current = setInterval(() => {
-        const wall = Date.now();
-        const elapsed = (wall - (restStartWall.current ?? wall)) / 1000;
-        const remaining = Math.max(0, Math.ceil(restBaseRemaining.current - elapsed));
-        if (remaining <= 0) {
-          setIsResting(false);
-          setRestRemaining(0);
-          restStartWall.current = null;
-          sendRestCompleteNotification();
-        } else {
-          setRestRemaining(remaining);
-        }
-      }, 500);
+      restIntervalRef.current = setInterval(recalculateRestTime, 500);
     } else {
       if (restIntervalRef.current) {
         clearInterval(restIntervalRef.current);
@@ -300,7 +307,18 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
     return () => {
       if (restIntervalRef.current) clearInterval(restIntervalRef.current);
     };
-  }, [isResting]);
+  }, [isResting, recalculateRestTime]);
+
+  // Wake up rest timer when tab becomes visible (intervals are throttled in background)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isResting) {
+        recalculateRestTime();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [isResting, recalculateRestTime]);
 
   const startRestTimer = useCallback(() => {
     initAudioContext();

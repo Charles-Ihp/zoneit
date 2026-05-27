@@ -1048,7 +1048,7 @@
 						}
 					}
 				},
-				"description": "Create a share link for a workout. Requires authentication.\r\nThe workout must belong to the authenticated user.",
+				"description": "Create a share link for a workout. Requires authentication.\nThe workout must belong to the authenticated user.",
 				"tags": [
 					"Shared Workouts"
 				],
@@ -1116,7 +1116,7 @@
 						}
 					}
 				},
-				"description": "Import a shared workout to the authenticated user's library.\r\nCreates a copy of the workout - doesn't link to the original.",
+				"description": "Import a shared workout to the authenticated user's library.\nCreates a copy of the workout - doesn't link to the original.",
 				"tags": [
 					"Shared Workouts"
 				],
@@ -1367,7 +1367,7 @@
 						}
 					}
 				},
-				"description": "List session logs for the authenticated user, newest first.\r\nOptionally filter by a start date (ISO string).",
+				"description": "List session logs for the authenticated user, newest first.\nOptionally filter by a start date (ISO string).",
 				"tags": [
 					"SessionLogs"
 				],
@@ -1467,7 +1467,7 @@
 						}
 					}
 				},
-				"description": "Get the most recent exercise data for given exercise IDs.\r\nReturns a map of exerciseId -> most recent exercise data from past sessions.",
+				"description": "Get the most recent exercise data for given exercise IDs.\nReturns a map of exerciseId -> most recent exercise data from past sessions.",
 				"tags": [
 					"SessionLogs"
 				],
@@ -1518,7 +1518,7 @@
 						}
 					}
 				},
-				"description": "List all exercises, optionally filtered by search query.\r\nSearch matches name or category (case-insensitive).",
+				"description": "List all exercises, optionally filtered by search query.\nSearch matches name or category (case-insensitive).",
 				"tags": [
 					"Exercises"
 				],

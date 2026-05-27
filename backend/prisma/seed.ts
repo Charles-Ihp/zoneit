@@ -1768,8 +1768,7 @@ const exercises = [
   {
     id: "gym-pull-006",
     name: "Barbell Curls",
-    description:
-      "Stand with barbell, curl to shoulders keeping elbows pinned. Lower with control.",
+    description: "Stand with barbell, curl to shoulders keeping elbows pinned. Lower with control.",
     category: "gym-pull",
     wallTypes: ["any"],
     levels: ["beginner", "intermediate", "advanced"],
@@ -1819,8 +1818,7 @@ const exercises = [
   {
     id: "gym-pull-009",
     name: "T-Bar Rows",
-    description:
-      "Straddle the bar, pull to chest. Great for building back thickness.",
+    description: "Straddle the bar, pull to chest. Great for building back thickness.",
     category: "gym-pull",
     wallTypes: ["any"],
     levels: ["intermediate", "advanced"],
@@ -1957,8 +1955,7 @@ const exercises = [
   {
     id: "gym-legs-005",
     name: "Leg Curls",
-    description:
-      "Lying or seated machine. Curl heels toward glutes, squeeze hamstrings at top.",
+    description: "Lying or seated machine. Curl heels toward glutes, squeeze hamstrings at top.",
     category: "gym-legs",
     wallTypes: ["any"],
     levels: ["beginner", "intermediate", "advanced"],

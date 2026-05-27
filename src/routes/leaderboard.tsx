@@ -2,8 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { api, type LeaderboardResponse, type WeeklyLeader, type AllTimeLeader } from "@/lib/api";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/leaderboard")({
@@ -46,166 +44,156 @@ function LeaderboardPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Header />
+    <div className="mx-auto max-w-2xl">
+      <h1 className="mb-6 font-heading text-2xl font-semibold tracking-tight">Leaderboard</h1>
 
-      <main className="mx-auto max-w-2xl flex-1 px-4 py-6 sm:px-6">
-        <h1 className="mb-6 font-heading text-2xl font-extrabold tracking-tight">Leaderboard</h1>
-
-        {loading ? (
-          <div className="py-16 text-center text-muted-foreground">Loading...</div>
-        ) : !data ? (
-          <div className="py-16 text-center text-muted-foreground">Failed to load leaderboard</div>
-        ) : (
-          <div className="space-y-6">
-            {/* Global Stats */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <h3 className="mb-3 font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Community Stats
-              </h3>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-xl border border-border bg-card p-4 text-center">
-                  <div className="text-2xl font-bold text-primary sm:text-3xl">
-                    {formatWithK(data.globalStats.totalSessions)}
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">Sessions</div>
+      {loading ? (
+        <div className="py-16 text-center text-muted-foreground">Loading...</div>
+      ) : !data ? (
+        <div className="py-16 text-center text-muted-foreground">Failed to load leaderboard</div>
+      ) : (
+        <div className="space-y-6">
+          {/* Global Stats */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <h3 className="mb-3 font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Community Stats
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl border border-border bg-card p-4 text-center">
+                <div className="text-2xl font-bold text-primary sm:text-3xl">
+                  {formatWithK(data.globalStats.totalSessions)}
                 </div>
-                <div className="rounded-xl border border-border bg-card p-4 text-center">
-                  <div className="text-2xl font-bold text-primary sm:text-3xl">
-                    {formatWithK(data.globalStats.totalMinutes)}
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">Total Minutes</div>
-                </div>
-                <div className="rounded-xl border border-border bg-card p-4 text-center">
-                  <div className="text-2xl font-bold text-primary sm:text-3xl">
-                    {data.globalStats.activeUsers}
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">Active Users</div>
-                </div>
+                <div className="mt-1 text-xs text-muted-foreground">Sessions</div>
               </div>
-            </motion.div>
-
-            {/* Training Hours Chart */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  Training Hours
-                </h3>
-                <div className="flex gap-1 rounded-lg bg-muted p-1">
-                  {(["week", "month", "year"] as const).map((period) => (
-                    <button
-                      key={period}
-                      onClick={() => setChartPeriod(period)}
-                      className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                        chartPeriod === period
-                          ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground"
+              <div className="rounded-xl border border-border bg-card p-4 text-center">
+                <div className="text-2xl font-bold text-primary sm:text-3xl">
+                  {formatWithK(data.globalStats.totalMinutes)}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">Total Minutes</div>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4 text-center">
+                <div className="text-2xl font-bold text-primary sm:text-3xl">
+                  {data.globalStats.activeUsers}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">Active Users</div>
+              </div>
+            </div>
+          </motion.div>
+          {/* Training Hours Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Training Hours
+              </h3>
+              <div className="flex gap-1 rounded-lg bg-muted p-1">
+                {(["week", "month", "year"] as const).map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => setChartPeriod(period)}
+                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      chartPeriod === period
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {period.charAt(0).toUpperCase() + period.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-card p-4">
+              <TrainingChart data={data.chartData[chartPeriod]} />
+            </div>
+          </motion.div>
+          {/* MVPs - Week, Month, All-Time */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <h3 className="mb-3 font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              MVPs
+            </h3>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {/* Weekly MVP */}
+              <MvpCard title="This Week" champion={data.weeklyChampion} icon="🏆" />
+              {/* Monthly MVP */}
+              <MvpCard title="This Month" champion={data.monthlyChampion} icon="🥇" />
+              {/* All-Time MVP */}
+              <MvpCard title="All Time" champion={data.allTimeChampion} icon="👑" />
+            </div>
+          </motion.div>
+          {/* Top 5 This Week */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <h3 className="mb-3 font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Top 5 This Week
+            </h3>
+            {data.weeklyTop.length > 0 ? (
+              <div className="space-y-2">
+                {data.weeklyTop.slice(0, 5).map((leader, i) => (
+                  <div
+                    key={leader.user.id}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+                  >
+                    <div
+                      className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                        RANK_COLORS[i] || "bg-secondary text-foreground"
                       }`}
                     >
-                      {period.charAt(0).toUpperCase() + period.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4">
-                <TrainingChart data={data.chartData[chartPeriod]} />
-              </div>
-            </motion.div>
-
-            {/* MVPs - Week, Month, All-Time */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <h3 className="mb-3 font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                MVPs
-              </h3>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {/* Weekly MVP */}
-                <MvpCard title="This Week" champion={data.weeklyChampion} icon="🏆" />
-                {/* Monthly MVP */}
-                <MvpCard title="This Month" champion={data.monthlyChampion} icon="🥇" />
-                {/* All-Time MVP */}
-                <MvpCard title="All Time" champion={data.allTimeChampion} icon="👑" />
-              </div>
-            </motion.div>
-
-            {/* Top 5 This Week */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <h3 className="mb-3 font-heading text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Top 5 This Week
-              </h3>
-              {data.weeklyTop.length > 0 ? (
-                <div className="space-y-2">
-                  {data.weeklyTop.slice(0, 5).map((leader, i) => (
-                    <div
-                      key={leader.user.id}
-                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
-                    >
-                      <div
-                        className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-                          RANK_COLORS[i] || "bg-secondary text-foreground"
-                        }`}
-                      >
-                        {i + 1}
+                      {i + 1}
+                    </div>
+                    {leader.user.picture ? (
+                      <img src={leader.user.picture} alt="" className="h-9 w-9 rounded-full" />
+                    ) : (
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-sm font-bold">
+                        {leader.user.name[0]}
                       </div>
-                      {leader.user.picture ? (
-                        <img src={leader.user.picture} alt="" className="h-9 w-9 rounded-full" />
-                      ) : (
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-sm font-bold">
-                          {leader.user.name[0]}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="truncate font-heading text-sm font-bold">
-                          {leader.user.name}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {leader.sessionCount} session{leader.sessionCount !== 1 ? "s" : ""}
-                        </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate font-heading text-sm font-bold">
+                        {leader.user.name}
                       </div>
-                      <div className="font-heading text-sm font-bold text-primary">
-                        {formatTime(leader.totalSeconds)}
+                      <div className="text-xs text-muted-foreground">
+                        {leader.sessionCount} session{leader.sessionCount !== 1 ? "s" : ""}
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                  No sessions this week yet
-                </div>
-              )}
-            </motion.div>
-
-            {/* Empty State */}
-            {data.weeklyTop.length === 0 && data.allTimeTop.length === 0 && (
-              <div className="rounded-xl border border-dashed border-border p-8 text-center">
-                <h3 className="font-heading text-lg font-bold">No sessions yet</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Be the first to complete a session and claim the top spot!
-                </p>
-                <Link
-                  to="/"
-                  className="mt-4 inline-block rounded bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90"
-                >
-                  Start Training
-                </Link>
+                    <div className="font-heading text-sm font-bold text-primary">
+                      {formatTime(leader.totalSeconds)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                No sessions this week yet
               </div>
             )}
-          </div>
-        )}
-      </main>
-
-      <Footer />
+          </motion.div>
+          {/* Empty State */}
+          {data.weeklyTop.length === 0 && data.allTimeTop.length === 0 && (
+            <div className="rounded-xl border border-dashed border-border p-8 text-center">
+              <h3 className="font-heading text-lg font-bold">No sessions yet</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Be the first to complete a session and claim the top spot!
+              </p>
+              <Link
+                to="/"
+                className="mt-4 inline-block rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+              >
+                Start Training
+              </Link>
+            </div>
+          )}{" "}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,12 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Sparkles, Flame, Target, Clock } from "lucide-react";
+import {
+  Plus,
+  Sparkles,
+  Flame,
+  Target,
+  Clock,
+  ChevronRight,
+  Dumbbell,
+  Calendar,
+} from "lucide-react";
 import { SessionForm } from "@/components/SessionForm";
 import { SessionView } from "@/components/SessionView";
 import type { GeneratedSession, SessionInput } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
-import { api, type SessionLogResponse } from "@/lib/api";
+import { api, type SessionLogResponse, type WorkoutResponse } from "@/lib/api";
 import { loadActiveSession } from "@/lib/active-session-store";
 
 // Climbing tips for motivation
@@ -71,6 +80,7 @@ function Index() {
   const [showSessionForm, setShowSessionForm] = useState(false);
   const [currentWorkoutId, setCurrentWorkoutId] = useState<string | null>(null);
   const [sessionLogs, setSessionLogs] = useState<SessionLogResponse[]>([]);
+  const [recentWorkouts, setRecentWorkouts] = useState<WorkoutResponse[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
 
   // Get daily tip
@@ -85,9 +95,15 @@ function Index() {
     // Get last 30 days of logs
     const since = new Date();
     since.setDate(since.getDate() - 30);
-    api.sessionLogs
-      .list(since.toISOString())
-      .then(setSessionLogs)
+    Promise.all([api.sessionLogs.list(since.toISOString()), api.workouts.list()])
+      .then(([logs, workouts]) => {
+        setSessionLogs(logs);
+        // Sort by updatedAt descending and take first 3
+        const sorted = [...workouts].sort(
+          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        );
+        setRecentWorkouts(sorted.slice(0, 3));
+      })
       .catch(() => {})
       .finally(() => setStatsLoading(false));
   }, [user]);
@@ -120,6 +136,50 @@ function Index() {
     }
 
     return { thisWeekSessions, totalMinutes, streak };
+  }, [sessionLogs]);
+
+  // Calculate monthly activity (current month)
+  const monthlyActivity = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
+
+    const days: Array<{
+      date: number;
+      hasActivity: boolean;
+      minutes: number;
+      isToday: boolean;
+    } | null> = [];
+
+    // Add empty slots for days before the 1st
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(null);
+    }
+
+    // Add all days of the month
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      const dateStr = date.toDateString();
+      const sessionsOnDay = sessionLogs.filter(
+        (l) => new Date(l.startedAt).toDateString() === dateStr,
+      );
+      const totalMinutes = Math.round(
+        sessionsOnDay.reduce((sum, l) => sum + l.durationSeconds, 0) / 60,
+      );
+      days.push({
+        date: d,
+        hasActivity: sessionsOnDay.length > 0,
+        minutes: totalMinutes,
+        isToday: d === today.getDate(),
+      });
+    }
+
+    const monthName = firstDay.toLocaleString("default", { month: "long" });
+    return { days, monthName };
   }, [sessionLogs]);
 
   // Restore session from localStorage only when user is logged in
@@ -252,7 +312,7 @@ function Index() {
             : "Save Session";
 
   return (
-    <div className="min-h-full">
+    <div className="mx-auto min-h-full w-full max-w-3xl">
       {/* Welcome section - show different content based on state */}
       {!session && !showSessionForm && (
         <motion.div
@@ -263,42 +323,50 @@ function Index() {
         >
           {user ? (
             <>
+              {/* Welcome Message */}
+              <div className="space-y-1">
+                <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
+                  Welcome back, {user.name?.split(" ")[0] || "Climber"}
+                </h1>
+                <p className="text-muted-foreground">Ready for your next session?</p>
+              </div>
+
               {/* Daily Tip Card */}
-              <div className="rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-transparent p-6">
+              <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <Sparkles className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-primary">
                       {dailyTip.category} Tip
                     </p>
-                    <p className="mt-1 text-foreground">{dailyTip.tip}</p>
+                    <p className="mt-1 text-sm text-foreground">{dailyTip.tip}</p>
                   </div>
                 </div>
               </div>
 
               {/* Stats Row */}
               {stats && (
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="rounded-xl border border-border bg-card p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-orange-500">
-                      <Flame className="h-5 w-5" />
-                      <span className="text-2xl font-bold">{stats.streak}</span>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-xl border border-border/60 bg-card p-4 text-center shadow-sm">
+                    <div className="flex items-center justify-center gap-1.5 text-orange-500">
+                      <Flame className="h-4 w-4" />
+                      <span className="text-xl font-semibold">{stats.streak}</span>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">Day Streak</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-card p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-primary">
-                      <Target className="h-5 w-5" />
-                      <span className="text-2xl font-bold">{stats.thisWeekSessions}</span>
+                  <div className="rounded-xl border border-border/60 bg-card p-4 text-center shadow-sm">
+                    <div className="flex items-center justify-center gap-1.5 text-primary">
+                      <Target className="h-4 w-4" />
+                      <span className="text-xl font-semibold">{stats.thisWeekSessions}</span>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">This Week</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-card p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-emerald-500">
-                      <Clock className="h-5 w-5" />
-                      <span className="text-2xl font-bold">{stats.totalMinutes}</span>
+                  <div className="rounded-xl border border-border/60 bg-card p-4 text-center shadow-sm">
+                    <div className="flex items-center justify-center gap-1.5 text-emerald-500">
+                      <Clock className="h-4 w-4" />
+                      <span className="text-xl font-semibold">{stats.totalMinutes}</span>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">Minutes (30d)</p>
                   </div>
@@ -308,21 +376,90 @@ function Index() {
               {/* Start Session Button */}
               <button
                 onClick={handleGenerateNew}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-primary py-5 text-lg font-semibold text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:shadow-xl"
+                className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background py-4 text-base font-semibold text-foreground shadow-sm transition-all hover:bg-muted active:scale-[0.98]"
               >
-                <Plus className="h-6 w-6" />
+                <Plus className="h-5 w-5" />
                 Start New Session
               </button>
 
-              {/* Quick Links */}
-              <div className="flex justify-center gap-6 text-sm">
-                <Link to="/workouts" className="text-muted-foreground hover:text-foreground">
-                  View Saved Sessions
-                </Link>
-                <Link to="/stats" className="text-muted-foreground hover:text-foreground">
-                  View Stats
-                </Link>
+              {/* Monthly Activity */}
+              <div className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
+                <div className="mb-3 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">
+                    {monthlyActivity.monthName}
+                  </span>
+                </div>
+                <div className="grid grid-cols-7 gap-1 text-center">
+                  {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                    <div key={d + i} className="text-[10px] font-medium text-muted-foreground py-1">
+                      {d}
+                    </div>
+                  ))}
+                  {monthlyActivity.days.map((day, i) => (
+                    <div key={i} className="flex items-center justify-center">
+                      {day ? (
+                        <div
+                          className={`flex h-7 w-7 items-center justify-center rounded-md text-xs transition-colors ${
+                            day.hasActivity
+                              ? "bg-primary text-primary-foreground font-medium"
+                              : day.isToday
+                                ? "border border-primary/30 bg-primary/5 text-foreground"
+                                : "text-muted-foreground hover:bg-muted/50"
+                          }`}
+                          title={day.hasActivity ? `${day.minutes} min` : undefined}
+                        >
+                          {day.date}
+                        </div>
+                      ) : (
+                        <div className="h-7 w-7" />
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {/* Recent Sessions */}
+              {recentWorkouts.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Dumbbell className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">Recent Sessions</span>
+                    </div>
+                    <Link
+                      to="/workouts"
+                      className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
+                    >
+                      View all
+                      <ChevronRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                  <div className="space-y-2">
+                    {recentWorkouts.map((workout) => {
+                      const session = workout.generatedSession as GeneratedSession;
+                      return (
+                        <Link
+                          key={workout.id}
+                          to="/workouts/$workoutId"
+                          params={{ workoutId: workout.id }}
+                          className="flex items-center justify-between rounded-xl border border-border/60 bg-card p-3 shadow-sm transition-colors hover:bg-muted/50"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-foreground">
+                              {workout.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {session?.estimatedDuration || "—"} min · {session?.difficulty || "—"}
+                            </p>
+                          </div>
+                          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-muted/30 p-8 text-center shadow-sm sm:p-12">

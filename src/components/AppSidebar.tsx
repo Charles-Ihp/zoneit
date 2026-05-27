@@ -1,17 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import {
-  Home,
-  Dumbbell,
-  Trophy,
-  BarChart3,
-  BookOpen,
-  User,
-  LogOut,
-  LogIn,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Home, Dumbbell, Trophy, BarChart3, BookOpen, User, LogOut, LogIn } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -38,25 +27,23 @@ const navItems = [
 
 export function AppSidebar() {
   const { user, loading: authLoading, login, logout } = useAuth();
-  const { state, toggleSidebar } = useSidebar();
   const router = useRouterState();
   const currentPath = router.location.pathname;
+  const { setOpenMobile } = useSidebar();
 
-  const isCollapsed = state === "collapsed";
+  const handleNavClick = () => {
+    setOpenMobile(false);
+  };
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon">
+    <Sidebar variant="sidebar" collapsible="offcanvas">
       <SidebarHeader className="border-b border-sidebar-border/50">
-        <div className="flex items-center justify-between px-2 py-1">
+        <div className="flex items-center px-2 py-1">
           <Link
             to="/"
-            className={cn(
-              "flex items-center gap-2 font-heading font-bold tracking-tight transition-all duration-200",
-              isCollapsed ? "justify-center" : "",
-            )}
+            className="flex items-center gap-2 font-heading font-bold tracking-tight transition-all duration-200"
           >
-            {!isCollapsed && <span className="text-foreground">GRAVITACIO</span>}
-            {isCollapsed && <span className="text-sm font-black text-foreground">G</span>}
+            <span className="text-foreground">GRAVITACIO</span>
           </Link>
         </div>
       </SidebarHeader>
@@ -82,7 +69,7 @@ export function AppSidebar() {
                           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                       )}
                     >
-                      <Link to={item.to}>
+                      <Link to={item.to} onClick={handleNavClick}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.label}</span>
                         {isActive && (
@@ -124,7 +111,7 @@ export function AppSidebar() {
                           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                       )}
                     >
-                      <Link to="/profile">
+                      <Link to="/profile" onClick={handleNavClick}>
                         {user.picture ? (
                           <img
                             src={user.picture}
@@ -164,14 +151,6 @@ export function AppSidebar() {
             </>
           )}
         </SidebarMenu>
-
-        {/* Collapse toggle */}
-        <button
-          onClick={toggleSidebar}
-          className="mt-2 flex w-full items-center justify-center rounded-md p-2 text-muted-foreground transition-all duration-200 hover:bg-muted/50 hover:text-foreground"
-        >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
       </SidebarFooter>
 
       <SidebarRail />

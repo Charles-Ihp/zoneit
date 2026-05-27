@@ -29,7 +29,7 @@ export function AppLayout({ children, fullBleed = false, className }: AppLayoutP
         <main
           className={cn(
             "flex-1",
-            !fullBleed && "px-4 pt-8 pb-6 sm:px-6 sm:py-6 lg:px-8",
+            !fullBleed && "px-4 pt-4 pb-6 sm:px-6 sm:py-6 lg:px-8",
             className,
           )}
         >

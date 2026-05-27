@@ -469,6 +469,13 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         className="flex-1 overflow-y-auto"
         style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom))" }}
       >
+        {/* Loading previous data indicator */}
+        {!previousDataLoaded && (
+          <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            Loading previous workout data...
+          </div>
+        )}
         <Reorder.Group
           axis="y"
           values={exercises}

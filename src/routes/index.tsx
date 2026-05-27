@@ -56,6 +56,11 @@ function getDailyTip(): (typeof CLIMBING_TIPS)[0] {
 
 export const Route = createFileRoute("/")({
   component: Index,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      new: search.new === "1" || search.new === true,
+    };
+  },
   head: () => ({
     meta: [
       { title: "GRAVITACIO" },
@@ -75,6 +80,8 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { user, loading: authLoading, login } = useAuth();
+  const { new: startNew } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [session, setSession] = useState<GeneratedSession | null>(null);
   const [lastInput, setLastInput] = useState<SessionInput | null>(null);
   const [showSessionForm, setShowSessionForm] = useState(false);
@@ -200,6 +207,16 @@ function Index() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
+
+  // Handle ?new=1 search param to auto-show session form
+  useEffect(() => {
+    if (startNew && user && !authLoading) {
+      setShowSessionForm(true);
+      // Clear the search param
+      navigate({ search: {}, replace: true });
+    }
+  }, [startNew, user, authLoading, navigate]);
+
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [generating, setGenerating] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);

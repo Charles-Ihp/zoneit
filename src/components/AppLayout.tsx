@@ -17,7 +17,7 @@ export function AppLayout({ children, fullBleed = false, className }: AppLayoutP
       <AppSidebar />
       <SidebarInset className="flex flex-col">
         {/* Top bar - only show on mobile for hamburger menu */}
-        <header className="sticky top-0 z-30 flex h-12 items-center gap-4 border-b border-border/40 bg-background px-4 pt-[env(safe-area-inset-top)] md:hidden">
+        <header className="sticky top-0 z-30 flex items-center gap-4 border-b border-border/40 bg-background px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] md:hidden">
           <SidebarTrigger />
           <span className="font-heading font-bold tracking-tight text-foreground">GRAVITACIO</span>
         </header>

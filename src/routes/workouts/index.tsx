@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, DragEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, type WorkoutResponse, type FolderResponse } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,8 +8,10 @@ import {
   ChevronRight,
   Folder,
   FolderPlus,
+  GripVertical,
   MoreHorizontal,
   Pencil,
+  Plus,
   Trash2,
 } from "lucide-react";
 
@@ -33,6 +35,10 @@ function WorkoutsList() {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [newFolderName, setNewFolderName] = useState("");
   const [showCreateFolder, setShowCreateFolder] = useState(false);
+
+  // Drag and drop state
+  const [draggingWorkoutId, setDraggingWorkoutId] = useState<string | null>(null);
+  const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [editingFolder, setEditingFolder] = useState<FolderResponse | null>(null);
   const [editFolderName, setEditFolderName] = useState("");
   const [deleteConfirmFolder, setDeleteConfirmFolder] = useState<FolderResponse | null>(null);
@@ -51,8 +57,6 @@ function WorkoutsList() {
       ]);
       setWorkouts(workoutsData);
       setFolders(foldersData);
-      // Expand all folders by default
-      setExpandedFolders(new Set(foldersData.map((f) => f.id)));
     } finally {
       setLoading(false);
     }
@@ -169,6 +173,46 @@ function WorkoutsList() {
     }
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (e: DragEvent<HTMLDivElement>, workoutId: string) => {
+    setDraggingWorkoutId(workoutId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", workoutId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingWorkoutId(null);
+    setDragOverFolderId(null);
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>, folderId: string | null) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverFolderId(folderId);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverFolderId(null);
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetFolderId: string | null) => {
+    e.preventDefault();
+    const workoutId = e.dataTransfer.getData("text/plain");
+    const workout = workouts.find((w) => w.id === workoutId);
+
+    if (workout && workout.folderId !== targetFolderId) {
+      try {
+        const updated = await api.workouts.update(workoutId, { folderId: targetFolderId });
+        setWorkouts((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
+      } catch (err) {
+        console.error("Failed to move workout:", err);
+      }
+    }
+
+    setDraggingWorkoutId(null);
+    setDragOverFolderId(null);
+  };
+
   // Group workouts
   const rootWorkouts = workouts.filter((w) => !w.folderId);
   const workoutsByFolder = folders.map((folder) => ({
@@ -182,8 +226,16 @@ function WorkoutsList() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: i * 0.04, duration: 0.3 }}
-      className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 shadow-sm"
+      draggable
+      onDragStart={(e) => handleDragStart(e as unknown as DragEvent<HTMLDivElement>, w.id)}
+      onDragEnd={handleDragEnd}
+      className={`flex cursor-grab items-center justify-between rounded-xl border border-border bg-card px-5 py-4 shadow-sm active:cursor-grabbing ${
+        draggingWorkoutId === w.id ? "opacity-50" : ""
+      }`}
     >
+      <div className="mr-2 text-muted-foreground">
+        <GripVertical className="h-4 w-4" />
+      </div>
       <div className="min-w-0 flex-1">
         <h3 className="truncate font-heading text-sm font-bold text-foreground">{w.name}</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -195,13 +247,6 @@ function WorkoutsList() {
         </p>
       </div>
       <div className="ml-4 flex shrink-0 items-center gap-2">
-        <button
-          onClick={() => setMoveWorkout(w)}
-          className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
-          title="Move to folder"
-        >
-          <Folder className="h-3.5 w-3.5" />
-        </button>
         <button
           onClick={() => handleShare(w.id)}
           disabled={sharingId === w.id}
@@ -257,14 +302,25 @@ function WorkoutsList() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">Your climbing history.</p>
         </div>
-        {user && workouts.length > 0 && (
-          <button
-            onClick={() => setShowCreateFolder(true)}
-            className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-          >
-            <FolderPlus className="h-4 w-4" />
-            <span className="hidden sm:inline">New Folder</span>
-          </button>
+        {user && (
+          <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">New Session</span>
+            </Link>
+            {workouts.length > 0 && (
+              <button
+                onClick={() => setShowCreateFolder(true)}
+                className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                <FolderPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">New Folder</span>
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -294,7 +350,17 @@ function WorkoutsList() {
         <div className="mt-6 space-y-4">
           {/* Folders */}
           {workoutsByFolder.map(({ folder, workouts: folderWorkouts }) => (
-            <div key={folder.id} className="rounded-xl border border-border bg-card/50">
+            <div
+              key={folder.id}
+              onDragOver={(e) => handleDragOver(e, folder.id)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, folder.id)}
+              className={`rounded-xl border-2 transition-colors ${
+                dragOverFolderId === folder.id
+                  ? "border-primary bg-primary/5"
+                  : "border-border bg-card/50"
+              }`}
+            >
               <div className="flex items-center justify-between px-4 py-3">
                 <button
                   onClick={() => toggleFolder(folder.id)}
@@ -360,17 +426,31 @@ function WorkoutsList() {
             </div>
           ))}
 
-          {/* Root workouts (no folder) */}
-          {rootWorkouts.length > 0 && (
-            <div className="space-y-3">
-              {folders.length > 0 && (
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Uncategorized
-                </p>
-              )}
-              {rootWorkouts.map((w, i) => renderWorkoutCard(w, i))}
-            </div>
-          )}
+          {/* Root workouts (no folder) - also a drop zone */}
+          <div
+            onDragOver={(e) => handleDragOver(e, "root")}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, null)}
+            className={`space-y-3 rounded-xl border-2 border-dashed p-4 transition-colors ${
+              dragOverFolderId === "root"
+                ? "border-primary bg-primary/5"
+                : rootWorkouts.length > 0 || draggingWorkoutId
+                  ? "border-border"
+                  : "border-transparent"
+            }`}
+          >
+            {folders.length > 0 && (rootWorkouts.length > 0 || draggingWorkoutId) && (
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Uncategorized
+              </p>
+            )}
+            {rootWorkouts.map((w, i) => renderWorkoutCard(w, i))}
+            {rootWorkouts.length === 0 && draggingWorkoutId && (
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                Drop here to remove from folder
+              </p>
+            )}
+          </div>
         </div>
       )}
 

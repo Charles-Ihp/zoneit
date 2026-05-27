@@ -16,11 +16,8 @@ export function AppLayout({ children, fullBleed = false, className }: AppLayoutP
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex flex-col">
-        {/* Safe area spacer for PWA on iOS */}
-        <div className="h-[env(safe-area-inset-top)] bg-background md:hidden" />
-
         {/* Top bar - only show on mobile for hamburger menu */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/40 bg-background px-4 md:hidden">
+        <header className="sticky top-0 z-30 flex h-12 items-center gap-4 border-b border-border/40 bg-background px-4 pt-[env(safe-area-inset-top)] md:hidden">
           <SidebarTrigger />
           <span className="font-heading font-bold tracking-tight text-foreground">GRAVITACIO</span>
         </header>
@@ -29,7 +26,7 @@ export function AppLayout({ children, fullBleed = false, className }: AppLayoutP
         <main
           className={cn(
             "flex-1",
-            !fullBleed && "px-4 pt-4 pb-6 sm:px-6 sm:py-6 lg:px-8",
+            !fullBleed && "px-4 pt-3 pb-6 sm:px-6 sm:py-6 lg:px-8",
             className,
           )}
         >

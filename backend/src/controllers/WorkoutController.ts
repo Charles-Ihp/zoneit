@@ -92,7 +92,9 @@ export class WorkoutController extends Controller {
     }
     const updateData: Prisma.WorkoutUpdateInput = {};
     if (body.name !== undefined) updateData.name = body.name;
-    if (body.folderId !== undefined) updateData.folderId = body.folderId;
+    if (body.folderId !== undefined) {
+      updateData.folder = body.folderId ? { connect: { id: body.folderId } } : { disconnect: true };
+    }
     if (body.generatedSession !== undefined) {
       updateData.generatedSession = body.generatedSession as Prisma.InputJsonValue;
     }

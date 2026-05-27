@@ -16,8 +16,8 @@ export function AppLayout({ children, fullBleed = false, className }: AppLayoutP
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex flex-col">
-        {/* Safe area spacer for PWA on iOS - uses calc to add extra padding */}
-        <div className="h-[calc(env(safe-area-inset-top,0px)+0.5rem)] min-h-2 bg-background md:hidden" />
+        {/* Safe area spacer for PWA on iOS */}
+        <div className="h-[env(safe-area-inset-top)] bg-background md:hidden" />
 
         {/* Top bar - only show on mobile for hamburger menu */}
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/40 bg-background px-4 md:hidden">
@@ -26,7 +26,13 @@ export function AppLayout({ children, fullBleed = false, className }: AppLayoutP
         </header>
 
         {/* Main content */}
-        <main className={cn("flex-1", !fullBleed && "px-4 py-6 sm:px-6 lg:px-8", className)}>
+        <main
+          className={cn(
+            "flex-1",
+            !fullBleed && "px-4 pt-8 pb-6 sm:px-6 sm:py-6 lg:px-8",
+            className,
+          )}
+        >
           {children}
         </main>
       </SidebarInset>

@@ -49,6 +49,7 @@ export class WorkoutController extends Controller {
       data: {
         name: body.name,
         userId: user.id,
+        folderId: body.folderId ?? null,
         sessionInput: body.sessionInput as Prisma.InputJsonValue,
         generatedSession: body.generatedSession as Prisma.InputJsonValue,
       },
@@ -91,6 +92,7 @@ export class WorkoutController extends Controller {
     }
     const updateData: Prisma.WorkoutUpdateInput = {};
     if (body.name !== undefined) updateData.name = body.name;
+    if (body.folderId !== undefined) updateData.folderId = body.folderId;
     if (body.generatedSession !== undefined) {
       updateData.generatedSession = body.generatedSession as Prisma.InputJsonValue;
     }
@@ -122,6 +124,7 @@ function toResponse(w: Workout): WorkoutResponse {
   return {
     id: w.id,
     name: w.name,
+    folderId: w.folderId,
     sessionInput: w.sessionInput as Record<string, unknown>,
     generatedSession: w.generatedSession as Record<string, unknown>,
     createdAt: w.createdAt.toISOString(),

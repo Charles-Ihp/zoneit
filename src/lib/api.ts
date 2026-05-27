@@ -25,6 +25,7 @@ export interface UpdateProfileBody {
 export interface WorkoutResponse {
   id: string;
   name: string;
+  folderId: string | null;
   sessionInput: Record<string, unknown>;
   generatedSession: Record<string, unknown>;
   createdAt: string;
@@ -33,13 +34,35 @@ export interface WorkoutResponse {
 
 export interface CreateWorkoutBody {
   name: string;
+  folderId?: string | null;
   sessionInput: Record<string, unknown>;
   generatedSession: Record<string, unknown>;
 }
 
 export interface UpdateWorkoutBody {
   name?: string;
+  folderId?: string | null;
   generatedSession?: Record<string, unknown>;
+}
+
+export interface FolderResponse {
+  id: string;
+  name: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFolderBody {
+  name: string;
+}
+
+export interface UpdateFolderBody {
+  name?: string;
+}
+
+export interface ReorderFoldersBody {
+  folderIds: string[];
 }
 
 export interface SetData {
@@ -228,7 +251,26 @@ export const api = {
       }),
     delete: (id: string) => request<void>(`/api/workouts/${id}`, { method: "DELETE" }),
   },
-
+  folders: {
+    list: () => request<FolderResponse[]>("/api/folders"),
+    create: (body: CreateFolderBody) =>
+      request<FolderResponse>("/api/folders", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    get: (id: string) => request<FolderResponse>(`/api/folders/${id}`),
+    update: (id: string, body: UpdateFolderBody) =>
+      request<FolderResponse>(`/api/folders/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(body),
+      }),
+    reorder: (body: ReorderFoldersBody) =>
+      request<FolderResponse[]>("/api/folders", {
+        method: "PUT",
+        body: JSON.stringify(body),
+      }),
+    delete: (id: string) => request<void>(`/api/folders/${id}`, { method: "DELETE" }),
+  },
   sessionLogs: {
     list: (since?: string) =>
       request<SessionLogResponse[]>(

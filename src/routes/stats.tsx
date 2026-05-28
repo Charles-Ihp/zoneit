@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { motion } from "framer-motion";
 import { api, type SessionLogResponse } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { AuthModal } from "@/components/AuthModal";
 
 export const Route = createFileRoute("/stats")({
   component: StatsPage,
@@ -60,7 +61,8 @@ function shortDay(dateStr: string): string {
 }
 
 export function StatsPage() {
-  const { user, loading: authLoading, login, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [range, setRange] = useState<Range>("3m");
   const [logs, setLogs] = useState<SessionLogResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,14 +129,15 @@ export function StatsPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl">
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       {!user && !authLoading ? (
         <div className="mt-20 flex flex-col items-center gap-4 text-center">
           <p className="text-sm text-muted-foreground">Sign in to view your training stats.</p>
           <button
-            onClick={login}
+            onClick={() => setAuthModalOpen(true)}
             className="rounded-lg border border-border bg-background px-5 py-2.5 font-medium text-foreground shadow-sm transition-all duration-200 hover:bg-muted"
           >
-            Sign in with Google
+            Sign in
           </button>
         </div>
       ) : (

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { api, type UserResponse, type UpdateProfileBody } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { AuthModal } from "@/components/AuthModal";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -10,7 +11,8 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
-  const { user, loading: authLoading, login, logout, setUser } = useAuth();
+  const { user, loading: authLoading, logout, setUser } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [form, setForm] = useState<{
     name: string;
     age: string;
@@ -63,14 +65,15 @@ function ProfilePage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       {!user && !authLoading ? (
         <div className="mt-20 flex flex-col items-center gap-4 text-center">
           <p className="text-sm text-muted-foreground">Sign in to view your profile.</p>
           <button
-            onClick={login}
+            onClick={() => setAuthModalOpen(true)}
             className="rounded-lg border border-border bg-background px-5 py-2.5 font-medium text-foreground shadow-sm transition-all duration-200 hover:bg-muted"
           >
-            Sign in with Google
+            Sign in
           </button>
         </div>
       ) : (

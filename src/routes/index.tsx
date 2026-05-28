@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { SessionForm } from "@/components/SessionForm";
 import { SessionView } from "@/components/SessionView";
+import { AuthModal } from "@/components/AuthModal";
 import type { GeneratedSession, SessionInput } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { api, type SessionLogResponse, type WorkoutResponse } from "@/lib/api";
@@ -79,7 +80,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { user, loading: authLoading, login } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const { new: startNew } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [session, setSession] = useState<GeneratedSession | null>(null);
@@ -492,7 +494,7 @@ function Index() {
               </p>
               {!authLoading && (
                 <button
-                  onClick={login}
+                  onClick={() => setAuthModalOpen(true)}
                   className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all duration-200 hover:bg-muted"
                 >
                   <Plus className="h-4 w-4" />
@@ -636,10 +638,13 @@ function Index() {
                 Create an account to generate sessions, track your progress, and save workouts.
               </p>
               <button
-                onClick={login}
+                onClick={() => {
+                  setShowLoginPrompt(false);
+                  setAuthModalOpen(true);
+                }}
                 className="mt-5 w-full rounded-lg border border-border bg-background py-2.5 font-medium text-foreground shadow-sm transition-all duration-200 hover:bg-muted"
               >
-                Sign in with Google
+                Sign in
               </button>
               <button
                 onClick={() => setShowLoginPrompt(false)}
@@ -651,6 +656,8 @@ function Index() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </div>
   );
 }

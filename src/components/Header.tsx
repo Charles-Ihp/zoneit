@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { UserMenu } from "./UserMenu";
+import { AuthModal } from "./AuthModal";
 import { useAuth } from "@/hooks/use-auth";
 
 interface HeaderProps {
@@ -8,7 +10,8 @@ interface HeaderProps {
 }
 
 export function Header({ transparent = false }: HeaderProps) {
-  const { user, loading: authLoading, login, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   return (
     <header
@@ -57,7 +60,7 @@ export function Header({ transparent = false }: HeaderProps) {
               <UserMenu user={user} onLogout={logout} />
             ) : (
               <button
-                onClick={login}
+                onClick={() => setAuthModalOpen(true)}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all sm:px-5 sm:py-2 ${
                   transparent
                     ? "border border-white/30 bg-white/10 text-white backdrop-blur-sm hover:border-white/50 hover:bg-white/20"
@@ -69,6 +72,7 @@ export function Header({ transparent = false }: HeaderProps) {
             ))}
         </div>
       </div>
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </header>
   );
 }

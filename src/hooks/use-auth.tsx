@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from "react";
-import { api, TOKEN_KEY, type UserResponse } from "@/lib/api";
+import { api, TOKEN_KEY, type UserResponse, type RegisterBody, type LoginBody } from "@/lib/api";
 
 interface AuthState {
   user: UserResponse | null;
   loading: boolean;
   login: () => void;
+  loginWithEmail: (body: LoginBody) => Promise<void>;
+  register: (body: RegisterBody) => Promise<void>;
   logout: () => void;
   setUser: (user: UserResponse) => void;
 }
@@ -48,13 +50,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = api.auth.googleLoginUrl();
   }, []);
 
+  const loginWithEmail = useCallback(async (body: LoginBody) => {
+    const response = await api.auth.login(body);
+    localStorage.setItem(TOKEN_KEY, response.token);
+    const fullUser = await api.users.me();
+    setUser(fullUser);
+  }, []);
+
+  const register = useCallback(async (body: RegisterBody) => {
+    const response = await api.auth.register(body);
+    localStorage.setItem(TOKEN_KEY, response.token);
+    const fullUser = await api.users.me();
+    setUser(fullUser);
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, setUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, loginWithEmail, register, logout, setUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Home, Dumbbell, Trophy, BarChart3, BookOpen, User, LogOut, LogIn } from "lucide-react";
@@ -14,6 +15,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { AuthModal } from "./AuthModal";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +28,8 @@ const navItems = [
 ];
 
 export function AppSidebar() {
-  const { user, loading: authLoading, login, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const router = useRouterState();
   const currentPath = router.location.pathname;
   const { setOpenMobile } = useSidebar();
@@ -139,7 +142,7 @@ export function AppSidebar() {
               ) : (
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    onClick={login}
+                    onClick={() => setAuthModalOpen(true)}
                     tooltip="Sign in"
                     className="border border-border bg-background text-foreground transition-all duration-200 hover:bg-muted"
                   >
@@ -154,6 +157,7 @@ export function AppSidebar() {
       </SidebarFooter>
 
       <SidebarRail />
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </Sidebar>
   );
 }

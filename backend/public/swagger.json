@@ -451,6 +451,82 @@
 				"type": "object",
 				"description": "Construct a type with a set of properties K of type T"
 			},
+			"AuthResponse": {
+				"description": "Response after successful authentication",
+				"properties": {
+					"token": {
+						"type": "string"
+					},
+					"user": {
+						"properties": {
+							"picture": {
+								"type": "string",
+								"nullable": true
+							},
+							"name": {
+								"type": "string"
+							},
+							"email": {
+								"type": "string"
+							},
+							"id": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"picture",
+							"name",
+							"email",
+							"id"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"token",
+					"user"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"RegisterBody": {
+				"description": "Request body for user registration",
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"password",
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LoginBody": {
+				"description": "Request body for user login",
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"password"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ExerciseResponse": {
 				"description": "Exercise returned by the API",
 				"properties": {
@@ -1581,6 +1657,72 @@
 									"exerciseIds"
 								],
 								"type": "object"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/register": {
+			"post": {
+				"operationId": "Register",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AuthResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Register a new user with email and password.",
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/login": {
+			"post": {
+				"operationId": "Login",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AuthResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Login with email and password.",
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginBody"
 							}
 						}
 					}

@@ -36,17 +36,18 @@ model Exercise {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  googleId       String   @unique
-  email          String   @unique
-  name           String
-  picture        String?
-  age            Int?
-  weightKg       Float?
-  heightCm       Int?
-  restTimeSeconds Int?    @default(90)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  googleId        String?  @unique
+  email           String   @unique
+  name            String
+  picture         String?
+  passwordHash    String?
+  age             Int?
+  weightKg        Float?
+  heightCm        Int?
+  restTimeSeconds Int?     @default(90)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   workouts       Workout[]
   sessionLogs    SessionLog[]

@@ -213,10 +213,43 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export interface RegisterBody {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export interface LoginBody {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    picture: string | null;
+  };
+}
+
 export const api = {
   auth: {
     /** URL to redirect the browser to for Google OAuth login */
     googleLoginUrl: () => `${API_BASE}/api/auth/google`,
+    /** Register a new user with email and password */
+    register: (body: RegisterBody) =>
+      request<AuthResponse>("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    /** Login with email and password */
+    login: (body: LoginBody) =>
+      request<AuthResponse>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
   },
 
   sessions: {

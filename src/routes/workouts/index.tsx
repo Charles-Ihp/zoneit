@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, DragEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, type WorkoutResponse, type FolderResponse } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { AuthModal } from "@/components/AuthModal";
 import {
   ChevronDown,
   ChevronRight,
@@ -21,7 +22,8 @@ export const Route = createFileRoute("/workouts/")({
 });
 
 function WorkoutsList() {
-  const { user, loading: authLoading, login } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [workouts, setWorkouts] = useState<WorkoutResponse[]>([]);
   const [folders, setFolders] = useState<FolderResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -325,16 +327,17 @@ function WorkoutsList() {
         )}
       </div>
 
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       {authLoading || loading ? (
         <div className="mt-16 text-center text-sm text-muted-foreground">Loading…</div>
       ) : !user ? (
         <div className="mt-16 flex flex-col items-center gap-4 text-center">
           <p className="text-sm text-muted-foreground">Sign in to see your saved sessions.</p>
           <button
-            onClick={login}
+            onClick={() => setAuthModalOpen(true)}
             className="rounded-lg border border-border bg-background px-6 py-3 font-medium text-foreground shadow-sm transition-all duration-200 hover:bg-muted"
           >
-            Sign in with Google
+            Sign in
           </button>
         </div>
       ) : workouts.length === 0 ? (

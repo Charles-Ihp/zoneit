@@ -18,61 +18,21 @@ import { VipLocked } from "@/components/VipLocked";
 import { useAuth } from "@/hooks/use-auth";
 import { api, type ProgramProgressResponse, type ProgramResponse } from "@/lib/api";
 import type { GeneratedSession } from "@/lib/types";
-import {
-  RCP_META,
-  RCP_PROGRAM_ID,
-  buildProgramSession,
-  phaseForWeek,
-} from "@/lib/programs/rcp-split";
+import { phaseForWeek } from "@/lib/programs/rcp-split";
 import { buildProgramDaySession, programDays } from "@/lib/programs/custom";
+import { type ProgramDescriptor, getBuiltinProgram } from "@/lib/programs/builtins";
 
 export const Route = createFileRoute("/programs/$programId")({
   component: ProgramDetailPage,
   head: () => ({ meta: [{ title: "Program — GRAVITACIO" }] }),
 });
 
-interface WeekRow {
-  week: number;
-  phase: number;
-  mainPyramid: number[];
-  accessoryReps: number;
-}
-interface ProgramDescriptor {
-  id: string;
-  name: string;
-  typeLabel: string;
-  description: string;
-  lengthWeeks: number;
-  trainingDays: number;
-  days: { name: string; subtitle: string }[];
-  buildSession: (week: number, dayIndex: number) => GeneratedSession;
-  isBuiltIn: boolean;
-  weekTable?: WeekRow[];
-}
-
-function rcpDescriptor(): ProgramDescriptor {
-  return {
-    id: RCP_PROGRAM_ID,
-    name: RCP_META.name,
-    typeLabel: "Gym · Built-in",
-    description: RCP_META.description,
-    lengthWeeks: RCP_META.weeks,
-    trainingDays: RCP_META.trainingDays,
-    days: RCP_META.days.map((d) => ({
-      name: d.focusLabel,
-      subtitle: `${d.dayLabel} · ${d.mainLift}`,
-    })),
-    buildSession: (w, di) => buildProgramSession(w, di),
-    isBuiltIn: true,
-    weekTable: RCP_META.weekTable,
-  };
-}
-
 function customDescriptor(p: ProgramResponse): ProgramDescriptor {
   const days = programDays(p);
   return {
     id: p.id,
     name: p.name,
+    type: p.type,
     typeLabel: `${p.type[0].toUpperCase()}${p.type.slice(1)} · ${p.lengthWeeks} week${p.lengthWeeks === 1 ? "" : "s"}`,
     description: p.description,
     lengthWeeks: p.lengthWeeks,
@@ -90,11 +50,9 @@ function ProgramDetailPage() {
   const { programId } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const isRcp = programId === RCP_PROGRAM_ID;
+  const builtin = getBuiltinProgram(programId);
 
-  const [descriptor, setDescriptor] = useState<ProgramDescriptor | null>(
-    isRcp ? rcpDescriptor() : null,
-  );
+  const [descriptor, setDescriptor] = useState<ProgramDescriptor | null>(builtin ?? null);
   const [progress, setProgress] = useState<ProgramProgressResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -117,8 +75,8 @@ function ProgramDetailPage() {
       setLoading(false);
       return;
     }
-    const loadDescriptor = isRcp
-      ? Promise.resolve(rcpDescriptor())
+    const loadDescriptor = builtin
+      ? Promise.resolve(builtin)
       : api.programs.get(programId).then(customDescriptor);
     Promise.all([loadDescriptor, api.programs.getProgress(programId)])
       .then(([desc, prog]) => {
@@ -127,7 +85,7 @@ function ProgramDetailPage() {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [user, programId, isRcp]);
+  }, [user, programId, builtin]);
 
   const handleStartDay = async (dayIndex: number) => {
     if (!descriptor) return;
@@ -287,7 +245,7 @@ function ProgramDetailPage() {
               <span className="rounded-md bg-primary/10 px-2.5 py-1 text-sm font-medium text-primary">
                 Week {week} of {descriptor.lengthWeeks}
               </span>
-              {descriptor.isBuiltIn && (
+              {descriptor.weekTable && (
                 <span className="text-sm text-muted-foreground">
                   Phase {phaseForWeek(week)} of 3
                 </span>

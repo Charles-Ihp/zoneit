@@ -19,7 +19,7 @@ import type { GeneratedSession, SessionInput } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { api, type SessionLogResponse, type WorkoutResponse } from "@/lib/api";
 import { loadActiveSession } from "@/lib/active-session-store";
-import { RCP_META, RCP_PROGRAM_ID } from "@/lib/programs/rcp-split";
+import { getBuiltinProgram } from "@/lib/programs/builtins";
 
 // Climbing tips for motivation
 const CLIMBING_TIPS = [
@@ -141,9 +141,10 @@ function Index() {
         );
         let name: string | null = null;
         let trainingDays = 0;
-        if (latest.programId === RCP_PROGRAM_ID) {
-          name = RCP_META.name;
-          trainingDays = RCP_META.trainingDays;
+        const builtin = getBuiltinProgram(latest.programId);
+        if (builtin) {
+          name = builtin.name;
+          trainingDays = builtin.trainingDays;
         } else {
           const p = progs.find((x) => x.id === latest.programId);
           if (p) {

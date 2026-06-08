@@ -6,7 +6,7 @@ import { AuthModal } from "@/components/AuthModal";
 import { VipLocked } from "@/components/VipLocked";
 import { useAuth } from "@/hooks/use-auth";
 import { api, type ProgramResponse } from "@/lib/api";
-import { RCP_META, RCP_PROGRAM_ID } from "@/lib/programs/rcp-split";
+import { BUILTIN_PROGRAMS } from "@/lib/programs/builtins";
 
 export const Route = createFileRoute("/programs/")({
   component: ProgramsListPage,
@@ -90,22 +90,25 @@ function ProgramsListPage() {
             <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Built-in
             </h2>
-            <Link
-              to="/programs/$programId"
-              params={{ programId: RCP_PROGRAM_ID }}
-              className="flex items-center gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-sm transition-all hover:border-primary/40 hover:bg-muted/30 active:scale-[0.99]"
-            >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">{RCP_META.name}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  Gym · {RCP_META.weeks} weeks · {RCP_META.trainingDays} days/week
-                </p>
-              </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-            </Link>
+            {BUILTIN_PROGRAMS.map((p) => (
+              <Link
+                key={p.id}
+                to="/programs/$programId"
+                params={{ programId: p.id }}
+                className="flex items-center gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-sm transition-all hover:border-primary/40 hover:bg-muted/30 active:scale-[0.99]"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{p.name}</p>
+                  <p className="truncate text-xs capitalize text-muted-foreground">
+                    {p.type} · {p.lengthWeeks} weeks · {p.trainingDays} days/week
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+              </Link>
+            ))}
           </section>
 
           {/* User programs */}

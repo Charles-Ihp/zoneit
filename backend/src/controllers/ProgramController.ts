@@ -23,10 +23,12 @@ import type {
   UpdateProgramBody,
 } from "../models/Program";
 
-/** Built-in program id + its fixed dimensions (mirrors frontend rcp-split.ts). */
-const RCP_PROGRAM_ID = "rcp-split";
-const RCP_WEEKS = 12;
-const RCP_TRAINING_DAYS = 4;
+/** Built-in (app-provided) programs and their fixed dimensions — must match the
+ *  frontend registry in src/lib/programs/builtins.ts. */
+const BUILTIN_DIMS: Record<string, { lengthWeeks: number; dayCount: number }> = {
+  "rcp-split": { lengthWeeks: 12, dayCount: 4 },
+  "dyno-technique": { lengthWeeks: 8, dayCount: 2 },
+};
 
 @Route("api/programs")
 @Tags("Programs")
@@ -255,8 +257,9 @@ async function resolveDims(
   userId: string,
   programId: string,
 ): Promise<{ lengthWeeks: number; dayCount: number }> {
-  if (programId === RCP_PROGRAM_ID) {
-    return { lengthWeeks: RCP_WEEKS, dayCount: RCP_TRAINING_DAYS };
+  const builtin = BUILTIN_DIMS[programId];
+  if (builtin) {
+    return builtin;
   }
   const program = await prisma.program.findFirst({ where: { id: programId, userId } });
   if (!program) {

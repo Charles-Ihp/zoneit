@@ -723,10 +723,13 @@
 						"format": "double",
 						"description": "Current week, 1..12."
 					},
-					"dayIndex": {
-						"type": "number",
-						"format": "double",
-						"description": "Current training-day index within the week, 0..3."
+					"completedDays": {
+						"items": {
+							"type": "number",
+							"format": "double"
+						},
+						"type": "array",
+						"description": "Training-day indices (0..3) completed in the current week."
 					},
 					"completedCount": {
 						"type": "number",
@@ -743,10 +746,25 @@
 				"required": [
 					"programId",
 					"week",
-					"dayIndex",
+					"completedDays",
 					"completedCount",
 					"startedAt",
 					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CompleteDayBody": {
+				"description": "Body for marking a training day complete.",
+				"properties": {
+					"dayIndex": {
+						"type": "number",
+						"format": "double",
+						"description": "Training-day index within the week, 0..3."
+					}
+				},
+				"required": [
+					"dayIndex"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1838,7 +1856,7 @@
 						}
 					}
 				},
-				"description": "Start (or resume) a program. Creates progress at week 1 / day 0 if none\nexists; returns the existing progress otherwise so re-clicking is safe.",
+				"description": "Start (or resume) a program. Creates progress at week 1 with no days completed\nif none exists; returns the existing progress otherwise so re-clicking is safe.",
 				"tags": [
 					"Programs"
 				],
@@ -1859,9 +1877,9 @@
 				]
 			}
 		},
-		"/api/programs/{programId}/advance": {
+		"/api/programs/{programId}/complete-day": {
 			"post": {
-				"operationId": "AdvanceProgram",
+				"operationId": "CompleteDay",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -1874,7 +1892,53 @@
 						}
 					}
 				},
-				"description": "Advance one training day. Wraps the day within the week and the week within\nthe 12-week cycle (Week 12 → Week 1) — \"a circle every 12 weeks\".",
+				"description": "Mark a training day complete for the current week. Idempotent per day —\nre-completing a day keeps a single tick but still counts the session.",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "programId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CompleteDayBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/programs/{programId}/advance-week": {
+			"post": {
+				"operationId": "AdvanceWeek",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProgramProgressResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Advance to the next week, wrapping within the 12-week cycle (Week 12 → Week 1)\n— \"a circle every 12 weeks\" — and clearing the week's completed days.",
 				"tags": [
 					"Programs"
 				],
@@ -1910,7 +1974,7 @@
 						}
 					}
 				},
-				"description": "Reset the program back to week 1 / day 0 (keeps the lifetime completed count).",
+				"description": "Reset the program back to week 1 with no days completed (keeps the lifetime count).",
 				"tags": [
 					"Programs"
 				],

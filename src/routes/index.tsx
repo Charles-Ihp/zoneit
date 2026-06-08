@@ -24,7 +24,7 @@ import {
   type WorkoutResponse,
 } from "@/lib/api";
 import { loadActiveSession } from "@/lib/active-session-store";
-import { RCP_META, RCP_PROGRAM_ID, dayFocus } from "@/lib/programs/rcp-split";
+import { RCP_META, RCP_PROGRAM_ID } from "@/lib/programs/rcp-split";
 
 // Climbing tips for motivation
 const CLIMBING_TIPS = [
@@ -419,7 +419,8 @@ function Index() {
                       {RCP_META.name} · Continue
                     </p>
                     <p className="mt-0.5 truncate text-sm font-medium text-foreground">
-                      Week {programProgress.week} · {dayFocus(programProgress.dayIndex)}
+                      Week {programProgress.week} · {programProgress.completedDays.length}/
+                      {RCP_META.trainingDays} done this week
                     </p>
                   </div>
                   <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />

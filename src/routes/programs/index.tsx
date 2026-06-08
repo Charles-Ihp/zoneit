@@ -1,7 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CalendarRange, Play, RotateCcw, LogIn, Dumbbell } from "lucide-react";
+import {
+  CalendarRange,
+  Play,
+  RotateCcw,
+  LogIn,
+  Dumbbell,
+  CheckCircle2,
+  Circle,
+  ChevronRight,
+} from "lucide-react";
 import { SessionView } from "@/components/SessionView";
 import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/hooks/use-auth";
@@ -11,7 +20,6 @@ import {
   RCP_META,
   RCP_PROGRAM_ID,
   buildProgramSession,
-  dayFocus,
   phaseForWeek,
 } from "@/lib/programs/rcp-split";
 
@@ -27,26 +35,33 @@ function ProgramsPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [session, setSession] = useState<GeneratedSession | null>(null);
+  const [launchedDay, setLaunchedDay] = useState<number | null>(null);
+
+  const refetch = useCallback(
+    () =>
+      api.programs
+        .getProgress(RCP_PROGRAM_ID)
+        .then(setProgress)
+        .catch(() => {}),
+    [],
+  );
 
   useEffect(() => {
     if (!user) {
       setLoading(false);
       return;
     }
-    api.programs
-      .getProgress(RCP_PROGRAM_ID)
-      .then(setProgress)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [user]);
+    refetch().finally(() => setLoading(false));
+  }, [user, refetch]);
 
-  // Launch the session for the current position (starting the program if needed).
-  const handleStartOrContinue = async () => {
+  // Launch a chosen training day (starting the program if needed).
+  const handleStartDay = async (dayIndex: number) => {
     setBusy(true);
     try {
       const current = progress ?? (await api.programs.start(RCP_PROGRAM_ID));
       if (!progress) setProgress(current);
-      setSession(buildProgramSession(current.week, current.dayIndex));
+      setLaunchedDay(dayIndex);
+      setSession(buildProgramSession(current.week, dayIndex));
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       /* leave the user on the overview */
@@ -55,11 +70,21 @@ function ProgramsPage() {
     }
   };
 
-  const handleReset = async () => {
+  // After a launched day's session is finished & logged — tick it off.
+  const handleCompleted = async () => {
+    if (launchedDay === null) return;
+    try {
+      const updated = await api.programs.completeDay(RCP_PROGRAM_ID, launchedDay);
+      setProgress(updated);
+    } catch {
+      /* best-effort — refetch on return to overview will reconcile */
+    }
+  };
+
+  const handleAdvanceWeek = async () => {
     setBusy(true);
     try {
-      const p = await api.programs.reset(RCP_PROGRAM_ID);
-      setProgress(p);
+      setProgress(await api.programs.advanceWeek(RCP_PROGRAM_ID));
     } catch {
       /* ignore */
     } finally {
@@ -67,13 +92,14 @@ function ProgramsPage() {
     }
   };
 
-  // Called after a program session is finished & logged — advance the cycle.
-  const handleCompleted = async () => {
+  const handleReset = async () => {
+    setBusy(true);
     try {
-      const p = await api.programs.advance(RCP_PROGRAM_ID);
-      setProgress(p);
+      setProgress(await api.programs.reset(RCP_PROGRAM_ID));
     } catch {
-      /* best-effort */
+      /* ignore */
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -83,7 +109,11 @@ function ProgramsPage() {
       <div className="mx-auto max-w-2xl">
         <SessionView
           session={session}
-          onBack={() => setSession(null)}
+          onBack={() => {
+            setSession(null);
+            setLaunchedDay(null);
+            void refetch();
+          }}
           onCompleted={handleCompleted}
         />
       </div>
@@ -120,7 +150,9 @@ function ProgramsPage() {
   // ── Overview ────────────────────────────────────────────────────────────────
   const started = progress !== null;
   const week = progress?.week ?? 1;
-  const dayIndex = progress?.dayIndex ?? 0;
+  const doneDays = new Set(progress?.completedDays ?? []);
+  const doneCount = doneDays.size;
+  const weekComplete = started && doneCount >= RCP_META.trainingDays;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -149,80 +181,117 @@ function ProgramsPage() {
             </div>
             <p className="mt-4 text-sm text-foreground/90">{RCP_META.description}</p>
 
-            {/* Current position */}
             {started && (
-              <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wider text-primary">Up next</p>
-                <p className="mt-0.5 text-sm font-medium text-foreground">
-                  Week {week} · {dayFocus(dayIndex)}{" "}
-                  <span className="text-muted-foreground">(Phase {phaseForWeek(week)} of 3)</span>
-                </p>
-                {progress!.completedCount > 0 && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {progress!.completedCount} session{progress!.completedCount === 1 ? "" : "s"}{" "}
-                    completed
-                  </p>
-                )}
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <span className="rounded-md bg-primary/10 px-2.5 py-1 text-sm font-medium text-primary">
+                  Week {week} of {RCP_META.weeks}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  Phase {phaseForWeek(week)} of 3
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {doneCount}/{RCP_META.trainingDays} done this week
+                </span>
               </div>
             )}
 
-            {/* Actions */}
-            <div className="mt-4 flex flex-wrap gap-2">
+            {!started && (
               <button
-                onClick={handleStartOrContinue}
+                onClick={() => handleStartDay(0)}
                 disabled={busy}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+                className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
               >
                 <Play className="h-4 w-4" />
-                {started
-                  ? `Continue · Week ${week} ${RCP_META.days[dayIndex].dayLabel}`
-                  : "Start program"}
+                Start program
               </button>
-              {started && (
+            )}
+          </div>
+
+          {/* Training days — pick any to train; ticks show what's done this week */}
+          {started && (
+            <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
+              <div className="mb-3 flex items-center gap-2">
+                <Dumbbell className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">
+                  Choose a training day · Week {week}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {RCP_META.days.map((day, i) => {
+                  const done = doneDays.has(i);
+                  return (
+                    <button
+                      key={day.dayLabel}
+                      onClick={() => handleStartDay(i)}
+                      disabled={busy}
+                      className={`flex w-full items-center gap-3 rounded-lg border px-3 py-3 text-left transition-all hover:bg-muted/50 active:scale-[0.99] disabled:opacity-60 ${
+                        done ? "border-primary/40 bg-primary/5" : "border-border/50"
+                      }`}
+                    >
+                      {done ? (
+                        <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
+                      ) : (
+                        <Circle className="h-5 w-5 shrink-0 text-muted-foreground/50" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {day.focusLabel}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {day.dayLabel} · {day.mainLift} · {day.exerciseCount} exercises
+                        </p>
+                      </div>
+                      <span className="ml-1 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                        {done ? "Repeat" : "Start"}
+                        <ChevronRight className="h-4 w-4" />
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Week complete → roll to next week */}
+              {weekComplete && (
+                <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
+                  <p className="text-sm font-medium text-foreground">
+                    🎉 Week {week} complete — all {RCP_META.trainingDays} days done!
+                  </p>
+                  <button
+                    onClick={handleAdvanceWeek}
+                    disabled={busy}
+                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+                  >
+                    <Play className="h-4 w-4" />
+                    Start Week {week >= RCP_META.weeks ? 1 : week + 1}
+                  </button>
+                </div>
+              )}
+
+              {/* Manual controls */}
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-border/40 pt-4">
+                {!weekComplete && (
+                  <button
+                    onClick={handleAdvanceWeek}
+                    disabled={busy}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-muted disabled:opacity-60"
+                    title="Skip to next week"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                    Skip to Week {week >= RCP_META.weeks ? 1 : week + 1}
+                  </button>
+                )}
                 <button
                   onClick={handleReset}
                   disabled={busy}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-muted disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-muted disabled:opacity-60"
                   title="Reset to Week 1"
                 >
                   <RotateCcw className="h-4 w-4" />
                   Reset
                 </button>
-              )}
+              </div>
             </div>
-          </div>
-
-          {/* Training days */}
-          <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
-            <div className="mb-3 flex items-center gap-2">
-              <Dumbbell className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">
-                {RCP_META.trainingDays} training days / week
-              </span>
-            </div>
-            <div className="space-y-2">
-              {RCP_META.days.map((day, i) => (
-                <div
-                  key={day.dayLabel}
-                  className={`flex items-center justify-between rounded-lg border px-3 py-2.5 ${
-                    started && i === dayIndex
-                      ? "border-primary/40 bg-primary/5"
-                      : "border-border/50"
-                  }`}
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">{day.focusLabel}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {day.dayLabel} · Main lift: {day.mainLift}
-                    </p>
-                  </div>
-                  <span className="ml-3 shrink-0 text-xs text-muted-foreground">
-                    {day.exerciseCount} exercises
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Weekly periodization */}
           <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">

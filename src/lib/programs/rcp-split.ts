@@ -413,23 +413,6 @@ function clampPosition(week: number, dayIndex: number): { week: number; dayIndex
   return { week: w, dayIndex: d };
 }
 
-/**
- * Advance one training day, wrapping the day within the week and the week within
- * the 12-week cycle (Week 12 → Week 1). Mirrors the backend's advance logic and
- * is used for optimistic UI labels.
- */
-export function nextPosition(week: number, dayIndex: number): { week: number; dayIndex: number } {
-  const { week: w, dayIndex: d } = clampPosition(week, dayIndex);
-  let nextDay = d + 1;
-  let nextWeek = w;
-  if (nextDay >= RCP_TRAINING_DAYS) {
-    nextDay = 0;
-    nextWeek = w + 1;
-    if (nextWeek > RCP_WEEKS) nextWeek = 1;
-  }
-  return { week: nextWeek, dayIndex: nextDay };
-}
-
 /** Phase number (1..3) for a given week. */
 export function phaseForWeek(week: number): number {
   const { week: w } = clampPosition(week, 0);

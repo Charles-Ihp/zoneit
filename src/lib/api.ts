@@ -163,8 +163,8 @@ export interface ProgramProgressResponse {
   programId: string;
   /** Current week, 1..12. */
   week: number;
-  /** Current training-day index within the week, 0..3. */
-  dayIndex: number;
+  /** Training-day indices (0..3) completed in the current week. */
+  completedDays: number[];
   /** Total sessions completed since starting. */
   completedCount: number;
   startedAt: string;
@@ -358,13 +358,21 @@ export const api = {
       request<ProgramProgressResponse | null>(`/api/programs/${programId}/progress`).then(
         (p) => p ?? null,
       ),
-    /** Start (or resume) a program at week 1 / day 0. */
+    /** Start (or resume) a program at week 1. */
     start: (programId: string) =>
       request<ProgramProgressResponse>(`/api/programs/${programId}/start`, { method: "POST" }),
-    /** Advance one training day (wraps within the 12-week cycle). */
-    advance: (programId: string) =>
-      request<ProgramProgressResponse>(`/api/programs/${programId}/advance`, { method: "POST" }),
-    /** Reset progress back to week 1 / day 0. */
+    /** Mark a training day complete for the current week. */
+    completeDay: (programId: string, dayIndex: number) =>
+      request<ProgramProgressResponse>(`/api/programs/${programId}/complete-day`, {
+        method: "POST",
+        body: JSON.stringify({ dayIndex }),
+      }),
+    /** Advance to the next week (wraps within the 12-week cycle), clearing ticks. */
+    advanceWeek: (programId: string) =>
+      request<ProgramProgressResponse>(`/api/programs/${programId}/advance-week`, {
+        method: "POST",
+      }),
+    /** Reset progress back to week 1 with no days completed. */
     reset: (programId: string) =>
       request<ProgramProgressResponse>(`/api/programs/${programId}/reset`, { method: "POST" }),
   },

@@ -64,8 +64,8 @@ model ProgramProgress {
   programId      String
   /// Current week, 1..12.
   week           Int      @default(1)
-  /// Current training-day index within the week, 0..3.
-  dayIndex       Int      @default(0)
+  /// Training-day indices (0..3) completed in the CURRENT week. Cleared when the week advances.
+  completedDays  Int[]    @default([])
   /// Total sessions completed since starting (for stats / streaks).
   completedCount Int      @default(0)
   startedAt      DateTime @default(now())

@@ -17,12 +17,7 @@ import { SessionView } from "@/components/SessionView";
 import { AuthModal } from "@/components/AuthModal";
 import type { GeneratedSession, SessionInput } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
-import {
-  api,
-  type ProgramProgressResponse,
-  type SessionLogResponse,
-  type WorkoutResponse,
-} from "@/lib/api";
+import { api, type SessionLogResponse, type WorkoutResponse } from "@/lib/api";
 import { loadActiveSession } from "@/lib/active-session-store";
 import { RCP_META, RCP_PROGRAM_ID } from "@/lib/programs/rcp-split";
 
@@ -97,7 +92,13 @@ function Index() {
   const [currentWorkoutId, setCurrentWorkoutId] = useState<string | null>(null);
   const [sessionLogs, setSessionLogs] = useState<SessionLogResponse[]>([]);
   const [recentWorkouts, setRecentWorkouts] = useState<WorkoutResponse[]>([]);
-  const [programProgress, setProgramProgress] = useState<ProgramProgressResponse | null>(null);
+  const [activeProgram, setActiveProgram] = useState<{
+    programId: string;
+    name: string;
+    week: number;
+    doneCount: number;
+    trainingDays: number;
+  } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
   // Get daily tip
@@ -123,10 +124,45 @@ function Index() {
       })
       .catch(() => {})
       .finally(() => setStatsLoading(false));
-    // Program progress (separate — independent of the stats spinner)
-    api.programs
-      .getProgress(RCP_PROGRAM_ID)
-      .then(setProgramProgress)
+    // Most-recently-active program (across built-in + custom) for the continue card.
+    // Programs are VIP-only, so skip entirely for non-VIP users.
+    if (!user.isVip) {
+      setActiveProgram(null);
+      return;
+    }
+    Promise.all([api.programs.listProgress(), api.programs.list()])
+      .then(([progressRows, progs]) => {
+        if (progressRows.length === 0) {
+          setActiveProgram(null);
+          return;
+        }
+        const latest = progressRows.reduce((a, b) =>
+          new Date(b.updatedAt).getTime() > new Date(a.updatedAt).getTime() ? b : a,
+        );
+        let name: string | null = null;
+        let trainingDays = 0;
+        if (latest.programId === RCP_PROGRAM_ID) {
+          name = RCP_META.name;
+          trainingDays = RCP_META.trainingDays;
+        } else {
+          const p = progs.find((x) => x.id === latest.programId);
+          if (p) {
+            name = p.name;
+            trainingDays = p.days.length;
+          }
+        }
+        setActiveProgram(
+          name
+            ? {
+                programId: latest.programId,
+                name,
+                week: latest.week,
+                doneCount: latest.completedDays.length,
+                trainingDays,
+              }
+            : null,
+        );
+      })
       .catch(() => {});
   }, [user]);
 
@@ -405,10 +441,11 @@ function Index() {
                 </div>
               )}
 
-              {/* Program: continue the current cycle */}
-              {programProgress && (
+              {/* Program: continue the most-recently-active program */}
+              {activeProgram && (
                 <Link
-                  to="/programs"
+                  to="/programs/$programId"
+                  params={{ programId: activeProgram.programId }}
                   className="flex items-center gap-4 rounded-xl border border-primary/30 bg-primary/5 p-4 shadow-sm transition-all hover:bg-primary/10 active:scale-[0.99]"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15">
@@ -416,11 +453,11 @@ function Index() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-medium uppercase tracking-wider text-primary">
-                      {RCP_META.name} · Continue
+                      {activeProgram.name} · Continue
                     </p>
                     <p className="mt-0.5 truncate text-sm font-medium text-foreground">
-                      Week {programProgress.week} · {programProgress.completedDays.length}/
-                      {RCP_META.trainingDays} done this week
+                      Week {activeProgram.week} · {activeProgram.doneCount}/
+                      {activeProgram.trainingDays} done this week
                     </p>
                   </div>
                   <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />

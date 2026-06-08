@@ -27,8 +27,6 @@ function WorkoutsList() {
   const [workouts, setWorkouts] = useState<WorkoutResponse[]>([]);
   const [folders, setFolders] = useState<FolderResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [deleteConfirmWorkout, setDeleteConfirmWorkout] = useState<WorkoutResponse | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
@@ -67,19 +65,6 @@ function WorkoutsList() {
   useEffect(() => {
     loadData();
   }, [loadData]);
-
-  const handleDelete = async () => {
-    if (!deleteConfirmWorkout) return;
-    const id = deleteConfirmWorkout.id;
-    setDeleteConfirmWorkout(null);
-    setDeletingId(id);
-    try {
-      await api.workouts.delete(id);
-      setWorkouts((prev) => prev.filter((w) => w.id !== id));
-    } finally {
-      setDeletingId(null);
-    }
-  };
 
   const handleShare = async (workoutId: string) => {
     setSharingId(workoutId);
@@ -238,7 +223,7 @@ function WorkoutsList() {
       <div className="mr-2 text-muted-foreground">
         <GripVertical className="h-4 w-4" />
       </div>
-      <div className="min-w-0 flex-1">
+      <Link to="/workouts/$id" params={{ id: w.id }} className="min-w-0 flex-1 cursor-pointer">
         <h3 className="truncate font-heading text-sm font-bold text-foreground">{w.name}</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
           {new Date(w.createdAt).toLocaleDateString(undefined, {
@@ -247,7 +232,7 @@ function WorkoutsList() {
             day: "numeric",
           })}
         </p>
-      </div>
+      </Link>
       <div className="ml-4 flex shrink-0 items-center gap-2">
         <button
           onClick={() => handleShare(w.id)}
@@ -276,20 +261,6 @@ function WorkoutsList() {
               <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
             </svg>
           )}
-        </button>
-        <Link
-          to="/workouts/$id"
-          params={{ id: w.id }}
-          className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
-        >
-          View
-        </Link>
-        <button
-          onClick={() => setDeleteConfirmWorkout(w)}
-          disabled={deletingId === w.id}
-          className="rounded-lg px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-40"
-        >
-          {deletingId === w.id ? "…" : "Delete"}
         </button>
       </div>
     </motion.div>
@@ -457,51 +428,6 @@ function WorkoutsList() {
           </div>
         </div>
       )}
-
-      {/* Delete confirmation dialog */}
-      <AnimatePresence>
-        {deleteConfirmWorkout && (
-          <motion.div
-            key="delete-confirm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-4 backdrop-blur-sm"
-            onClick={() => setDeleteConfirmWorkout(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.97, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.97, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="font-heading text-lg font-semibold text-foreground">
-                Delete Session?
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                This will permanently delete "{deleteConfirmWorkout.name}". This action cannot be
-                undone.
-              </p>
-              <div className="mt-6 flex gap-2">
-                <button
-                  onClick={() => setDeleteConfirmWorkout(null)}
-                  className="flex-1 rounded-xl border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="flex-1 rounded-xl bg-destructive py-2.5 text-sm font-medium text-destructive-foreground transition-all hover:bg-destructive/90"
-                >
-                  Delete
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Share link dialog */}
       <AnimatePresence>

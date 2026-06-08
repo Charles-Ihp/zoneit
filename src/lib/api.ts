@@ -1,6 +1,7 @@
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type { SessionInput, GeneratedSession } from "./types";
+import type { ProgramDay, ProgramType } from "./programs/types";
 
 export interface UserResponse {
   id: string;
@@ -11,6 +12,7 @@ export interface UserResponse {
   weightKg: number | null;
   heightCm: number | null;
   restTimeSeconds: number;
+  isVip: boolean;
   createdAt: string;
 }
 
@@ -161,14 +163,42 @@ export interface LeaderboardResponse {
 
 export interface ProgramProgressResponse {
   programId: string;
-  /** Current week, 1..12. */
+  /** Current week, 1..N. */
   week: number;
-  /** Training-day indices (0..3) completed in the current week. */
+  /** Training-day indices completed in the current week. */
   completedDays: number[];
   /** Total sessions completed since starting. */
   completedCount: number;
   startedAt: string;
   updatedAt: string;
+}
+
+export interface ProgramResponse {
+  id: string;
+  name: string;
+  description: string;
+  /** "gym" | "climbing" */
+  type: ProgramType;
+  lengthWeeks: number;
+  days: ProgramDay[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProgramBody {
+  name: string;
+  description?: string;
+  type: ProgramType;
+  lengthWeeks: number;
+  days: ProgramDay[];
+}
+
+export interface UpdateProgramBody {
+  name?: string;
+  description?: string;
+  type?: ProgramType;
+  lengthWeeks?: number;
+  days?: ProgramDay[];
 }
 
 export interface SharedWorkoutResponse {
@@ -349,6 +379,26 @@ export const api = {
   },
 
   programs: {
+    /** List the user's custom programs. */
+    list: () => request<ProgramResponse[]>("/api/programs"),
+    /** Get one custom program. */
+    get: (id: string) => request<ProgramResponse>(`/api/programs/${id}`),
+    /** Create a custom program. */
+    create: (body: CreateProgramBody) =>
+      request<ProgramResponse>("/api/programs", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    /** Update a custom program. */
+    update: (id: string, body: UpdateProgramBody) =>
+      request<ProgramResponse>(`/api/programs/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(body),
+      }),
+    /** Delete a custom program (and its progress). */
+    delete: (id: string) => request<void>(`/api/programs/${id}`, { method: "DELETE" }),
+    /** All of the user's progress rows (for the Home continue card). */
+    listProgress: () => request<ProgramProgressResponse[]>("/api/programs/progress/all"),
     /**
      * Current progress in a program, or null if not started. The backend returns
      * 204 (No Content) when there is no progress, which `request` maps to

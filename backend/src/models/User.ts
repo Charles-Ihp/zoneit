@@ -8,6 +8,8 @@ export interface UserResponse {
   weightKg: number | null;
   heightCm: number | null;
   restTimeSeconds: number;
+  /** VIP tier — required to access Programs. */
+  isVip: boolean;
   createdAt: string;
 }
 

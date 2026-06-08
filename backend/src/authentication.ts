@@ -8,15 +8,16 @@ interface JwtPayload {
 
 /**
  * TSOA authentication handler.
- * Called for every route decorated with @Security('bearerAuth').
+ * Called for every route decorated with @Security('bearerAuth') or @Security('vip').
  * Attaches the resolved user to request.user for use in controllers.
+ * The 'vip' scheme additionally requires the user to have VIP status (403 otherwise).
  */
 export async function expressAuthentication(
   request: Request,
   securityName: string,
   _scopes?: string[],
 ): Promise<unknown> {
-  if (securityName !== "bearerAuth") {
+  if (securityName !== "bearerAuth" && securityName !== "vip") {
     throw Object.assign(new Error("Unknown security scheme"), { status: 401 });
   }
 
@@ -37,6 +38,10 @@ export async function expressAuthentication(
   const user = await prisma.user.findUnique({ where: { id: payload.sub } });
   if (!user) {
     throw Object.assign(new Error("User not found"), { status: 401 });
+  }
+
+  if (securityName === "vip" && !user.isVip) {
+    throw Object.assign(new Error("VIP access required"), { status: 403 });
   }
 
   // Attach to request so controllers can read it

@@ -11,6 +11,8 @@ import {
   User,
   LogOut,
   LogIn,
+  Lock,
+  type LucideIcon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -29,10 +31,10 @@ import { AuthModal } from "./AuthModal";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+const navItems: { to: string; icon: LucideIcon; label: string; vip?: boolean }[] = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/workouts", icon: Dumbbell, label: "Workouts" },
-  { to: "/programs", icon: CalendarRange, label: "Programs" },
+  { to: "/programs", icon: CalendarRange, label: "Programs", vip: true },
   { to: "/stats", icon: BarChart3, label: "Stats" },
   { to: "/leaderboard", icon: Trophy, label: "Leaderboard" },
   { to: "/terms", icon: BookOpen, label: "Glossary" },
@@ -86,6 +88,9 @@ export function AppSidebar() {
                       <Link to={item.to} onClick={handleNavClick}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.label}</span>
+                        {item.vip && !user?.isVip && (
+                          <Lock className="ml-auto h-3.5 w-3.5 text-muted-foreground" />
+                        )}
                         {isActive && (
                           <motion.div
                             layoutId="sidebar-active-indicator"

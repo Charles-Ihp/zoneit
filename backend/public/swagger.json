@@ -135,6 +135,10 @@
 						"type": "number",
 						"format": "double"
 					},
+					"isVip": {
+						"type": "boolean",
+						"description": "VIP tier — required to access Programs."
+					},
 					"createdAt": {
 						"type": "string"
 					}
@@ -148,6 +152,7 @@
 					"weightKg",
 					"heightCm",
 					"restTimeSeconds",
+					"isVip",
 					"createdAt"
 				],
 				"type": "object",
@@ -712,6 +717,85 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ProgramResponse": {
+				"description": "A user-created multi-week training program.",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string",
+						"description": "\"gym\" | \"climbing\""
+					},
+					"lengthWeeks": {
+						"type": "number",
+						"format": "double"
+					},
+					"days": {
+						"items": {
+							"$ref": "#/components/schemas/Record_string.unknown_"
+						},
+						"type": "array",
+						"description": "ProgramDay[] — each day: { name, exercises: [{ exercise, duration }] }."
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"description",
+					"type",
+					"lengthWeeks",
+					"days",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateProgramBody": {
+				"description": "Body for creating a program.",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"lengthWeeks": {
+						"type": "number",
+						"format": "double"
+					},
+					"days": {
+						"items": {
+							"$ref": "#/components/schemas/Record_string.unknown_"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"name",
+					"type",
+					"lengthWeeks",
+					"days"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ProgramProgressResponse": {
 				"description": "A user's progress through a recurring multi-week program.",
 				"properties": {
@@ -721,7 +805,7 @@
 					"week": {
 						"type": "number",
 						"format": "double",
-						"description": "Current week, 1..12."
+						"description": "Current week, 1..N."
 					},
 					"completedDays": {
 						"items": {
@@ -729,7 +813,7 @@
 							"format": "double"
 						},
 						"type": "array",
-						"description": "Training-day indices (0..3) completed in the current week."
+						"description": "Training-day indices completed in the current week."
 					},
 					"completedCount": {
 						"type": "number",
@@ -754,13 +838,39 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"UpdateProgramBody": {
+				"description": "Body for updating a program (all fields optional).",
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"lengthWeeks": {
+						"type": "number",
+						"format": "double"
+					},
+					"days": {
+						"items": {
+							"$ref": "#/components/schemas/Record_string.unknown_"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
 			"CompleteDayBody": {
 				"description": "Body for marking a training day complete.",
 				"properties": {
 					"dayIndex": {
 						"type": "number",
 						"format": "double",
-						"description": "Training-day index within the week, 0..3."
+						"description": "Training-day index within the week, 0-based."
 					}
 				},
 				"required": [
@@ -1189,6 +1299,12 @@
 				"type": "http",
 				"scheme": "bearer",
 				"bearerFormat": "JWT"
+			},
+			"vip": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT",
+				"description": "Requires an authenticated user with VIP status"
 			}
 		}
 	},
@@ -1800,6 +1916,208 @@
 				}
 			}
 		},
+		"/api/programs": {
+			"get": {
+				"operationId": "ListPrograms",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/ProgramResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "List the authenticated user's custom programs (newest first).",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"vip": []
+					}
+				],
+				"parameters": []
+			},
+			"post": {
+				"operationId": "CreateProgram",
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProgramResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a custom program.",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"vip": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateProgramBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/programs/progress/all": {
+			"get": {
+				"operationId": "ListProgress",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/ProgramProgressResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "All of the user's program progress rows (for the Home \"continue\" card).",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"vip": []
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/api/programs/{id}": {
+			"get": {
+				"operationId": "GetProgram",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProgramResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get one custom program (owner only).",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"vip": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "UpdateProgram",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProgramResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update a custom program (owner only).",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"vip": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateProgramBody"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteProgram",
+				"responses": {
+					"204": {
+						"description": "No Content"
+					}
+				},
+				"description": "Delete a custom program and its progress (owner only).",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"vip": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/api/programs/{programId}/progress": {
 			"get": {
 				"operationId": "GetProgress",
@@ -1826,7 +2144,7 @@
 				],
 				"security": [
 					{
-						"bearerAuth": []
+						"vip": []
 					}
 				],
 				"parameters": [
@@ -1856,13 +2174,13 @@
 						}
 					}
 				},
-				"description": "Start (or resume) a program. Creates progress at week 1 with no days completed\nif none exists; returns the existing progress otherwise so re-clicking is safe.",
+				"description": "Start (or resume) a program at week 1; safe to re-click.",
 				"tags": [
 					"Programs"
 				],
 				"security": [
 					{
-						"bearerAuth": []
+						"vip": []
 					}
 				],
 				"parameters": [
@@ -1898,7 +2216,7 @@
 				],
 				"security": [
 					{
-						"bearerAuth": []
+						"vip": []
 					}
 				],
 				"parameters": [
@@ -1938,13 +2256,13 @@
 						}
 					}
 				},
-				"description": "Advance to the next week, wrapping within the 12-week cycle (Week 12 → Week 1)\n— \"a circle every 12 weeks\" — and clearing the week's completed days.",
+				"description": "Advance to the next week, wrapping within the program's cycle\n(Week N → Week 1) and clearing the week's completed days.",
 				"tags": [
 					"Programs"
 				],
 				"security": [
 					{
-						"bearerAuth": []
+						"vip": []
 					}
 				],
 				"parameters": [
@@ -1974,13 +2292,13 @@
 						}
 					}
 				},
-				"description": "Reset the program back to week 1 with no days completed (keeps the lifetime count).",
+				"description": "Reset the program back to week 1 with no days completed (keeps lifetime count).",
 				"tags": [
 					"Programs"
 				],
 				"security": [
 					{
-						"bearerAuth": []
+						"vip": []
 					}
 				],
 				"parameters": [

@@ -18,6 +18,8 @@ import { Route as WorkoutsIndexRouteImport } from './routes/workouts/index'
 import { Route as ProgramsIndexRouteImport } from './routes/programs/index'
 import { Route as WorkoutsIdRouteImport } from './routes/workouts/$id'
 import { Route as WCodeRouteImport } from './routes/w/$code'
+import { Route as ProgramsBuilderRouteImport } from './routes/programs/builder'
+import { Route as ProgramsProgramIdRouteImport } from './routes/programs/$programId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -64,6 +66,16 @@ const WCodeRoute = WCodeRouteImport.update({
   path: '/w/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProgramsBuilderRoute = ProgramsBuilderRouteImport.update({
+  id: '/programs/builder',
+  path: '/programs/builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgramsProgramIdRoute = ProgramsProgramIdRouteImport.update({
+  id: '/programs/$programId',
+  path: '/programs/$programId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -71,6 +83,8 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/programs/$programId': typeof ProgramsProgramIdRoute
+  '/programs/builder': typeof ProgramsBuilderRoute
   '/w/$code': typeof WCodeRoute
   '/workouts/$id': typeof WorkoutsIdRoute
   '/programs/': typeof ProgramsIndexRoute
@@ -82,6 +96,8 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/programs/$programId': typeof ProgramsProgramIdRoute
+  '/programs/builder': typeof ProgramsBuilderRoute
   '/w/$code': typeof WCodeRoute
   '/workouts/$id': typeof WorkoutsIdRoute
   '/programs': typeof ProgramsIndexRoute
@@ -94,6 +110,8 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/programs/$programId': typeof ProgramsProgramIdRoute
+  '/programs/builder': typeof ProgramsBuilderRoute
   '/w/$code': typeof WCodeRoute
   '/workouts/$id': typeof WorkoutsIdRoute
   '/programs/': typeof ProgramsIndexRoute
@@ -107,6 +125,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/stats'
     | '/terms'
+    | '/programs/$programId'
+    | '/programs/builder'
     | '/w/$code'
     | '/workouts/$id'
     | '/programs/'
@@ -118,6 +138,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/stats'
     | '/terms'
+    | '/programs/$programId'
+    | '/programs/builder'
     | '/w/$code'
     | '/workouts/$id'
     | '/programs'
@@ -129,6 +151,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/stats'
     | '/terms'
+    | '/programs/$programId'
+    | '/programs/builder'
     | '/w/$code'
     | '/workouts/$id'
     | '/programs/'
@@ -141,6 +165,8 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   StatsRoute: typeof StatsRoute
   TermsRoute: typeof TermsRoute
+  ProgramsProgramIdRoute: typeof ProgramsProgramIdRoute
+  ProgramsBuilderRoute: typeof ProgramsBuilderRoute
   WCodeRoute: typeof WCodeRoute
   WorkoutsIdRoute: typeof WorkoutsIdRoute
   ProgramsIndexRoute: typeof ProgramsIndexRoute
@@ -212,6 +238,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/programs/builder': {
+      id: '/programs/builder'
+      path: '/programs/builder'
+      fullPath: '/programs/builder'
+      preLoaderRoute: typeof ProgramsBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/programs/$programId': {
+      id: '/programs/$programId'
+      path: '/programs/$programId'
+      fullPath: '/programs/$programId'
+      preLoaderRoute: typeof ProgramsProgramIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -221,6 +261,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
+  ProgramsProgramIdRoute: ProgramsProgramIdRoute,
+  ProgramsBuilderRoute: ProgramsBuilderRoute,
   WCodeRoute: WCodeRoute,
   WorkoutsIdRoute: WorkoutsIdRoute,
   ProgramsIndexRoute: ProgramsIndexRoute,

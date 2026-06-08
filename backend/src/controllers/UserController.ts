@@ -14,6 +14,7 @@ function toResponse(user: User): UserResponse {
     weightKg: user.weightKg ?? null,
     heightCm: user.heightCm ?? null,
     restTimeSeconds: user.restTimeSeconds ?? 90,
+    isVip: user.isVip,
     createdAt: user.createdAt.toISOString(),
   };
 }

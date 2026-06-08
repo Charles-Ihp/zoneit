@@ -1,19 +1,126 @@
-# Development Workflow
+# ZONEIT / GRAVITACIO
 
-**Always use `bun`, not `npm`.**
+A full-stack climbing & gym workout session generator and tracker. A rule-based
+engine generates personalized training sessions from a user's level, goals,
+fatigue, injuries, and available equipment; users execute sessions with a live
+timer, log results, and compare on a leaderboard.
 
-# 1. Make changes
+## Architecture
 
-# 2. Typecheck (fast)
+Two separate apps in one repo:
 
-bun run typecheck
+- **Frontend** (`/src`) — React 19 SPA. TanStack Router (file-based, in `src/routes/`),
+  TanStack Query for server state, Tailwind v4 + Radix UI (`src/components/ui/`),
+  React Hook Form + Zod. Built with Vite. Talks to the backend via the typed
+  client in `src/lib/api.ts`.
+- **Backend** (`/backend`) — Express + TSOA. Controllers in
+  `backend/src/controllers/` use TSOA decorators; routes & the Swagger spec are
+  **generated** from them. Prisma ORM over PostgreSQL. Auth is Google OAuth +
+  email/password, both issuing 7-day JWTs.
 
-# 3. Run tests
+Frontend ↔ backend contract is **not shared automatically**: request/response
+types are hand-mirrored between `backend/src/models/*` and `src/lib/api.ts`.
+Keep them in sync by hand.
 
-bun run test -- -t "test name" # Single suite
-bun run test:file -- "glob" # Specific files
+## Commands
 
-# 4. Lint before committing
+**Always use `bun`, not `npm`,** for the frontend. The backend's own scripts
+call `npx` internally (that's fine — run them via `bun run`).
 
-bun run lint:file -- "file1.ts"
-bun run lint
+```bash
+# Run everything (frontend :5173 + backend :3001)
+bun run dev:all
+bun run dev            # frontend only
+bun run dev:backend    # backend only (regenerates TSOA routes first)
+
+# Typecheck (fast — no test suite exists, this is the main safety net)
+bun run typecheck                    # frontend (tsc --noEmit)
+cd backend && bun run typecheck      # backend
+
+# Lint (run before committing)
+bun run lint                         # all files
+bun run lint:file -- path/to/file.tsx
+bun run format                       # prettier --write .
+
+# Build
+bun run build                        # frontend → /dist
+cd backend && bun run build          # tsoa + tsc → backend/dist
+```
+
+> There is **no test framework** in this repo. Do not run `bun run test` — it
+> does not exist. Verify changes with `typecheck`, `lint`, and by running the app.
+
+## Database
+
+PostgreSQL runs in Docker (`docker-compose.yml`, db/user/pass all `zoneit`, port 5432).
+
+```bash
+docker compose up -d                       # start Postgres (do this first)
+cd backend
+bun run prisma:migrate                      # apply / create migrations (dev)
+bun run prisma:generate                     # regenerate Prisma client
+bun run prisma:studio                       # browse data
+npx prisma db seed                          # seed exercises + glossary terms
+```
+
+Schema lives in `backend/prisma/schema.prisma`. Core entities: `User`,
+`Exercise`, `Workout`, `Folder`, `SessionLog`, `SharedWorkout`, `Term`.
+Workouts and session logs store `sessionInput` / `generatedSession` / `exercises`
+as **JSON columns** (typed as `Record<string, unknown>` on the wire), so adding
+fields inside those blobs needs no migration.
+
+## Environment
+
+- **Frontend** `.env`: `VITE_API_URL` (defaults to `http://localhost:3001`).
+- **Backend** `backend/.env`: `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`,
+  `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `FRONTEND_URL`, `PORT`.
+
+`JWT_SECRET` must be set or all auth breaks. Google OAuth vars are only needed if
+testing Google login; email/password works without them.
+
+## TSOA — important workflow
+
+Backend routes and the Swagger spec are **generated** from the decorated
+controllers. After editing anything in `backend/src/controllers/` or the request/
+response models they reference, the routes must be regenerated:
+
+```bash
+cd backend && bun run tsoa     # spec-and-routes; dev/build do this automatically
+```
+
+`backend/src/generated/routes.ts` and `backend/public/swagger.json` are generated
+artifacts — never edit them by hand. Swagger UI is served at `/api/docs`.
+
+## Conventions
+
+- **Backend controllers**: `@Route("api/x")`, `@Tags`, `@Security("bearerAuth")`
+  for protected routes. The authenticated user is read via
+  `(request as ExpressRequest & { user: User }).user` (attached by
+  `backend/src/authentication.ts`). Always scope queries by `userId`.
+  Errors: `throw Object.assign(new Error("..."), { status: 404 })`.
+  A module-level `toResponse(entity)` maps Prisma rows → response DTOs and
+  converts `Date` → `.toISOString()`.
+- **Models**: response types suffixed `Response`, request bodies suffixed `Body`,
+  in `backend/src/models/`.
+- **Frontend API**: every endpoint gets a method on the `api` object in
+  `src/lib/api.ts`, grouped by resource. Use the shared `request<T>()` helper —
+  it injects the Bearer token and throws `ApiError`.
+- **Routes**: file-based via `createFileRoute("/path")`; `routeTree.gen.ts` is
+  auto-generated by the Vite plugin (don't edit). `$param` files → `:param`.
+- **Styling**: Tailwind utilities inline; compose classes with `cn()` from
+  `src/lib/utils.ts`. Reuse `src/components/ui/` primitives.
+- **Naming**: PascalCase components, no `Component` suffix. Exercise IDs are short
+  codes (`wm1`, `t4`).
+
+## Known issues
+
+- `bun run typecheck` (frontend) currently reports **pre-existing type errors**
+  (mostly `GeneratedSession` JSON casts in `src/routes/`). `vite build` does NOT
+  typecheck, so these don't block builds. When typechecking your own changes,
+  focus on errors in files you touched — don't try to fix the whole baseline.
+
+## Skills
+
+- `/troubleshoot` — diagnose common dev failures (DB, env, auth, CORS, ports,
+  TSOA, empty session generation).
+- `/add-feature` — scaffold a new full-stack feature following the patterns above.

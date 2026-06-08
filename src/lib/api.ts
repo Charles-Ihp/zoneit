@@ -159,6 +159,18 @@ export interface LeaderboardResponse {
   funFacts: string[];
 }
 
+export interface ProgramProgressResponse {
+  programId: string;
+  /** Current week, 1..12. */
+  week: number;
+  /** Current training-day index within the week, 0..3. */
+  dayIndex: number;
+  /** Total sessions completed since starting. */
+  completedCount: number;
+  startedAt: string;
+  updatedAt: string;
+}
+
 export interface SharedWorkoutResponse {
   id: string;
   code: string;
@@ -334,6 +346,27 @@ export const api = {
 
   leaderboard: {
     get: () => request<LeaderboardResponse>("/api/leaderboard"),
+  },
+
+  programs: {
+    /**
+     * Current progress in a program, or null if not started. The backend returns
+     * 204 (No Content) when there is no progress, which `request` maps to
+     * undefined — normalize that to null so callers can rely on `=== null`.
+     */
+    getProgress: (programId: string) =>
+      request<ProgramProgressResponse | null>(`/api/programs/${programId}/progress`).then(
+        (p) => p ?? null,
+      ),
+    /** Start (or resume) a program at week 1 / day 0. */
+    start: (programId: string) =>
+      request<ProgramProgressResponse>(`/api/programs/${programId}/start`, { method: "POST" }),
+    /** Advance one training day (wraps within the 12-week cycle). */
+    advance: (programId: string) =>
+      request<ProgramProgressResponse>(`/api/programs/${programId}/advance`, { method: "POST" }),
+    /** Reset progress back to week 1 / day 0. */
+    reset: (programId: string) =>
+      request<ProgramProgressResponse>(`/api/programs/${programId}/reset`, { method: "POST" }),
   },
 
   shared: {

@@ -38,6 +38,12 @@ export interface ExerciseItem {
   defaultSets: number | null;
   /** Default number of reps per set (null = time-based exercise) */
   defaultReps: number | null;
+  /**
+   * Optional per-set rep scheme (e.g. [12, 12, 12, 15, 15] for a pyramid).
+   * When present, it defines one set per entry with that many reps, overriding
+   * the uniform `defaultReps`. Used by structured programs like the RCP-Split.
+   */
+  repScheme?: number[];
 }
 
 export interface SessionBlock {

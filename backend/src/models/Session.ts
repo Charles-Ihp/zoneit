@@ -38,6 +38,8 @@ export interface ExerciseItem {
   defaultSets: number | null;
   /** Default number of reps per set (null = time-based exercise) */
   defaultReps: number | null;
+  /** Optional per-set rep scheme (e.g. [12,12,12,15,15]); overrides defaultReps when present */
+  repScheme?: number[];
 }
 
 export interface SessionBlock {

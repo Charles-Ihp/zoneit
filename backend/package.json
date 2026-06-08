@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "npx tsoa spec-and-routes && npx nodemon",
     "build": "npx tsoa spec-and-routes && npx tsc",
+    "typecheck": "npx tsoa spec-and-routes && npx tsc --noEmit",
     "start": "node dist/server.js",
     "tsoa": "npx tsoa spec-and-routes",
     "prisma:migrate": "npx prisma migrate dev",

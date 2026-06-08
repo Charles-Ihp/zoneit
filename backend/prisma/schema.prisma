@@ -49,10 +49,32 @@ model User {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  workouts       Workout[]
-  sessionLogs    SessionLog[]
-  sharedWorkouts SharedWorkout[]
-  folders        Folder[]
+  workouts        Workout[]
+  sessionLogs     SessionLog[]
+  sharedWorkouts  SharedWorkout[]
+  folders         Folder[]
+  programProgress ProgramProgress[]
+}
+
+/// A user's position in a recurring multi-week program (e.g. the RCP-Split).
+model ProgramProgress {
+  id             String   @id @default(cuid())
+  userId         String
+  /// Program identifier (currently only "rcp-split").
+  programId      String
+  /// Current week, 1..12.
+  week           Int      @default(1)
+  /// Current training-day index within the week, 0..3.
+  dayIndex       Int      @default(0)
+  /// Total sessions completed since starting (for stats / streaks).
+  completedCount Int      @default(0)
+  startedAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, programId])
+  @@index([userId])
 }
 
 model Folder {

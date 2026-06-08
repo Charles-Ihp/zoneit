@@ -17,6 +17,8 @@ interface SessionViewProps {
   saveLabel?: string;
   /** If provided, allows editing the session */
   onSessionChange?: (session: GeneratedSession) => void;
+  /** Called once after the session is finished and logged (e.g. to advance a program). */
+  onCompleted?: () => void | Promise<void>;
 }
 
 const phaseColors: Record<string, { bg: string; border: string; accent: string; label: string }> = {
@@ -57,6 +59,7 @@ export function SessionView({
   onShare,
   saveLabel = "Save Session",
   onSessionChange,
+  onCompleted,
 }: SessionViewProps) {
   const [activeSession, setActiveSession] = useState(() => {
     const stored = loadActiveSession();
@@ -149,6 +152,7 @@ export function SessionView({
           <ActiveSessionOverlay
             session={session}
             workoutId={workoutId}
+            onCompleted={onCompleted}
             onClose={() => {
               clearActiveSession();
               setActiveSession(false);

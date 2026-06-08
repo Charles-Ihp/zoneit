@@ -28,6 +28,8 @@ interface ActiveSessionOverlayProps {
   session: GeneratedSession;
   workoutId?: string;
   onClose: () => void;
+  /** Called once after the session is successfully finished and logged. */
+  onCompleted?: () => void | Promise<void>;
 }
 
 const DEFAULT_REST_TIME = 90;
@@ -38,7 +40,12 @@ function formatRestTimeDisplay(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSessionOverlayProps) {
+export function ActiveSessionOverlay({
+  session,
+  workoutId,
+  onClose,
+  onCompleted,
+}: ActiveSessionOverlayProps) {
   const { user } = useAuth();
 
   // Build initial exercises list from session blocks
@@ -49,17 +56,24 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         block.exercises.map(({ exercise, duration }) => {
           // Warmup exercises default to 1 set if not explicitly set-based
           const isWarmup = block.phase === "warmup";
+          // A per-set rep scheme (e.g. a program pyramid) forces a set-based exercise.
+          const repScheme = exercise.repScheme?.length ? exercise.repScheme : null;
           const isSetBased =
-            (exercise.defaultSets !== null && exercise.defaultReps !== null) || isWarmup;
-          const numSets = exercise.defaultSets ?? 1;
+            repScheme !== null ||
+            (exercise.defaultSets !== null && exercise.defaultReps !== null) ||
+            isWarmup;
+          const numSets = repScheme?.length ?? exercise.defaultSets ?? 1;
           const defaultReps = exercise.defaultReps ?? (isWarmup ? 1 : 0);
           const prevExercise = previousData?.[exercise.id];
 
           const sets: SetState[] = isSetBased
             ? Array.from({ length: numSets }, (_, i) => {
                 const prevSet = prevExercise?.sets?.[i];
+                // Program rep schemes drive the planned reps; otherwise fall back to
+                // the previous session's reps, then the uniform default.
+                const plannedReps = repScheme?.[i] ?? prevSet?.reps ?? defaultReps;
                 return {
-                  reps: prevSet?.reps ?? defaultReps,
+                  reps: plannedReps,
                   weight: prevSet?.weight,
                   completed: false,
                   previousReps: prevSet?.reps,
@@ -396,13 +410,19 @@ export function ActiveSessionOverlay({ session, workoutId, onClose }: ActiveSess
         exercises: exercisesData,
       };
       await api.sessionLogs.create(body);
+      // Notify the program flow so it can advance to the next training day.
+      try {
+        await onCompleted?.();
+      } catch {
+        /* advancing is best-effort — don't block the finish flow */
+      }
     } catch {
       /* close gracefully */
     } finally {
       setSaving(false);
       setSaved(true);
     }
-  }, [user, workoutId, session, sessionElapsed, exercises, notes]);
+  }, [user, workoutId, session, sessionElapsed, exercises, notes, onCompleted]);
 
   const handleCancel = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);

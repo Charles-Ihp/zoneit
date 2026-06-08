@@ -7,193 +7,11 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
-			"UserResponse": {
-				"description": "User profile returned by the API",
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"email": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					},
-					"picture": {
-						"type": "string",
-						"nullable": true
-					},
-					"age": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					},
-					"weightKg": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					},
-					"heightCm": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					},
-					"restTimeSeconds": {
-						"type": "number",
-						"format": "double"
-					},
-					"createdAt": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"id",
-					"email",
-					"name",
-					"picture",
-					"age",
-					"weightKg",
-					"heightCm",
-					"restTimeSeconds",
-					"createdAt"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateProfileBody": {
-				"properties": {
-					"name": {
-						"type": "string"
-					},
-					"age": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					},
-					"weightKg": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					},
-					"heightCm": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					},
-					"restTimeSeconds": {
-						"type": "number",
-						"format": "double"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
-			},
-			"CreateShareLinkResponse": {
-				"description": "Response when creating a share link",
-				"properties": {
-					"code": {
-						"type": "string"
-					},
-					"shareUrl": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"code",
-					"shareUrl"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
 			"Record_string.unknown_": {
 				"properties": {},
 				"additionalProperties": {},
 				"type": "object",
 				"description": "Construct a type with a set of properties K of type T"
-			},
-			"SharedWorkoutResponse": {
-				"description": "Shared workout response returned by the API",
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"code": {
-						"type": "string"
-					},
-					"workoutName": {
-						"type": "string"
-					},
-					"sessionInput": {
-						"$ref": "#/components/schemas/Record_string.unknown_"
-					},
-					"generatedSession": {
-						"$ref": "#/components/schemas/Record_string.unknown_"
-					},
-					"createdBy": {
-						"properties": {
-							"picture": {
-								"type": "string"
-							},
-							"name": {
-								"type": "string"
-							}
-						},
-						"required": [
-							"name"
-						],
-						"type": "object"
-					},
-					"importCount": {
-						"type": "number",
-						"format": "double"
-					},
-					"expiresAt": {
-						"type": "string"
-					},
-					"createdAt": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"id",
-					"code",
-					"workoutName",
-					"sessionInput",
-					"generatedSession",
-					"createdBy",
-					"importCount",
-					"createdAt"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ImportSharedWorkoutResponse": {
-				"description": "Response after importing a shared workout",
-				"properties": {
-					"workoutId": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"workoutId",
-					"name"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ImportSharedWorkoutBody": {
-				"description": "Body for importing a shared workout",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "Optional custom name for the imported workout"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
 			},
 			"WorkoutResponse": {
 				"description": "Saved workout returned by the API",
@@ -277,6 +95,212 @@
 					"generatedSession": {
 						"$ref": "#/components/schemas/Record_string.unknown_",
 						"description": "Updated generated session (when exercises are edited)"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UserResponse": {
+				"description": "User profile returned by the API",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"picture": {
+						"type": "string",
+						"nullable": true
+					},
+					"age": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"weightKg": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"heightCm": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"restTimeSeconds": {
+						"type": "number",
+						"format": "double"
+					},
+					"createdAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"email",
+					"name",
+					"picture",
+					"age",
+					"weightKg",
+					"heightCm",
+					"restTimeSeconds",
+					"createdAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateProfileBody": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"age": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"weightKg": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"heightCm": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"restTimeSeconds": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TermResponse": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"term": {
+						"type": "string"
+					},
+					"definition": {
+						"type": "string"
+					},
+					"letter": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"term",
+					"definition",
+					"letter"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateShareLinkResponse": {
+				"description": "Response when creating a share link",
+				"properties": {
+					"code": {
+						"type": "string"
+					},
+					"shareUrl": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"code",
+					"shareUrl"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SharedWorkoutResponse": {
+				"description": "Shared workout response returned by the API",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					},
+					"workoutName": {
+						"type": "string"
+					},
+					"sessionInput": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					},
+					"generatedSession": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					},
+					"createdBy": {
+						"properties": {
+							"picture": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"name"
+						],
+						"type": "object"
+					},
+					"importCount": {
+						"type": "number",
+						"format": "double"
+					},
+					"expiresAt": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"code",
+					"workoutName",
+					"sessionInput",
+					"generatedSession",
+					"createdBy",
+					"importCount",
+					"createdAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ImportSharedWorkoutResponse": {
+				"description": "Response after importing a shared workout",
+				"properties": {
+					"workoutId": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"workoutId",
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ImportSharedWorkoutBody": {
+				"description": "Body for importing a shared workout",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Optional custom name for the imported workout"
 					}
 				},
 				"type": "object",
@@ -451,203 +475,6 @@
 				"type": "object",
 				"description": "Construct a type with a set of properties K of type T"
 			},
-			"AuthResponse": {
-				"description": "Response after successful authentication",
-				"properties": {
-					"token": {
-						"type": "string"
-					},
-					"user": {
-						"properties": {
-							"picture": {
-								"type": "string",
-								"nullable": true
-							},
-							"name": {
-								"type": "string"
-							},
-							"email": {
-								"type": "string"
-							},
-							"id": {
-								"type": "string"
-							}
-						},
-						"required": [
-							"picture",
-							"name",
-							"email",
-							"id"
-						],
-						"type": "object"
-					}
-				},
-				"required": [
-					"token",
-					"user"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"RegisterBody": {
-				"description": "Request body for user registration",
-				"properties": {
-					"email": {
-						"type": "string"
-					},
-					"password": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"email",
-					"password",
-					"name"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"LoginBody": {
-				"description": "Request body for user login",
-				"properties": {
-					"email": {
-						"type": "string"
-					},
-					"password": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"email",
-					"password"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ExerciseResponse": {
-				"description": "Exercise returned by the API",
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string"
-					},
-					"category": {
-						"type": "string"
-					},
-					"focus": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"intensity": {
-						"type": "number",
-						"format": "double"
-					},
-					"defaultSets": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					},
-					"defaultReps": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					}
-				},
-				"required": [
-					"id",
-					"name",
-					"description",
-					"category",
-					"focus",
-					"intensity",
-					"defaultSets",
-					"defaultReps"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"FolderResponse": {
-				"description": "Folder returned by the API",
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					},
-					"order": {
-						"type": "number",
-						"format": "double"
-					},
-					"createdAt": {
-						"type": "string"
-					},
-					"updatedAt": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"id",
-					"name",
-					"order",
-					"createdAt",
-					"updatedAt"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"CreateFolderBody": {
-				"description": "Body for creating a folder",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "Display name for this folder"
-					}
-				},
-				"required": [
-					"name"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateFolderBody": {
-				"description": "Body for updating a folder",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "New display name"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ReorderFoldersBody": {
-				"description": "Body for reordering folders",
-				"properties": {
-					"folderIds": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array",
-						"description": "Array of folder IDs in their new order"
-					}
-				},
-				"required": [
-					"folderIds"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
 			"ExerciseItem": {
 				"description": "Exercise subset returned inside a generated session",
 				"properties": {
@@ -684,6 +511,14 @@
 						"format": "double",
 						"nullable": true,
 						"description": "Default number of reps per set (null = time-based exercise)"
+					},
+					"repScheme": {
+						"items": {
+							"type": "number",
+							"format": "double"
+						},
+						"type": "array",
+						"description": "Optional per-set rep scheme (e.g. [12,12,12,15,15]); overrides defaultReps when present"
 					}
 				},
 				"required": [
@@ -873,6 +708,45 @@
 					"fatigue",
 					"injuries",
 					"equipment"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ProgramProgressResponse": {
+				"description": "A user's progress through a recurring multi-week program.",
+				"properties": {
+					"programId": {
+						"type": "string"
+					},
+					"week": {
+						"type": "number",
+						"format": "double",
+						"description": "Current week, 1..12."
+					},
+					"dayIndex": {
+						"type": "number",
+						"format": "double",
+						"description": "Current training-day index within the week, 0..3."
+					},
+					"completedCount": {
+						"type": "number",
+						"format": "double",
+						"description": "Total sessions completed since starting."
+					},
+					"startedAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"programId",
+					"week",
+					"dayIndex",
+					"completedCount",
+					"startedAt",
+					"updatedAt"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1094,26 +968,199 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"TermResponse": {
+			"FolderResponse": {
+				"description": "Folder returned by the API",
 				"properties": {
 					"id": {
 						"type": "string"
 					},
-					"term": {
+					"name": {
 						"type": "string"
 					},
-					"definition": {
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"createdAt": {
 						"type": "string"
 					},
-					"letter": {
+					"updatedAt": {
 						"type": "string"
 					}
 				},
 				"required": [
 					"id",
-					"term",
-					"definition",
-					"letter"
+					"name",
+					"order",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateFolderBody": {
+				"description": "Body for creating a folder",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Display name for this folder"
+					}
+				},
+				"required": [
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateFolderBody": {
+				"description": "Body for updating a folder",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "New display name"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ReorderFoldersBody": {
+				"description": "Body for reordering folders",
+				"properties": {
+					"folderIds": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"description": "Array of folder IDs in their new order"
+					}
+				},
+				"required": [
+					"folderIds"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ExerciseResponse": {
+				"description": "Exercise returned by the API",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"category": {
+						"type": "string"
+					},
+					"focus": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"intensity": {
+						"type": "number",
+						"format": "double"
+					},
+					"defaultSets": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"defaultReps": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"description",
+					"category",
+					"focus",
+					"intensity",
+					"defaultSets",
+					"defaultReps"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AuthResponse": {
+				"description": "Response after successful authentication",
+				"properties": {
+					"token": {
+						"type": "string"
+					},
+					"user": {
+						"properties": {
+							"picture": {
+								"type": "string",
+								"nullable": true
+							},
+							"name": {
+								"type": "string"
+							},
+							"email": {
+								"type": "string"
+							},
+							"id": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"picture",
+							"name",
+							"email",
+							"id"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"token",
+					"user"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"RegisterBody": {
+				"description": "Request body for user registration",
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"password",
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LoginBody": {
+				"description": "Request body for user login",
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"password"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1134,212 +1181,6 @@
 		"contact": {}
 	},
 	"paths": {
-		"/api/users/me": {
-			"get": {
-				"operationId": "GetMe",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/UserResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Returns the authenticated user's profile.",
-				"tags": [
-					"Users"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": []
-			},
-			"patch": {
-				"operationId": "UpdateMe",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/UserResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update the authenticated user's profile.",
-				"tags": [
-					"Users"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateProfileBody"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/shared/workouts/{workoutId}/share": {
-			"post": {
-				"operationId": "CreateShareLink",
-				"responses": {
-					"201": {
-						"description": "Created",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/CreateShareLinkResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Create a share link for a workout. Requires authentication.\nThe workout must belong to the authenticated user.",
-				"tags": [
-					"Shared Workouts"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "workoutId",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/api/shared/{code}": {
-			"get": {
-				"operationId": "GetSharedWorkout",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/SharedWorkoutResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get details of a shared workout by code. No authentication required.",
-				"tags": [
-					"Shared Workouts"
-				],
-				"security": [],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "code",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/api/shared/{code}/import": {
-			"post": {
-				"operationId": "ImportSharedWorkout",
-				"responses": {
-					"201": {
-						"description": "Created",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ImportSharedWorkoutResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Import a shared workout to the authenticated user's library.\nCreates a copy of the workout - doesn't link to the original.",
-				"tags": [
-					"Shared Workouts"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "code",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/ImportSharedWorkoutBody"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/shared/my/links": {
-			"get": {
-				"operationId": "ListMyShareLinks",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/SharedWorkoutResponse"
-									},
-									"type": "array"
-								}
-							}
-						}
-					}
-				},
-				"description": "List all share links created by the authenticated user.",
-				"tags": [
-					"Shared Workouts"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": []
-			}
-		},
 		"/api/workouts": {
 			"get": {
 				"operationId": "ListWorkouts",
@@ -1512,6 +1353,247 @@
 				]
 			}
 		},
+		"/api/users/me": {
+			"get": {
+				"operationId": "GetMe",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Returns the authenticated user's profile.",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": []
+			},
+			"patch": {
+				"operationId": "UpdateMe",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update the authenticated user's profile.",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateProfileBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/terms": {
+			"get": {
+				"operationId": "ListTerms",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/TermResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "List all bouldering glossary terms, optionally filtered by a search query.",
+				"tags": [
+					"Terms"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "q",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/shared/workouts/{workoutId}/share": {
+			"post": {
+				"operationId": "CreateShareLink",
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateShareLinkResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a share link for a workout. Requires authentication.\nThe workout must belong to the authenticated user.",
+				"tags": [
+					"Shared Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "workoutId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/shared/{code}": {
+			"get": {
+				"operationId": "GetSharedWorkout",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SharedWorkoutResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get details of a shared workout by code. No authentication required.",
+				"tags": [
+					"Shared Workouts"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "code",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/shared/{code}/import": {
+			"post": {
+				"operationId": "ImportSharedWorkout",
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ImportSharedWorkoutResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Import a shared workout to the authenticated user's library.\nCreates a copy of the workout - doesn't link to the original.",
+				"tags": [
+					"Shared Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "code",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ImportSharedWorkoutBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/shared/my/links": {
+			"get": {
+				"operationId": "ListMyShareLinks",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/SharedWorkoutResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "List all share links created by the authenticated user.",
+				"tags": [
+					"Shared Workouts"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": []
+			}
+		},
 		"/api/session-logs": {
 			"get": {
 				"operationId": "ListSessionLogs",
@@ -1663,105 +1745,213 @@
 				}
 			}
 		},
-		"/api/auth/register": {
+		"/api/sessions/generate": {
 			"post": {
-				"operationId": "Register",
+				"operationId": "Generate",
 				"responses": {
 					"200": {
 						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/AuthResponse"
+									"$ref": "#/components/schemas/GeneratedSession"
 								}
 							}
 						}
 					}
 				},
-				"description": "Register a new user with email and password.",
+				"description": "Generate a personalised climbing session based on the provided inputs.",
 				"tags": [
-					"Auth"
+					"Sessions"
 				],
-				"security": [],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
 				"parameters": [],
 				"requestBody": {
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/RegisterBody"
+								"$ref": "#/components/schemas/SessionInput"
 							}
 						}
 					}
 				}
 			}
 		},
-		"/api/auth/login": {
-			"post": {
-				"operationId": "Login",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/AuthResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Login with email and password.",
-				"tags": [
-					"Auth"
-				],
-				"security": [],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/LoginBody"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/exercises": {
+		"/api/programs/{programId}/progress": {
 			"get": {
-				"operationId": "ListExercises",
+				"operationId": "GetProgress",
 				"responses": {
 					"200": {
 						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/ExerciseResponse"
-									},
-									"type": "array"
+									"allOf": [
+										{
+											"$ref": "#/components/schemas/ProgramProgressResponse"
+										}
+									],
+									"nullable": true
 								}
 							}
 						}
 					}
 				},
-				"description": "List all exercises, optionally filtered by search query.\nSearch matches name or category (case-insensitive).",
+				"description": "Get the authenticated user's progress in a program, or null if not started.",
 				"tags": [
-					"Exercises"
+					"Programs"
 				],
-				"security": [],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
 				"parameters": [
 					{
-						"in": "query",
-						"name": "q",
-						"required": false,
+						"in": "path",
+						"name": "programId",
+						"required": true,
 						"schema": {
 							"type": "string"
 						}
 					}
 				]
+			}
+		},
+		"/api/programs/{programId}/start": {
+			"post": {
+				"operationId": "StartProgram",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProgramProgressResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Start (or resume) a program. Creates progress at week 1 / day 0 if none\nexists; returns the existing progress otherwise so re-clicking is safe.",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "programId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/programs/{programId}/advance": {
+			"post": {
+				"operationId": "AdvanceProgram",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProgramProgressResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Advance one training day. Wraps the day within the week and the week within\nthe 12-week cycle (Week 12 → Week 1) — \"a circle every 12 weeks\".",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "programId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/programs/{programId}/reset": {
+			"post": {
+				"operationId": "ResetProgram",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProgramProgressResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Reset the program back to week 1 / day 0 (keeps the lifetime completed count).",
+				"tags": [
+					"Programs"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "programId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/leaderboard": {
+			"get": {
+				"operationId": "GetLeaderboard",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LeaderboardResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get leaderboard stats for all users.",
+				"tags": [
+					"Leaderboard"
+				],
+				"security": [],
+				"parameters": []
 			}
 		},
 		"/api/folders": {
@@ -1974,69 +2164,9 @@
 				]
 			}
 		},
-		"/api/sessions/generate": {
-			"post": {
-				"operationId": "Generate",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/GeneratedSession"
-								}
-							}
-						}
-					}
-				},
-				"description": "Generate a personalised climbing session based on the provided inputs.",
-				"tags": [
-					"Sessions"
-				],
-				"security": [
-					{
-						"bearerAuth": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SessionInput"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/leaderboard": {
+		"/api/exercises": {
 			"get": {
-				"operationId": "GetLeaderboard",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/LeaderboardResponse"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get leaderboard stats for all users.",
-				"tags": [
-					"Leaderboard"
-				],
-				"security": [],
-				"parameters": []
-			}
-		},
-		"/api/terms": {
-			"get": {
-				"operationId": "ListTerms",
+				"operationId": "ListExercises",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -2044,7 +2174,7 @@
 							"application/json": {
 								"schema": {
 									"items": {
-										"$ref": "#/components/schemas/TermResponse"
+										"$ref": "#/components/schemas/ExerciseResponse"
 									},
 									"type": "array"
 								}
@@ -2052,9 +2182,9 @@
 						}
 					}
 				},
-				"description": "List all bouldering glossary terms, optionally filtered by a search query.",
+				"description": "List all exercises, optionally filtered by search query.\nSearch matches name or category (case-insensitive).",
 				"tags": [
-					"Terms"
+					"Exercises"
 				],
 				"security": [],
 				"parameters": [
@@ -2067,6 +2197,72 @@
 						}
 					}
 				]
+			}
+		},
+		"/api/auth/register": {
+			"post": {
+				"operationId": "Register",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AuthResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Register a new user with email and password.",
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/login": {
+			"post": {
+				"operationId": "Login",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AuthResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Login with email and password.",
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginBody"
+							}
+						}
+					}
+				}
 			}
 		}
 	},

@@ -10,14 +10,21 @@ import {
   ChevronRight,
   Dumbbell,
   Calendar,
+  CalendarRange,
 } from "lucide-react";
 import { SessionForm } from "@/components/SessionForm";
 import { SessionView } from "@/components/SessionView";
 import { AuthModal } from "@/components/AuthModal";
 import type { GeneratedSession, SessionInput } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
-import { api, type SessionLogResponse, type WorkoutResponse } from "@/lib/api";
+import {
+  api,
+  type ProgramProgressResponse,
+  type SessionLogResponse,
+  type WorkoutResponse,
+} from "@/lib/api";
 import { loadActiveSession } from "@/lib/active-session-store";
+import { RCP_META, RCP_PROGRAM_ID, dayFocus } from "@/lib/programs/rcp-split";
 
 // Climbing tips for motivation
 const CLIMBING_TIPS = [
@@ -90,6 +97,7 @@ function Index() {
   const [currentWorkoutId, setCurrentWorkoutId] = useState<string | null>(null);
   const [sessionLogs, setSessionLogs] = useState<SessionLogResponse[]>([]);
   const [recentWorkouts, setRecentWorkouts] = useState<WorkoutResponse[]>([]);
+  const [programProgress, setProgramProgress] = useState<ProgramProgressResponse | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
   // Get daily tip
@@ -115,6 +123,11 @@ function Index() {
       })
       .catch(() => {})
       .finally(() => setStatsLoading(false));
+    // Program progress (separate — independent of the stats spinner)
+    api.programs
+      .getProgress(RCP_PROGRAM_ID)
+      .then(setProgramProgress)
+      .catch(() => {});
   }, [user]);
 
   // Calculate stats
@@ -390,6 +403,27 @@ function Index() {
                     <p className="mt-1 text-xs text-muted-foreground">Minutes (30d)</p>
                   </div>
                 </div>
+              )}
+
+              {/* Program: continue the current cycle */}
+              {programProgress && (
+                <Link
+                  to="/programs"
+                  className="flex items-center gap-4 rounded-xl border border-primary/30 bg-primary/5 p-4 shadow-sm transition-all hover:bg-primary/10 active:scale-[0.99]"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                    <CalendarRange className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                      {RCP_META.name} · Continue
+                    </p>
+                    <p className="mt-0.5 truncate text-sm font-medium text-foreground">
+                      Week {programProgress.week} · {dayFocus(programProgress.dayIndex)}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+                </Link>
               )}
 
               {/* Start Session Button */}

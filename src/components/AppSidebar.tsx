@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Home, Dumbbell, Trophy, BarChart3, BookOpen, User, LogOut, LogIn } from "lucide-react";
+import {
+  Home,
+  Dumbbell,
+  Trophy,
+  BarChart3,
+  BookOpen,
+  CalendarRange,
+  User,
+  LogOut,
+  LogIn,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +32,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/workouts", icon: Dumbbell, label: "Workouts" },
+  { to: "/programs", icon: CalendarRange, label: "Programs" },
   { to: "/stats", icon: BarChart3, label: "Stats" },
   { to: "/leaderboard", icon: Trophy, label: "Leaderboard" },
   { to: "/terms", icon: BookOpen, label: "Glossary" },

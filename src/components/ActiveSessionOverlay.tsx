@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import type { GeneratedSession } from "@/lib/types";
-import { api, type CreateSessionLogBody, type ExerciseLogData } from "@/lib/api";
+import {
+  api,
+  type CreateSessionLogBody,
+  type ExerciseLogData,
+  type ProgramProgressResponse,
+} from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import {
   loadActiveSession,
@@ -27,9 +32,17 @@ import {
 interface ActiveSessionOverlayProps {
   session: GeneratedSession;
   workoutId?: string;
+  /** If this session is a program training day, the program it belongs to. */
+  programId?: string;
+  /** The 0-based training-day index within the program, ticked on finish. */
+  programDayIndex?: number;
   onClose: () => void;
-  /** Called once after the session is successfully finished and logged. */
-  onCompleted?: () => void | Promise<void>;
+  /**
+   * Called once after the session is successfully finished and logged. When the
+   * session is a program day, receives the updated progress (the day's tick has
+   * already been persisted by this overlay).
+   */
+  onCompleted?: (progress?: ProgramProgressResponse) => void | Promise<void>;
 }
 
 const DEFAULT_REST_TIME = 90;
@@ -43,6 +56,8 @@ function formatRestTimeDisplay(seconds: number): string {
 export function ActiveSessionOverlay({
   session,
   workoutId,
+  programId,
+  programDayIndex,
   onClose,
   onCompleted,
 }: ActiveSessionOverlayProps) {
@@ -196,6 +211,18 @@ export function ActiveSessionOverlay({
     [user],
   );
 
+  // Program linkage: when this session is a program day, finishing ticks that day.
+  // Resolved from the restored store (so finishing from any page works) or props.
+  const programLink = useRef<{ programId: string; dayIndex: number } | null>(
+    isRestore
+      ? storedOnMount!.programId != null && storedOnMount!.programDayIndex != null
+        ? { programId: storedOnMount!.programId, dayIndex: storedOnMount!.programDayIndex }
+        : null
+      : programId != null && programDayIndex != null
+        ? { programId, dayIndex: programDayIndex }
+        : null,
+  );
+
   // Timer refs
   const startedAt = useRef<string>(isRestore ? storedOnMount!.startedAt : new Date().toISOString());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -280,6 +307,8 @@ export function ActiveSessionOverlay({
       activeIdx,
       notes,
       runningAt: sessionStartWall.current,
+      programId: programLink.current?.programId,
+      programDayIndex: programLink.current?.dayIndex,
     });
   }, [exercises, activeIdx, notes, running, saved, session, workoutId]);
 
@@ -410,9 +439,14 @@ export function ActiveSessionOverlay({
         exercises: exercisesData,
       };
       await api.sessionLogs.create(body);
-      // Notify the program flow so it can advance to the next training day.
+      // If this is a program day, tick it complete here so it works no matter
+      // which page the session is finished from (e.g. restored on the Home page).
       try {
-        await onCompleted?.();
+        const link = programLink.current;
+        const progress = link
+          ? await api.programs.completeDay(link.programId, link.dayIndex)
+          : undefined;
+        await onCompleted?.(progress);
       } catch {
         /* advancing is best-effort — don't block the finish flow */
       }

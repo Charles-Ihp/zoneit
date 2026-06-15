@@ -35,6 +35,10 @@ export interface ActiveSessionStore {
   notes: string;
   /** Date.now() when the timer was last started, null if paused */
   runningAt: number | null;
+  /** If this session is a program training day, the program it belongs to. */
+  programId?: string;
+  /** The 0-based training-day index within the program, ticked on finish. */
+  programDayIndex?: number;
 }
 
 export function saveActiveSession(data: ActiveSessionStore): void {

@@ -4,11 +4,16 @@ import type { GeneratedSession, SessionBlock, ExerciseItem } from "@/lib/types";
 import { ActiveSessionOverlay } from "./ActiveSessionOverlay";
 import { ExerciseSearchModal } from "./ExerciseSearchModal";
 import { loadActiveSession, clearActiveSession } from "@/lib/active-session-store";
+import type { ProgramProgressResponse } from "@/lib/api";
 
 interface SessionViewProps {
   session: GeneratedSession;
   titleOverride?: React.ReactNode;
   workoutId?: string;
+  /** If this session is a program training day, the program it belongs to. */
+  programId?: string;
+  /** The 0-based training-day index within the program, ticked on finish. */
+  programDayIndex?: number;
   onBack?: () => void;
   onRegenerate?: () => void;
   onSave?: () => void;
@@ -18,7 +23,7 @@ interface SessionViewProps {
   /** If provided, allows editing the session */
   onSessionChange?: (session: GeneratedSession) => void;
   /** Called once after the session is finished and logged (e.g. to advance a program). */
-  onCompleted?: () => void | Promise<void>;
+  onCompleted?: (progress?: ProgramProgressResponse) => void | Promise<void>;
 }
 
 const phaseColors: Record<string, { bg: string; border: string; accent: string; label: string }> = {
@@ -52,6 +57,8 @@ export function SessionView({
   session,
   titleOverride,
   workoutId,
+  programId,
+  programDayIndex,
   onBack,
   onRegenerate,
   onSave,
@@ -152,6 +159,8 @@ export function SessionView({
           <ActiveSessionOverlay
             session={session}
             workoutId={workoutId}
+            programId={programId}
+            programDayIndex={programDayIndex}
             onCompleted={onCompleted}
             onClose={() => {
               clearActiveSession();

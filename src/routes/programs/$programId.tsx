@@ -103,13 +103,10 @@ function ProgramDetailPage() {
     }
   };
 
-  const handleCompleted = async () => {
-    if (launchedDay === null) return;
-    try {
-      setProgress(await api.programs.completeDay(programId, launchedDay));
-    } catch {
-      /* reconciled by refetch on return */
-    }
+  const handleCompleted = async (updated?: ProgramProgressResponse) => {
+    // The overlay already persisted the day's tick; just reflect the new state.
+    if (updated) setProgress(updated);
+    else await refetchProgress();
   };
 
   const handleAdvanceWeek = async () => {
@@ -146,6 +143,8 @@ function ProgramDetailPage() {
       <div className="mx-auto max-w-2xl">
         <SessionView
           session={session}
+          programId={programId}
+          programDayIndex={launchedDay ?? undefined}
           onBack={() => {
             setSession(null);
             setLaunchedDay(null);

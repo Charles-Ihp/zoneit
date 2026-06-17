@@ -1,38 +1,97 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+//
+// Target: Cloudflare D1 (SQLite) via the Prisma D1 driver adapter.
+// Postgres array columns are normalized into join tables (SQLite has no
+// native array type). JSON columns stay as Prisma `Json` (stored as TEXT).
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 // ─── Seed ───────────────────────────────────────────────────────────────────
 
-// npx prisma db seed -> ts-node prisma/seed.ts
+// Fresh-env seeding is done via scripts/gen-seed-sql.ts -> seed.sql ->
+// `wrangler d1 execute zoneit --file seed.sql`. (The old ts-node seed targeted
+// Postgres and cannot run on D1.)
 
 model Exercise {
   /// Short stable ID matching the frontend (e.g. 'wm1', 't4')
-  id          String   @id
+  id          String @id
   name        String
   description String
   category    String
-  wallTypes   String[]
-  levels      String[]
   durationMin Int
   durationMax Int
   /// 1-10 intensity scale
   intensity   Int
-  equipment   String[]
-  injuryRisk  String[]
-  focus       String[]
   /// Default number of sets (null = time-based exercise)
   defaultSets Int?
   /// Default number of reps per set (null = time-based exercise)
   defaultReps Int?
+
+  // Former Postgres String[] columns, normalized into join tables.
+  wallTypes  ExerciseWallType[]
+  levels     ExerciseLevel[]
+  equipment  ExerciseEquipment[]
+  injuryRisk ExerciseInjuryRisk[]
+  focus      ExerciseFocus[]
+}
+
+/// Former Exercise.wallTypes String[]
+model ExerciseWallType {
+  exerciseId String
+  value      String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, value])
+  @@index([exerciseId])
+}
+
+/// Former Exercise.levels String[]
+model ExerciseLevel {
+  exerciseId String
+  value      String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, value])
+  @@index([exerciseId])
+}
+
+/// Former Exercise.equipment String[]
+model ExerciseEquipment {
+  exerciseId String
+  value      String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, value])
+  @@index([exerciseId])
+}
+
+/// Former Exercise.injuryRisk String[]
+model ExerciseInjuryRisk {
+  exerciseId String
+  value      String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, value])
+  @@index([exerciseId])
+}
+
+/// Former Exercise.focus String[]
+model ExerciseFocus {
+  exerciseId String
+  value      String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, value])
+  @@index([exerciseId])
 }
 
 model User {
@@ -70,7 +129,9 @@ model Program {
   /// Number of weeks before the cycle loops.
   lengthWeeks Int      @default(4)
   /// ProgramDay[] — each day has a name and a list of { exercise, duration }.
-  days        Json
+  /// JSON-encoded TEXT (SQLite has no native JSON in Prisma 5). (De)serialized
+  /// at the data-access boundary; wire type stays Record<string, unknown>.
+  days        String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -87,17 +148,28 @@ model ProgramProgress {
   programId      String
   /// Current week, 1..12.
   week           Int      @default(1)
-  /// Training-day indices (0..3) completed in the CURRENT week. Cleared when the week advances.
-  completedDays  Int[]    @default([])
   /// Total sessions completed since starting (for stats / streaks).
   completedCount Int      @default(0)
   startedAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Training-day indices (0..3) completed in the CURRENT week.
+  /// Former Postgres Int[] column, normalized into a join table.
+  completedDays ProgramProgressCompletedDay[]
 
   @@unique([userId, programId])
   @@index([userId])
+}
+
+/// Former ProgramProgress.completedDays Int[]
+model ProgramProgressCompletedDay {
+  progressId String
+  day        Int
+  progress   ProgramProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
+
+  @@id([progressId, day])
+  @@index([progressId])
 }
 
 model Folder {
@@ -121,8 +193,10 @@ model Workout {
   name             String
   userId           String
   folderId         String?
-  sessionInput     Json
-  generatedSession Json
+  /// JSON-encoded TEXT (see note on Program.days).
+  sessionInput     String
+  /// JSON-encoded TEXT (see note on Program.days).
+  generatedSession String
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -144,7 +218,8 @@ model SessionLog {
   durationSeconds Int
   exerciseCount   Int
   notes           String   @default("")
-  exercises       Json?
+  /// JSON-encoded TEXT (see note on Program.days). Nullable.
+  exercises       String?
   createdAt       DateTime @default(now())
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -156,24 +231,24 @@ model SessionLog {
 
 /// Shareable workout links - snapshot of workout data
 model SharedWorkout {
-  id            String    @id @default(cuid())
+  id               String    @id @default(cuid())
   /// Short unique code for the share link (e.g. "abc123")
-  code          String    @unique
+  code             String    @unique
   /// User who created the share link
-  createdById   String
+  createdById      String
   /// Original workout ID (to reuse existing share links)
-  workoutId     String?
+  workoutId        String?
   /// Name of the workout at time of sharing
-  workoutName   String
-  /// Snapshot of sessionInput
-  sessionInput  Json
-  /// Snapshot of generatedSession
-  generatedSession Json
+  workoutName      String
+  /// Snapshot of sessionInput — JSON-encoded TEXT (see note on Program.days).
+  sessionInput     String
+  /// Snapshot of generatedSession — JSON-encoded TEXT (see note on Program.days).
+  generatedSession String
   /// Optional expiration date
-  expiresAt     DateTime?
+  expiresAt        DateTime?
   /// Track how many times imported
-  importCount   Int       @default(0)
-  createdAt     DateTime  @default(now())
+  importCount      Int       @default(0)
+  createdAt        DateTime  @default(now())
 
   createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
@@ -192,11 +267,11 @@ model AppConfig {
 
 /// Promo codes for gating sign-in during testing mode.
 model PromoCode {
-  id        String   @id @default(cuid())
-  code      String   @unique
+  id        String    @id @default(cuid())
+  code      String    @unique
   usedAt    DateTime?
   usedBy    String?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 /// Bouldering glossary terms.

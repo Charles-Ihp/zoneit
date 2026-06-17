@@ -1,7 +1,42 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "gravitacio",
+  "main": "backend/src/worker.ts",
   "compatibility_date": "2025-09-24",
+  // nodejs_compat is required by the Prisma client (and its D1 driver adapter).
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+
+  // The built SPA. `single-page-application` makes deep links fall back to
+  // index.html so client-side routing (TanStack Router) works on refresh.
+  //
+  // `run_worker_first` is REQUIRED: without it the assets layer serves the SPA
+  // index.html for ANY unmatched path (incl. /api/* and /health) BEFORE the
+  // Worker runs, so the API would never execute in production (e.g. navigating
+  // to /api/auth/google would render the SPA 404). Listing the API prefixes
+  // forces those requests to the Worker first; all other paths are served
+  // directly from assets with SPA fallback.
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/health"]
+  },
+
+  // Cloudflare D1 (SQLite). Fill database_id after `wrangler d1 create zoneit`.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "gravitacio-db",
+      "database_id": "2e0baa48-e635-4d89-a574-bb9eb506eb0a",
+      "migrations_dir": "backend/prisma/d1-migrations"
+    }
+  ],
+
+  // The post-OAuth redirect target and share-link base are derived from the
+  // request origin (same-origin combined Worker), so FRONTEND_URL / APP_URL are
+  // NOT set here — leaving them unset avoids pinning prod to a wrong origin.
+  // Set them only to override the derived origin. Secrets (JWT_SECRET,
+  // GOOGLE_CLIENT_ID/SECRET, GOOGLE_CALLBACK_URL) are set with
+  // `wrangler secret put` (prod) or in .dev.vars (local).
+  "vars": {}
 }

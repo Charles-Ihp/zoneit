@@ -1,5 +1,4 @@
-import type { Exercise } from "@prisma/client";
-import { prisma } from "./prisma";
+import type { HydratedExercise as Exercise } from "./exercise-hydrate";
 import type { SessionInput, GeneratedSession, SessionBlock, ExerciseItem } from "../models/Session";
 
 const gymToWallTypes: Record<string, string[]> = {
@@ -69,10 +68,10 @@ function buildBlock(
   };
 }
 
-export async function generateSession(input: SessionInput): Promise<GeneratedSession> {
+/// `all` is the full, hydrated exercise catalog (loaded + hydrated by the
+/// caller via exerciseInclude / hydrateExercise). Pure logic — no DB access.
+export function generateSession(input: SessionInput, all: Exercise[]): GeneratedSession {
   const { level, goal, sessionLength, gymType, fatigue, injuries, equipment } = input;
-
-  const all = await prisma.exercise.findMany();
 
   const f = (cat: string, n: number) =>
     pick(filter(all, cat, level, gymType, injuries, equipment), n);

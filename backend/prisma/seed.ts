@@ -2,7 +2,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const exercises = [
+// Exported so scripts/gen-seed-sql.ts can emit D1 seed SQL from the same source.
+export const exercises = [
   // WARMUP - MOBILITY
   {
     id: "wm1",
@@ -3214,9 +3215,14 @@ async function main() {
   }
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+// Only run when executed directly (e.g. `bun run prisma/seed.ts`), NOT when
+// imported as a data source by scripts/gen-seed-sql.ts. Note: this legacy seed
+// targets Postgres and is superseded by D1 seed.sql on the new stack.
+if (import.meta.main) {
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}

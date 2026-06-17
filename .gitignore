@@ -18,7 +18,6 @@ dist-ssr/
 .vinxi/
 .nitro/
 backend/dist/
-backend/src/generated/
 
 # TanStack
 .tanstack/**
@@ -34,12 +33,6 @@ backend/.env.local
 .wrangler/
 .dev.vars
 
-# Prisma - keep migrations tracked, ignore generated client
-backend/src/generated/
-
-# Railway
-.railway/
-
 # OS
 .DS_Store
 Thumbs.db
@@ -53,3 +46,10 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Cloudflare migration: generated artifacts with user data / local DB
+seed-data.sql
+backup.sql
+backend/prisma/dev.db
+backend/prisma/*.db
+.wrangler/

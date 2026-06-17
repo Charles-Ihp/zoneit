@@ -1,98 +1,38 @@
-import "reflect-metadata";
-import express, { type Request, type Response, type NextFunction } from "express";
-import cors from "cors";
-import passport from "passport";
-import jwt from "jsonwebtoken";
-import swaggerUi from "swagger-ui-express";
-import { ValidateError } from "tsoa";
-import { RegisterRoutes } from "./generated/routes";
-import { configurePassport } from "./lib/passport";
-import { prisma } from "./lib/prisma";
-import type { User } from "@prisma/client";
+import { Hono } from "hono";
+import type { HonoEnv } from "./env";
+import { onError } from "./middleware/error";
 
-configurePassport();
+import { authRoutes } from "./routes/auth";
+import { userRoutes } from "./routes/users";
+import { sessionRoutes } from "./routes/sessions";
+import { workoutRoutes } from "./routes/workouts";
+import { folderRoutes } from "./routes/folders";
+import { sessionLogRoutes } from "./routes/sessionLogs";
+import { termRoutes } from "./routes/terms";
+import { exerciseRoutes } from "./routes/exercises";
+import { leaderboardRoutes } from "./routes/leaderboard";
+import { programRoutes } from "./routes/programs";
+import { sharedRoutes } from "./routes/shared";
 
-export const app = express();
+/// The API. Mounted by the Worker entry (worker.ts) for /api and /health;
+/// everything else falls through to the static SPA assets. Same origin as the
+/// SPA (combined Worker), so no CORS is needed.
+const app = new Hono<HonoEnv>();
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const allowed = (process.env.FRONTEND_URL || "http://localhost:5173")
-        .split(",")
-        .map((u) => u.trim())
-        .concat(["http://localhost:8080", "http://localhost:5173"]);
-      if (!origin || allowed.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: origin ${origin} not allowed`));
-      }
-    },
-    credentials: true,
-  }),
-);
-app.use(express.json());
-app.use(passport.initialize());
+app.get("/health", (c) => c.json({ status: "ok" }));
 
-// ─── Health check ───────────────────────────────────────────────────────────
+app.route("/api/auth", authRoutes);
+app.route("/api/users", userRoutes);
+app.route("/api/sessions", sessionRoutes);
+app.route("/api/workouts", workoutRoutes);
+app.route("/api/folders", folderRoutes);
+app.route("/api/session-logs", sessionLogRoutes);
+app.route("/api/terms", termRoutes);
+app.route("/api/exercises", exerciseRoutes);
+app.route("/api/leaderboard", leaderboardRoutes);
+app.route("/api/programs", programRoutes);
+app.route("/api/shared", sharedRoutes);
 
-app.get("/health", (_req: Request, res: Response) => {
-  res.json({ status: "ok" });
-});
+app.onError(onError);
 
-// ─── Auth config + testing mode ─────────────────────────────────────────────
-
-app.get("/api/auth/config", async (_req: Request, res: Response) => {
-  res.json({ testingMode: false });
-});
-
-// ─── Google OAuth ────────────────────────────────────────────────────────────
-
-app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-
-app.get(
-  "/api/auth/google/callback",
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: `${process.env.FRONTEND_URL || "http://localhost:5173"}?error=auth_failed`,
-  }),
-  (req: Request, res: Response) => {
-    const user = req.user as User;
-    const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET!, { expiresIn: "7d" });
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    res.redirect(`${frontendUrl}?token=${encodeURIComponent(token)}`);
-  },
-);
-
-// ─── TSOA-generated routes ───────────────────────────────────────────────────
-
-RegisterRoutes(app);
-
-// ─── Swagger UI ──────────────────────────────────────────────────────────────
-
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const swaggerDocument = require("../public/swagger.json") as object;
-  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-} catch {
-  // swagger.json not generated yet — run `npm run tsoa` first
-}
-
-// ─── Error handler ───────────────────────────────────────────────────────────
-
-app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  if (err instanceof ValidateError) {
-    res.status(422).json({ message: "Validation Failed", details: err.fields });
-    return;
-  }
-
-  if (err instanceof Error) {
-    const status = (err as Error & { status?: number }).status;
-    if (status) {
-      res.status(status).json({ message: err.message });
-      return;
-    }
-  }
-
-  console.error(err);
-  res.status(500).json({ message: "Internal Server Error" });
-});
+export default app;

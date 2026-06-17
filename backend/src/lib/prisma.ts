@@ -1,12 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaD1 } from "@prisma/adapter-d1";
+import type { Env } from "../env";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __prisma: PrismaClient | undefined;
-}
-
-export const prisma = globalThis.__prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.__prisma = prisma;
+/// Per-request Prisma client over the D1 binding. Workers have no long-lived
+/// process, so we create a client per request (cheap; the adapter wraps env.DB).
+export function getPrisma(env: Env): PrismaClient {
+  const adapter = new PrismaD1(env.DB);
+  return new PrismaClient({ adapter });
 }
